@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.guoll.modules.product_customer.mapper.ProductBusinessTypeMapper">
+	<!-- Parameter Map -->
+	<parameterMap id="baseParameterMap" type="com.guoll.modules.product_customer.bean.ProductBusinessType" />
+	<!-- Result Map -->
+	<resultMap id="baseResultMap" type="com.guoll.modules.product_customer.bean.ProductBusinessType" />
+
+	<!-- 初始化业务类型下拉选 -->
+	<select id="queryProductBusinessTypeSelect" resultMap="baseResultMap">
+		SELECT id,type_name,type_id FROM PRODUCT_BUSINESS_TYPE
+	</select>
+	
+	
+	<!-- 新增业务类型 -->
+	<insert id="addProductBusinessType" parameterMap="baseParameterMap" useGeneratedKeys="true" keyProperty="id">
+		INSERT INTO PRODUCT_BUSINESS_TYPE (TYPE_NAME,TYPE_ID) 
+			VALUES 
+		(#{type_name,jdbcType=VARCHAR},#{type_id,jdbcType=VARCHAR})
+	</insert>
+	
+	<!-- 根据type_id或type_name查询 -->
+	<select id="queryProductBusinessByNameOrId" resultMap="baseResultMap" parameterMap="baseParameterMap">
+		SELECT id,type_name,type_id FROM PRODUCT_BUSINESS_TYPE
+		WHERE 1=1
+		<if test=" type_id !='' and type_id != null">AND type_id = #{type_id,jdbcType=VARCHAR}</if>
+		<if test=" type_name !='' and type_name != null">AND type_name = #{type_name,jdbcType=VARCHAR}</if>
+	</select>
+</mapper>

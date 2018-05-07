@@ -1,0 +1,341 @@
+function searchMethod(){
+	var provincSpell = $('#provincSpell').val();
+	var params ={provincSpell:provincSpell};
+	$("#dg").datagrid("reload",params);
+}
+
+function formatOperate(value,rowDatas,rowIndex){
+	console.log(value,rowDatas,rowIndex)
+}
+
+function formatDt(value,rowDatas,rowIndex){
+	if(!isNull(value)){
+		return new Date(value).pattern("yyyy-MM-dd HH:mm:ss");
+	}
+	return "";
+	
+}
+//省级任务统计
+$(function(){
+	drawStatistics1();
+	drawStatistics2();
+	detail();
+});
+function detail(){
+	$.ajax({
+		url: 'statisticsController/projectOfGroupUseCaseList?projectId=690',
+		dataType: 'json',  
+		async: true,
+		success: function (res) { 
+			  console.log("res",res);
+		}
+	})
+}
+//绘制任务柱状图
+function drawStatistics1(){
+	var homeProjectNames = [];
+	var projectUseCasePassRates = [];
+	$.ajax({
+		url: 'statisticsController/getProvinceStatisticProjectEchart',
+		dataType: 'json',  
+		async: true,
+		success: function (res) { 
+			  console.log(res);
+			  var homeProjectNames = [];//任务名称
+			  var projectUseCasePassRates = [];//任务通过率
+			  for(var i in res.data){
+				  homeProjectNames.push(res.data[i].projectName);
+				  projectUseCasePassRates.push(parseInt(res.data[i].projectUseCasePassRate));
+			  }
+			  var pTestPassRate = $("#pTestPassRate")[0];
+				//得到echarts的实例对象
+			    var Chart = echarts.init(pTestPassRate);
+			    //pTestPassRate.title = '多 Y 轴示例';
+			    var colors = ['#5793f3'];
+			    option = {
+			        color: colors,
+
+			        tooltip: {
+			            trigger: 'axis',
+			            axisPointer: {
+			                type: 'cross'
+			            }
+			        },
+			        grid: {
+			            right: '2%'
+			        },
+			        toolbox: {
+			            feature: {
+			                dataView: {show: true, readOnly: false},
+			                restore: {show: true},
+			                saveAsImage: {show: true}
+			            }
+			        },
+			        legend: {
+			            data:["任务通过率"]
+			        },
+			        xAxis: [
+			            {
+			                type: 'category',
+			                axisTick: {
+			                    alignWithLabel: true
+			                },
+			                data: homeProjectNames
+			            }
+			        ],
+			        yAxis: [
+			            {
+			                type: 'value',
+			                name: "任务通过率",
+			                min: 0,
+			                max: 100,
+			                position: 'left',
+			                axisLine: {
+			                    lineStyle: {
+			                        color: colors[0]
+			                    }
+			                },
+			                axisLabel: {
+			                    formatter: '{value}%'
+			                }
+			            }
+			        ],
+			        series: [
+			            {
+			                name:"任务通过率",
+			                type:'bar',
+			                data:projectUseCasePassRates
+			            }
+			        ]
+			    };
+			    Chart.setOption(option);
+		},
+		error: function (res){
+			console.log(res);
+		}
+	}); 
+}
+function degToRad(degree) {
+    var factor = Math.PI / 180;
+    return degree * factor;
+}
+//绘制任务饼状图
+function drawStatistics2(){
+	$.ajax({
+		url: 'statisticsController/getProvinceStatisticProjectCircle',
+		dataType: 'json',  
+		async: true,
+		success: function (res) { 
+			  console.log(res);
+			  var useCaseCount = res.data.provinceUseCaseCount;//任务用例总数	
+			  var passCount = res.data.provinceUseCasePassCount;//任务用例通过数												
+			  var nodoCount = res.data.provinceUseCaseNodoCount; //任务未测试用例数					
+			  var disableCount = res.data.provinceUseCaseDisableCount;//任务下未完成用例数			
+			  var failedCount = res.data.provinceUseCaseFailedCount;//任务下不通过用例数
+			  var passRate = res.data.provinceUseCasePassRate; //平均通过率
+				var pTestPassRate1 = $("#pTestPassRate1")[0];
+				var pTestPassRate2 = $("#pTestPassRate2")[0];
+				var pTestPassRate3 = $("#pTestPassRate3")[0];
+				var ctx = pTestPassRate1.getContext("2d");
+				var ctx1 = pTestPassRate2.getContext("2d");
+				var ctx2 = pTestPassRate3.getContext("2d");
+				ctx.lineWidth = 6;
+				ctx1.lineWidth = 6;
+				ctx2.lineWidth = 6;
+
+			    //Background
+			    /*gradient = ctx.createRadialGradient(250, 250, 5, 250, 250, 300);
+			    gradient.addColorStop(0, "#03303a");
+			    gradient.addColorStop(1, "black");
+			    ctx.fillStyle = gradient;
+			    ctx.fillStyle = 'blue';
+			    ctx.fillRect(0, 0, 500, 500);*/
+			    //用例数
+			    //Hours
+			    ctx.beginPath();
+			    ctx.strokeStyle = '#FE47FC'
+			    ctx.arc(60, 100, 50, degToRad(120), degToRad(300)); //总数50  300 480 50*6 180/50=3.6 3.6*50+120
+			    ctx.stroke();
+			    //Minutes
+			    ctx.beginPath();
+				ctx.strokeStyle = '#3AF8F8';
+			    ctx.arc(60, 100, 43, degToRad(120), degToRad(180/useCaseCount*passCount + 120));	//通过30  30*3.6 + 120
+			    ctx.stroke();
+			    //Seconds
+			    ctx.beginPath();
+				ctx.strokeStyle = '#f00';
+			    ctx.arc(60, 100, 36, degToRad(120), degToRad(180/useCaseCount*failedCount + 120)); //未通过20 20*3.6 + 120
+			    ctx.stroke();
+			    //font
+			    ctx.font = "oblique 12px Helvetica";
+			    ctx.fillStyle = '#3AF8F8'
+			    ctx.fillText(passCount+" 通过数", 42, 80);
+			    ctx.fillText("______", 26, 82);
+			    ctx.fillStyle = 'red'
+				ctx.fillText(failedCount+" 未通过数", 42, 110);
+			    ctx.fillText("_____", 33, 112);
+				ctx.fillStyle = '#FE47FC'
+			    ctx.fillText(useCaseCount+" 总用例数", 42, 140);
+			    ctx.fillText("_____", 33, 142);
+			    
+			    //通过率
+			  //Hours
+			    ctx1.beginPath();
+			    ctx1.strokeStyle = '#FE47FC'
+			    ctx1.arc(60, 100, 50, degToRad(120), degToRad((passCount/useCaseCount*100).toFixed(1)*1.8+120));//总通过率 70% 100%=180 70*1.8+120
+			    ctx1.stroke();
+			    //Minutes
+			    ctx1.beginPath();
+				ctx1.strokeStyle = '#3AF8F8';
+			    ctx1.arc(60, 100, 43, degToRad(120), degToRad((passCount/useCaseCount*100).toFixed(1)*1.8+120));//通过率 70%
+			    ctx1.stroke();
+			    //Seconds
+			    ctx1.beginPath();
+				ctx1.strokeStyle = '#f00';
+			    ctx1.arc(60, 100, 36, degToRad(120), degToRad((failedCount/useCaseCount*100).toFixed(1)*1.8+120));//未通过率 30%
+			    ctx1.stroke();
+			    //Date
+			    ctx1.font = "oblique 12px Helvetica";
+			    ctx1.fillStyle = '#3AF8F8'
+			    ctx1.fillText(passRate+" 通过率", 42, 80);
+			    ctx1.fillText("______", 26, 82);
+			    ctx1.fillStyle = 'red'
+				ctx1.fillText((failedCount/useCaseCount*100).toFixed(1)+"%  未通过率", 42, 110);
+			    ctx1.fillText("_____", 33, 112);
+				ctx1.fillStyle = '#FE47FC'
+			    ctx1.fillText(passRate+"  总通过率", 42, 140);
+			    ctx1.fillText("_____", 33, 142);			    			   
+			    
+			    //执行数
+			  //Hours
+			    ctx2.beginPath();
+			    ctx2.strokeStyle = '#FE47FC'
+			    ctx2.arc(60, 100, 50, degToRad(120), degToRad(300));
+			    ctx2.stroke();
+			    //Minutes
+			    ctx2.beginPath();
+				ctx2.strokeStyle = '#3AF8F8';
+			    ctx2.arc(60, 100, 43, degToRad(120), degToRad(180/useCaseCount*(useCaseCount-nodoCount) + 120));
+			    ctx2.stroke();
+			    //Seconds
+			    ctx2.beginPath();
+				ctx2.strokeStyle = '#f00';
+			    ctx2.arc(60, 100, 36, degToRad(120), degToRad(180/useCaseCount*nodoCount + 120));
+			    ctx2.stroke();
+			    //Date
+			    ctx2.font = "oblique 12px Helvetica";
+			    ctx2.fillStyle = '#3AF8F8'
+			    ctx2.fillText(useCaseCount-nodoCount+" 执行数", 42, 80);
+			    ctx2.fillText("______", 26, 82);
+			    ctx2.fillStyle = 'red'
+				ctx2.fillText(nodoCount+" 未执行数", 42, 110);
+			    ctx2.fillText("_____", 33, 112);
+				ctx2.fillStyle = '#FE47FC'
+			    ctx2.fillText(useCaseCount+" 总用例数", 42, 140);
+			    ctx2.fillText("_____", 33, 142);
+		},
+		error: function (res){
+			console.log(res);
+		}
+	});
+}
+
+//查看全部
+function lookList(){
+	window.open("statisticsController/LookList");
+	//window.location.href="statisticsController/LookList";
+}
+//查看详情
+function formatOperate(value,rowDatas,rowIndex){
+	var h='<a class="btn handleBtn" href="statisticsController/projectOfGroupUseCaseList?projectId='+value+'">查看详细</a>'
+	return h;
+}
+/**
+ * 下载统计数据
+ * @returns {Boolean}
+ */
+function downLoad(){
+	var province=$('.sele').val();
+	//var province="shandong";
+	$.messager.confirm('下载提示', '确认下载当前省份的统计数据吗?', function(r){
+		if (r){
+			var urlStr1="statisticsController/downloadProvinceStatistic2HomeProject?province="+province;
+			var form = $('<form></form>');
+			form.attr('style', 'display:none');
+			form.attr('method', 'post'); //form提交路径        
+			form.attr('action', urlStr1);
+			var input = $('<input type="text" name="params" id="params" />'); // 可以添加一些参数              
+			input.attr('value',province );
+			form.append(input);
+			$(document.body).append(form);
+			form.submit();
+			$.post(urlStr1,function(data){
+				//console.log(data)
+				//if(data.success=="true"){
+					$.messager.confirm('下载提示', '文件下载成功！', function(){});
+				//}else{
+				//	$.messager.confirm('下载提示', '文件下载失败！', function(){})
+				//}
+			})
+			/*
+			$.ajax({
+				type:"POST",
+				url:"statisticsController/downloadProvinceStatistic2HomeProject",
+				data:province,
+				success:function(data){
+					if(data.success=="true"){
+						$.messager.confirm('下载提示', '文件下载成功！', function(){})
+					}else{
+						$.messager.confirm('下载提示', '文件下载失败！', function(){})
+					}
+				}
+			})*/
+		}
+	});
+}
+
+function formatName(value,rowDatas,rowIndex){
+	var str='<input type="text" value="'+value+'" style="width:120px;border:1px solid #CFCFCF;border-radius:5px" readonly="readonly">'
+	return str;
+}
+
+function formatProName(value,rowDatas,rowIndex){
+	var str='<input type="text" value="'+value+'" style="width:120px;border:1px solid #CFCFCF;border-radius:5px" readonly="readonly">'
+	return str;
+}
+
+/**
+ * 下载统计数据
+ * @returns {Boolean}
+ */
+function downLoad1(){
+	//var province=$('.sele').val();
+	var province="shandong";
+	var urlStr1="statisticsController/downloadProvinceStatistic2HomeProject?province="+province;
+	//form提交下载  
+	var form = $('<form></form>');
+	form.attr('style', 'display:none');
+	form.attr('method', 'post'); //form提交路径        
+	form.attr('action', urlStr1);
+	var input = $('<input type="text" name="params" id="params" />'); // 可以添加一些参数              
+	input.attr('value',province );
+	form.append(input);
+	$(document.body).append(form);
+	form.submit();
+	$.post(urlStr1,function(responseText){
+		$('.iconBtn').linkbutton('enable');$('.iconLoad').linkbutton('enable');},"text"); 
+	/*$.messager.confirm('谨慎操作提示', '确认下载当前省份的统计数据吗?', function(r){
+		if (r){//true
+			$.ajax({
+				type:"POST",
+				url:"statisticsController/downloadProvinceStatistic2HomeProject",
+				dataType:"json",
+				data:province,
+				success:function(){
+					console.log(province);
+				}
+			});
+		//请求成功
+		}
+	});*/
+}

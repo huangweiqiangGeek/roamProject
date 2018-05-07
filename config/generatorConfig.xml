@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE generatorConfiguration
+  PUBLIC "-//mybatis.org//DTD MyBatis Generator Configuration 1.0//EN"
+  "http://mybatis.org/dtd/mybatis-generator-config_1_0.dtd">
+
+<generatorConfiguration>
+
+  <!-- 数据库驱动 -->
+  <classPathEntry location="D:/DataBase/Oracle11g/product/11.2.0/dbhome_1/jdbc/lib/ojdbc5.jar" />
+
+  <context id="MBG" targetRuntime="MyBatis3">
+
+    <!-- 数据库配置 -->
+    <jdbcConnection driverClass="oracle.jdbc.driver.OracleDriver"
+        connectionURL="jdbc:oracle:thin:@localhost:1521:orcl"
+        userId="hgkk"
+        password="hgkk">
+    </jdbcConnection>
+
+    <javaTypeResolver >
+      <property name="forceBigDecimals" value="false" />
+    </javaTypeResolver>
+
+
+    <!-- model配置 -->
+    <javaModelGenerator targetPackage="com.guoll.modules.distManager.mapper" targetProject="baseProject\src">
+      <property name="enableSubPackages" value="true" />
+      <property name="trimStrings" value="true" />
+    </javaModelGenerator>
+    <!-- xml配置文件 -->
+    <sqlMapGenerator targetPackage="com.guoll.modules.distManager.mapper"  targetProject="baseProject\src">
+      <property name="enableSubPackages" value="true" />
+    </sqlMapGenerator>
+    <!--接口-->
+    <!--<javaClientGenerator type="XMLMAPPER" targetPackage="com.guoll.modules.distManager.mapper"  targetProject="baseProject\src">
+      <property name="enableSubPackages" value="true" />
+    </javaClientGenerator>-->
+
+     <table tableName="COP_DIST_HEAD" domainObjectName="CopDistHead">
+     </table>
+     <table tableName="COP_DIST_VEHICLES" domainObjectName="CopDistVehicles">
+     </table>
+     <table tableName="COP_DIST_BUSINUSS" domainObjectName="CopDistBusinuss">
+     </table>
+     <table tableName="COP_DIST_CARGO" domainObjectName="CopDistCargo">
+     </table>
+  </context>
+</generatorConfiguration>

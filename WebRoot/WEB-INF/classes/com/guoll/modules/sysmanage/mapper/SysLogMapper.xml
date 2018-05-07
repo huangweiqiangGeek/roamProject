@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.guoll.modules.sysmanage.mapper.SysLogMapper">
+<!-- Parameter Map-->
+<parameterMap id="baseParameterMap" type="com.guoll.modules.sysmanage.bean.SysLog"/>
+<!-- Result Map-->
+<resultMap id="baseResultMap" type="com.guoll.modules.sysmanage.bean.SysLog"/>
+<select id="querySysLogSum" parameterMap="baseParameterMap" resultType="Integer">
+	SELECT COUNT(T.ID) FROM SYS_LOG T,SYS_USER U WHERE T.USER_ID=U.ID 
+	<if test="user_name!=null and user_name!=''">AND U.CN_NAME LIKE '%'||#{user_name,jdbcType=VARCHAR}||'%'</if>
+	<if test="module!=null and module!=''">AND T.MODULE LIKE '%'||#{module,jdbcType=VARCHAR}||'%'</if>
+	<if test="operate!=null and operate!=''">AND T.OPERATE LIKE '%'||#{operate,jdbcType=VARCHAR}||'%'</if>
+	<if test="operate_result!=null and operate_result!=''">AND T.OPERATE_RESULT LIKE '%'||#{operate_result,jdbcType=VARCHAR}||'%'</if>
+	<if test="stime!=null and stime!=''">AND T.OPERATE_TIME &gt; to_date(#{stime,jdbcType=VARCHAR},'YYYY-MM-DD')</if>
+	<if test="etime!=null and etime!=''">AND T.OPERATE_TIME &lt; to_date(#{etime,jdbcType=VARCHAR},'YYYY-MM-DD')+1</if>
+</select>
+<select id="querySysLogList" parameterMap="baseParameterMap" resultMap="baseResultMap">
+	SELECT T.ID,T.MODULE,T.OPERATE,T.OPERATE_RESULT,TO_CHAR(T.OPERATE_TIME,'yyyy-MM-dd HH:mm:ss') OPERATE_TIME,U.USER_CODE,
+	U.CN_NAME USER_NAME,U.MOBILE,U.TELEPHONE FROM SYS_LOG T,SYS_USER U WHERE T.USER_ID=U.ID 
+	<if test="user_name!=null and user_name!=''">AND U.CN_NAME LIKE '%'||#{user_name,jdbcType=VARCHAR}||'%'</if>
+	<if test="module!=null and module!=''">AND T.MODULE LIKE '%'||#{module,jdbcType=VARCHAR}||'%'</if>
+	<if test="operate!=null and operate!=''">AND T.OPERATE LIKE '%'||#{operate,jdbcType=VARCHAR}||'%'</if>
+	<if test="operate_result!=null and operate_result!=''">AND T.OPERATE_RESULT LIKE '%'||#{operate_result,jdbcType=VARCHAR}||'%'</if>
+	<if test="stime!=null and stime!=''">AND T.OPERATE_TIME &gt; to_date(#{stime,jdbcType=VARCHAR},'YYYY-MM-DD')</if>
+	<if test="etime!=null and etime!=''">AND T.OPERATE_TIME &lt; to_date(#{etime,jdbcType=VARCHAR},'YYYY-MM-DD')+1</if>
+	ORDER BY OPERATE_TIME DESC
+</select>
+</mapper>

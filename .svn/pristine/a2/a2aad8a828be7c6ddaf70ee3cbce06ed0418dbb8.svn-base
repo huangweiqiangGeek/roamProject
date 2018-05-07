@@ -1,0 +1,694 @@
+﻿<%@ page language="java" pageEncoding="UTF-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<%
+	String path = request.getContextPath();
+	String basePath = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort()
+			+ path + "/";
+%>
+<!DOCTYPE html>
+<html>
+<head>
+<%@ page isELIgnored="false"%>
+<base href="<%=basePath%>">
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>添加用例</title>
+<link rel="stylesheet" type="text/css" href="framework/css/allStyle.css">
+<link rel="stylesheet" type="text/css"
+	href="framework/jquery-easyui-1.3.2/themes/default/easyui.css">
+<link rel="stylesheet" type="text/css"
+	href="framework/jquery-easyui-1.3.2/themes/icon.css">
+<link rel="stylesheet" type="text/css"
+	href="framework/jquery-easyui-1.3.2/demo/demo.css">
+<script type="text/javascript"
+	src="framework/jquery-easyui-1.3.2/jquery-1.8.0.min.js"></script>
+<script type="text/javascript"
+	src="framework/jquery-easyui-1.3.2/jquery.easyui.min.js"></script>
+<link rel="stylesheet" type="text/css" href="framework/css/common.css">
+
+<link rel="stylesheet" type="text/css" href="framework/bTabs/bootstrap.min.css">
+<!-- <link rel="stylesheet" type="text/css" href="http://www.jq22.com/jquery/font-awesome.4.6.0.css"> -->
+<link rel="stylesheet" href="framework/bTabs/b.tabs.css" type="text/css">
+<script type="text/javascript" src="framework/bTabs/b.tabs.js"></script>
+
+<script type="text/javascript" src="framework/js/jquery.validate.min.js"></script>
+<script type="text/javascript"
+	src="framework/js/jquery.validatePlugin.js"></script>
+<script type="text/javascript" src="framework/jquery-easyui-1.3.2/locale/easyui-lang-zh_CN.js"></script>
+<script type="text/javascript" src="framework/jquery-easyui-1.3.2/plugins/jquery.tree.loader.js"></script>
+<script type="text/javascript" src="framework/js/common.js"></script>
+<script type="text/javascript" src="pages/useCase/js/edit.js?0118_18"></script>
+<script type="text/javascript">
+$(function(){
+	if(!isNull($("#id").val())){
+		updateInit();
+	};
+});
+window.onload = function() {
+	function For(c, d) {
+		function stopPropagation(e) {
+			e = e || window.event;
+			if(e.stopPropagation) { //W3C阻止冒泡方法  
+				e.stopPropagation();
+			} else {
+				e.cancelBubble = true; //IE阻止冒泡方法  
+			}
+		};
+		for(var i = 0; i < c.length; i++) {
+			c[i].index = i;
+			c[i].onclick = function(e) {
+				stopPropagation(e)
+				for(var j = 0; j < c.length; j++) {
+					c[j].className = "aTap";
+					d[j].className = "hide aTap";
+				}
+				this.className = "tapActiveLi";
+				d[this.index].className = "aTap";
+			}
+		}
+	}
+
+	function tab(a, b) {
+		var aLi = document.getElementById(a).getElementsByTagName('li');
+		var aDiv = document.getElementById(b).getElementsByClassName('aTap');
+		For(aLi, aDiv)
+	};
+	tab('aTapHeadWrap', 'aTapWrapS');
+}
+ function editMethod(){
+	showWin("sysPost/addOrUpdateSysPost?org_id="+$('#org_id').val(),"添加",600,500)
+}
+</script>
+<style>
+	td>input{
+		border:1px solid #CFCFCF;
+		border-radius:4px;
+		padding-left:3px;
+		height:20px;
+		width:98%;
+	}
+	select{
+		border-color:#CFCFCF;
+	}
+	td>select{
+		width:98%;
+		border-radius:4px;
+	    height:20px; 
+	    
+	}
+	div{
+		margin:0;
+		padding:0;
+	}
+	td{
+		text-align:center;
+	}
+	#spbillNames{
+		float:left;
+		margin-left:15px;
+	}
+	.cl{
+		float:right;
+		margin-right:15px;
+	}
+	#stepOne td{
+		text-align:center;
+	}
+	input{
+		width:90%;
+		border:0;
+		height:20px;
+		padding:0;
+	}
+	#addOrUpateForm{
+		width:66%;
+		float:left;
+	
+	}
+	.user_inf{
+		width:33.5%;
+		float:left;
+		margin-right:.5%;
+		border:1px solid #C1DAD7;
+		box-sizing:border-box;
+	    min-height:400px;
+	}
+	.user_inf>div{
+		padding:5px;
+		border-bottom:1px solid #C1DAD7;
+	}
+	div.productList,.search{
+		padding:0;		
+		border:1px solid #C1DAD7;
+
+	} 
+	.productList{
+		border-bottom:1px solid #C1DAD7;
+		margin-bottom:5px;
+	}
+	.productList>div{
+		padding:5px ;
+	}
+	.add1{
+		margin-right:5px;
+	}
+	.add1 i{
+		display:inline-block;
+		width:16px;
+		height:16px;
+		background:url(images/image/add.png) 1px 1px no-repeat;
+	}
+	
+	.add i,.add1 i{
+		position:absolute;
+		top:4px;
+		left:3px;
+		display:inline-block;
+		width:12px;
+		height:12px;
+		background:url(images/image/add.png) no-repeat;
+	}
+	.add:hover,.add1 a:hover{
+		color:#fff;
+		text-decoration:none;
+	}
+	a:hover{
+		text-decoration:none;
+	}
+	.add{
+		position:relative;
+		width:21%;
+		padding:0 5px 0 10px;
+		float:left;
+		border:1px solid #CFCFCF;
+		background:#317bb8;
+		height:20px;
+		border-radius: 0 4px 4px 0 ;
+   		 display: inline-block;
+		color:#fff;
+		border-left:0;
+		text-align:right;
+		box-sizing:border-box;
+	}
+	.add1 a{
+		display:inline-block;
+		padding-left:15px;
+		border:1px solid #CFCFCF;
+		background:#317bb8;
+		height:20px;
+		line-height:19px;
+		border-radius:4px ;
+		box-sizing:border-box;
+		color:#fff;
+		text-align:right; 
+		position:relative;
+		padding: 0 5px 0 17px;
+		/*
+		border-left:0;
+		*/
+	}
+	button.download{
+		background:#5aba58;
+	}
+	button.download i{
+		left:0;
+		top:2px;
+		background:url(images/image/download.png) no-repeat 0px 0px;
+	}
+	button.add2 i{
+		background:url(images/image/add2.png) no-repeat 3px 3px;
+	}
+	#stepOne tr td:first-child{
+		color:red;
+		font-weight:bold;
+	}
+	
+	.nav-tabs>li.active>a, .nav-tabs>li.active>a:focus, .nav-tabs>li.active>a:hover{
+		border-bottom:1px solid #fff;
+	}
+	
+	.title{
+		background:#ecf7fd;
+		height:20px;
+		position:relative;
+		height:30px;
+		line-height:30px;	
+		border-bottom:1px solid #C1DAD7;
+	}
+	.title1{
+		background:#fff;
+		padding-left:10px;
+	}
+	.formTable1{
+	    margin-top:0;
+	    margin-left:0;
+	    border-left:0;
+	    border-top:0;
+
+	}
+	.formTable1 th{
+		text-align:center;
+	}
+	.title>b{
+		display:inline-block;
+		margin-left:25px;
+	}
+		.title>i{
+			display:inline-block;
+			width:20px;
+			height:20px;
+			position:absolute;
+			top:8px;
+			left:5px;
+			background:url(images/image/other.png) no-repeat -7px -8px;
+		}
+		.delete i{
+		display:inline-block;
+			width:16px;
+			height:16px;
+			position:absolute;
+			top:-1px;
+			left:0px;
+
+			background:url(images/image/trash.png) no-repeat 1px 1px;
+		}
+		.delete button{
+			background:#ff0a29;
+		}
+		#twoSubject th{
+			text-align:center;
+		}
+		#ticket th{
+			width:105px;
+			height:30px;
+		}
+		#ticket td {
+			width:175px;
+			height:30px;
+		}
+		.disableSelect{
+			background:#ccc;
+			color:#fff;
+		}
+		a.disableColor{
+			background:#ccc;
+		};
+		
+		
+	<!-- tab选项卡的 css-->
+	 .hide {
+                display: none;
+            }
+            #aTapHeadWrap{
+				padding:0;
+				border-bottom:1px solid #337ab7;
+	
+			}
+			#aTapHeadWrap li{
+				list-style: none;
+                display: inline-block;
+				margin-bottom:-1px;
+				margin-right: 5px;
+				border-radius: 4px 4px 0 0;    	
+				
+			}
+			#aTapHeadWrap li a{
+				padding:6px 15px 6px 25px;
+				display:inline-block;
+			}
+            #aTapHeadWrap li.tapActiveLi {
+				border-radius:4px 4px 0 0;
+				border:1px solid #337ab7 ;
+				border-bottom:#fff;
+            }
+			#aTapHeadWrap li.tapActiveLi a{
+				border-bottom:1px solid #fff;
+				display:inline-block;
+				padding:6px 15px 6px 25px;
+			}
+			 
+            #aTapHeadWrap>li:nth-child(1)>a{
+				background:url(images/image/setup.png) no-repeat 6px 7px;
+			}
+			#aTapHeadWrap>li:nth-child(2)>a{
+				background:url(images/image/apple.png) no-repeat 4px 6px;
+			}
+           
+            .aTapWrap {
+                border: none;
+                padding:5px;
+            }
+          
+          div a.btn{
+          	padding:0;
+          	width:30px;	
+          	font-size:12px;
+          }
+          .searchBox{
+          	width:60px;
+          }
+          #name,#projectName{
+          	width:120px;
+          	border:1px solid #CFCFCF;
+          	border-radius:5px;
+          }
+          .panel-body{
+          	padding:0;
+          	border:none;
+          }
+          
+          #stepOnes th,#spbillNames th{
+          	width:40%;
+          }
+</style>
+</head>
+<body style="overflow: no;padding:10px;">
+	<div class="user_inf">
+		<div>
+			<select id="task" class="easyui-combobox" name="state" label="State:" labelPosition="top" style="width:120px;">
+	                
+            </select>
+			<span class="add1">
+				<a href="javascript:addMethod(${homeProjectId});"><i></i>添加</a>					
+			</span>
+		</div>
+		<div style='padding:5px;'>
+			<div class="productList">
+				<div>
+					<input placeholder="按产品组名称搜索" id="name" onkeydown="if(event.keyCode==13){searchMethod()}">
+					<span class="add1">
+						<a href="javascript:searchMethod1('#name');"><i style="background:url(images/image/search.png) -1px -2px no-repeat;"></i>查询</a>						
+					</span>
+					<span class="add1">
+						<a href="javascript:addProductLis();"><i></i>添加</a>						
+					</span>
+					<span class="add1">
+						<a href="javascript:delProductLis();"><i style="background:url(images/image/trash.png) -3px -3px no-repeat;"></i>删除</a>						
+					</span>
+				</div>
+				<div id="tree_div" style="width: 100%;overflow-y:auto ">
+				<!-- data-options="onClick:onClickTree,idFiled:'tid',textFiled:'productsMark',parentField:'pid',url:'userCaseTreeController/queryUsercaseTreeList?task_id=${useCase.proID}',animate:true,attributes:{'group_id':'group_id','billType':'billType'}" -->
+					<ul id="tt" class="easyui-tree" ></ul><!-- data-options="onClick:onClickTree,idFiled:'tid',textFiled:'productsMark',parentField:'pid',url:'userCaseTreeController/queryUsercaseTreeList?task_id=${useCase.proID}',animate:true" -->
+				</div>
+			</div>
+			<table width="100%"  border="0" style="border:1px solid #C1DAD7;" cellspacing="0" cellpadding="0">
+				<tr valign="top">
+					<td width="100%" valign="top">
+						<div id="tb"  style="padding:5px;height:auto">
+							<div style="margin-bottom:5px;">
+								<input placeholder="按项目名称搜索" id="projectName"  
+									onkeydown="if(event.keyCode==13){searchMethod()}">
+								<span class="add1">
+									<a href="javascript:searchPrd('#projectName');"><i style="background:url(images/image/search.png) -1px -2px no-repeat;"></i>查询</a>						
+								</span>
+							</div>	
+							<div>
+								<span class="add1">
+									<a href="javascript:checkAll()"><i style="background:url(images/image/document.png) -1px -2px no-repeat;"></i>全选</a>						
+								</span>
+								<span class="add1">
+									<a href="javascript:removeMethod()"><i style="background:url(images/image/trash.png) -3px -3px no-repeat;"></i>删除</a>						
+								</span>
+								<span class="add1">
+									<a href="javascript:reviseCase()"><i style="background:url(images/image/editor.png) -1px -2px no-repeat;"></i>修改</a>						
+								</span>
+								<span class="add1">
+									<a href="javascript:copyMethod()"><i style="background:url(images/image/document.png) -1px -2px no-repeat;"></i>复制</a>						
+								</span>
+								<span class="add1">
+									<a href="javascript:addUseCase()"><i></i>添加用例</a>						
+								</span>
+							</div>
+						</div>
+						<table id="dg" data-options="rownumbers:true,singleSelect:true,selectOnCheck:false,checkOnSelect:false" title="" data-options="" style="height:310px;">
+							<thead>
+								<tr>
+								</tr>
+							</thead>
+						</table>
+						<div id="win_div" class="easyui-window" data-options="closed:true" style="overflow: hidden;width:270px;height:580px">
+							<iframe id="win_div_iframe" src="" height="100%" width="100%" scrolling="no" frameborder="0" align="top" marginheight="0" marginwidth="0"></iframe>
+						</div>
+					</td>
+				</tr>
+			</table>
+		</div>
+	</div>
+	<form id="addOrUpateForm" action="useCase/save" method="post">
+	
+	<div>
+		<input type="hidden" name="proID" id="proID" value="${useCase.proID}" />
+	    <!-- 话单内容 -->
+	    <input type="hidden" name="ticketJson" id="ticketJson" value="${useCase.ticketJson }" />
+	    <!-- 初始化累积量 -->
+		<input type="hidden" name="accumulateJson" id="accumulateJson" value="${useCase.accumulateJson }" />
+		<!-- 初始化免费资源 --> 
+		<input type="hidden" name="resourceJson" id="resourceJson" value="${useCase.resourceJson }" /> 
+		<!-- 免费资源预期结果 --> 
+		<input type="hidden" name="expectJson" id="expectJson" value="${useCase.expectJson }" />
+		<!-- 预期累积量 -->
+		<input type="hidden" name="expAmountJson" id="expAmountJson" value="${useCase.expAmountJson }" />
+		<!-- 详单预期结果 -->
+		<input type="hidden" name="expDetailJson" id="expDetailJson" value="${useCase.expDetailJson }" /> 
+		<input type="hidden" name="executeNum" id="executeNum" value="${useCase.executeNum }" /> 
+		<input type="hidden" name="billName" id="billName" value="${useCase.billName}" /> 
+		
+		<input type="hidden" name="templateType" id="templateType" value="${useCase.billType }" />
+		<input type="hidden" name="attrJson" id="attrJson" value="" /> 
+		<input type="hidden" name="billId" id="billId" value="" /> 
+		<input type="hidden" name="resultName" id="resultName" value="${useCase.resultName }" /> 
+		<input type="hidden" name="resultType" id="resultType" value="${useCase.resultType }" /> 
+		<input type="hidden" name="resultAttrJson" id="resultAttrJson" value="" /> 
+		<input type="hidden" name="resultId" id="resultId" value="" /> 
+		<input type="hidden" name="id" id="id" value="${useCase.id}" />
+		<input type="hidden" name="task_group_id" id="task_group_id" value="${useCase.task_group_id}" />
+		<input type="hidden" name="group_id" id="group_id" value="" />
+		<input type="hidden" name="copy_mark" id="copy_mark" value="${useCase.copy_mark}" />
+		<input type="hidden" name="billType" id="billType" value="${useCase.billType}" />
+		<input type="hidden" name="phone" id="phone" value="" />
+		<input type="hidden" id="uCStauts" name="uCStauts" value="15">
+		<input type="hidden" id="isPass" name="isPass" value="17">
+		<input type="hidden" id="cpIds" name="cpIds" value="">
+		<input type="hidden" id="ylIds" name="ylIds" value="">
+		<input type="hidden" id="Source" name="haveSource" value="${useCase.haveSource }">
+		<div id="dSubject" style="width:100%;height:237px;/* display:inline-block; */border:1px solid #C1DAD7;margin-bottom:5px;">
+			<div class="title"><i></i><b>用例基础信息</b></div>
+			<table width="49%" style="float:left" border="0" cellspacing="0" cellpadding="0"
+				class="formTable" id="subject">
+				<tr>
+					<th><font color="#ff0a29">*</font>用例名称：</th>
+					<td colspan="3"><input type="type" id="uCName" name="uCName" 
+						data-options="required:true,missingMessage:'请输入用例名称'"
+						class="easyui-validatebox" value="${useCase.uCName }"
+						style="width: 220px" maxlength="100" /></td>
+				</tr>
+				<tr>
+					<th><font color="#ff0a29">*</font>使用场景：</th>
+					<td colspan="3"><input type="type" id="uCScene" name="uCScene" 
+						data-options="required:true,missingMessage:'请输入使用场景'"
+						class="easyui-validatebox" value="${useCase.uCScene }"
+						style="width: 220px" maxlength="100" /></td>
+				</tr>
+				<tr>
+					<th><font color="#ff0a29">*</font>测试号码：</th>
+					<td colspan="3"><input type="type" id="uCUserID" name="uCUserID" 
+						data-options="required:true,missingMessage:'请输入话单归属用户标识'"
+						class="easyui-validatebox" value="${useCase.uCUserID }"
+						style="width: 220px" maxlength="100" /></td>
+				</tr>
+				<tr>
+					<th><font color="#ff0a29">*</font>免费资源：</th>
+					<td colspan="3">
+					<select id="haveSource" class="easyui-combobox"  data-options="editable:false,panelHeight:'auto'"
+						name="haveSource" style="width: 220px;" >
+							<option  value="-1">-请选择免费资源-</option>
+							<option id="1" value="1">有免费资源</option>
+							<option id="0" value="0">没有免费资源</option>
+					</select></td>
+				</tr>
+				<tr>
+					<th>用例编号：</th>
+					<td colspan="3"><input type="type" id="uCNumber" 
+						name="uCNumber"
+						class="easyui-validatebox" value="${useCase.uCNumber }"
+						style="width: 220px;background:#f1f1f1;" maxlength="100" readonly="readonly" />
+					</td>
+				</tr>
+				<tr>
+					<th>备注：</th>
+					<td colspan="3"><input type="type" id="uCRemark"
+						name="uCRemark" class="easyui-validatebox"
+						value="${useCase.uCRemark }" style="width: 220px" maxlength="100" />
+					</td>
+				</tr>
+			</table>
+			<table width="49%" style="float:left;height:195px;overflow:auto;" border="0" cellspacing="0" cellpadding="0" style="margin:1px 0 0 5px;"
+						class="formTable" id="stepOne">
+						
+				<tr>
+					<td colspan="2" style="color:#000;height:32px;font-weight:bold;font-size:13px;text-align:center;">选择模板</td>
+				</tr>
+				<tr>
+					<th style="height:32px;"><font color="#ff0a29">*</font>所选模板</th>
+					<td>
+						<input id="spbillName" style="width:79%;border-radius: 4px 0 0 4px;float:left;"></input>
+						<a href="javascript:setBillTemplate();" class="add"><i></i>添加</a>					
+					</td>
+				</tr>
+				<tr>
+					<td colspan="2">
+						<div style="height:119px;overflow:auto;border:1px solid rgb(193, 218, 215);">
+							<table style="width:100%;" id="ticket"></table> 
+						</div>
+					</td>
+				</tr>
+			</table>
+		</div>
+		<div style="width:100%;display:inline-block;min-height:260px;border:1px solid #C1DAD7;" id="dStepTwo">
+			 <!-- Nav tabs -->
+		<div class="aTapWrap aboutA_P" id="aTapWrap">
+            <ul id="aTapHeadWrap">
+					<li class="tapActiveLi"><a>数据初始化</a></li>
+					<li><a>结果预设</a></li>
+            </ul>
+            <div class="aTapWrapS" id="aTapWrapS">
+                <div class="aTap">
+                	<div style="width:100%;margin-bottom:5px;border:1px solid #C1DAD7;">
+                	    <div class="title">
+							<i></i><b>初始化免费资源</b>
+							<div style="float:right">
+								<select id="sProAway" onchange="setProAway(this)"  style="line-height:20px;height:20px;border-radius:4px;">							
+											<option value="1">手动填写</option>
+											<option value="2">系统选择</option>
+									</select>
+								
+								<span class="add1">
+								<a href="javascript:addProduct()" class="addSource"><i></i>添加</a>
+										
+								</span>
+								
+							</div>
+						</div>
+					<div style="width:100%;height:95px;overflow:auto;">
+						<table width="100%" border="0" style="height:95px; overflow:auto;" cellspacing="0" cellpadding="0"  class="formTable formTable1" id="explorer">
+						  
+						</table>
+					</div>
+		        </div>
+                <div style="width:100%;min-height:60px;border:1px solid #C1DAD7;">
+					<div>
+						<div class="title">
+							<i></i><b style="position:relative;top:-5px;">初始化累积量</b>
+							<input type="checkbox" id="cbAccumulate"  onclick="showCumulant()" style="width:15px;padding-left:5px;"/>
+							<!-- <div style="float:right">
+								<span class="add1">
+										<a class="download"><i style="background:url(images/image/download.png) -1px -2px no-repeat;"></i>保存</a>
+								</span>
+							</div> -->
+						</div>
+						
+					</div>
+					<table width="100%" border="0" cellspacing="0" cellpadding="0"
+						class="formTable formTable1" id="twoSubject" style='display:none;'>
+						<!-- <tr>
+							<td class="tHead" colspan="4" style="background:#D1EEEE;font-size:1.1em;font-weight:blod;text-align:center">
+								用例基础信息
+							</td>
+						</tr> -->
+						<tr>
+							<th>总累积量</th>
+							<th>金额</th>
+							<th colspan="2">产品累计量</th>
+							
+						</tr>
+						<tr>				
+							<td>
+								<input type="type" id="totalAccumulate" min="0" data="总累积量" maxlength="100" name="totalAccumulate" placeholder="初始值"/>
+							</td>
+							<td>
+								<input type="type" id="totalAccumulateValue" min="0" data="金额" maxlength="100" name="totalAccumulateValue" placeholder="初始值"/>
+							</td>
+							<td>
+								<input type="type" id="cumulantPrdID" name="proID" placeholder="初产品ID"/>
+							</td>
+							<td>
+								<input type="type" id="prdCumulant"  name="initValue" placeholder="初始值"/>
+							</td>
+						</tr>			
+					</table>
+		        </div>
+            </div>
+	        <div class="aTap hide">
+                	<div style="width:100%;margin-bottom:5px;border:1px solid #C1DAD7;">
+                	    <div class="title">
+							<i></i><b>免费资源预设结果</b>
+							<div style="float:right">
+								<span class="add1">
+									<a id="aNext"  onclick="forNext2()" class="download" ><i style="background:url(images/image/download.png) -1px -2px no-repeat;"></i>获取结果</a> 
+								</span>
+							</div>
+						</div>
+					<div style="width:100%;min-height:80px;overflow:auto;">
+						<table width="100%" border="0" cellspacing="0" cellpadding="0" class="formTable formTable1" id="stepThree">					
+							
+						</table>
+					</div>
+		        </div>
+                <div style="width:100%;min-height:60px;border:1px solid #C1DAD7;">
+					<div>
+						<div class="title title1">
+							已选择预设结果模板：<span style="color:#ff0a29;" id="expectedResultTemp">华为_广东语音详单</span>
+							<span class="add1">
+								<a href="javascript:setResultTemplate();" class="download add2"><i></i>详单模板</a>
+								<span id="spResultName"  style="display: none;">已选择模版：</span>
+							</span>
+						</div>
+					</div>
+					<div style="height:90px;overflow:auto;" >
+						<table  width="100%" border="0" style="border:none;" cellspacing="0" cellpadding="0"
+							class="formTable formTable1" id="tbResultTemplate">
+						</table>
+					</div>
+		        </div>
+            </div>
+          </div>         	 
+        </div>     
+      </div>	
+	</div>
+	<div style="position:absolute;top:0px;left:0px;width:100%;height:100%; background:#fff;display:none;" id="dStepOne">
+		<div style="width:650px;height:320px;border:1px solid #95B8E7;border-radius:5px;background:#E0ECFF;padding:0 10px 25px 10px;position:absolute;top:55px;left:125px">
+			<a class="easyui-linkbutton cl" plain="true" iconCls="icon-cancel" href="javascript:clCancel()"></a>
+			<span id="spbillNames" style="display: none;line-height:26px;"></span>
+			<div align="center" style="width:620px;height:280px;overflow:auto;padding: 5px;border:1px solid #95B8E7;background:#fff;border-radius:5px;">
+				<div style="width:98%;height:235px;overflow:auto;">
+					<table width="95%" border="0" cellspacing="0" cellpadding="0" class="formTable" id="stepOnes">
+					</table>
+				</div>
+				<div style="width:98%;aegin:10px 0;text-align:center;;position:absolute;bottom:20px;">
+					<a class="btn headerBtn" href="javascript:getHide();" id="setHide" style="display:none;">隐藏</a>
+					<a class="btn headerBtn" href="javascript:setHide();" id="getHide" >显示</a>
+					&nbsp;&nbsp;&nbsp;&nbsp;<a id="aSave" href="javascript:forBillSave();" class="savebtn headerBtn" >保存</a> 
+				</div>
+							
+			</div>
+		</div>
+	</div>
+	</form>
+	<div align="center" style="padding: 5px;">
+		<a id="aSave" onclick="saveMethod()" class="savebtn headerBtn" >保存</a> 
+		<a href="useCase/listInit?proID=${useCase.proID}" class="cancelbtn headerBtn" >取消</a>
+	</div>
+	<div id="win_div" class="easyui-window" data-options="closed:true" style="overflow: hidden;width:850px;height:580px">
+			<iframe id="win_div_iframe" src="" height="100%" width="100%" scrolling="no" frameborder="0" align="top" marginheight="0" marginwidth="0"></iframe>
+	</div>
+	<div id="win" class="easyui-window" title="选择产品组" style="width:600px;height:200px;"   
+        data-options="iconCls:'icon-save',modal:true"> 
+   		<p style="margin:40px 30px 20px;">
+		<span style="float:left;margin-top: 2px;margin-right: 5px;width: 100px;text-align: right;">选择产品组:</span>
+		<select name="productCombobox" id="productCombobox" class="easyui-combobox" data-options="editable:true,multiple:true,listHeight:'60px'" style="width: 300px;"></select>
+		</p>
+		<div align="center" style="padding:20px 0;border-top:none;margin:0 auto; ">
+			<a id="aSave"  onclick="sureCopy()" class="savebtn headerBtn" >确定</a> 
+		</div>
+	</div> 
+</body>

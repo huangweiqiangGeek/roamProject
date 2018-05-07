@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.guoll.modules.sysmanage.mapper.SysRoleMapper">
+	<!-- Parameter Map -->
+	<parameterMap id="baseParameterMap"
+		type="com.guoll.modules.sysmanage.bean.SysRole" />
+	<!-- Result Map -->
+	<resultMap id="baseResultMap" type="com.guoll.modules.sysmanage.bean.SysRole" />
+
+	<select id="querySysRoleSum" parameterMap="baseParameterMap"
+		resultType="Integer">
+		SELECT COUNT(T.ID) FROM SYS_ROLE T WHERE 1=1
+		<if test="name!=null and name!=''">AND T.NAME LIKE '%'||#{name,jdbcType=VARCHAR}||'%'</if>
+		<if test="user_id!=null">
+			AND EXISTS(SELECT SLPR.ROLE_ID FROM SYS_LINK_POST_USER
+			SLPU,SYS_LINK_POST_ROLE SLPR
+			WHERE SLPR.ROLE_ID = T.ID AND SLPU.POST_ID=SLPR.POST_ID
+			AND SLPU.USER_ID=#{user_id,jdbcType=NUMERIC})
+		</if>
+	</select>
+	<select id="querySysRoleList" parameterMap="baseParameterMap"
+		resultMap="baseResultMap">
+		SELECT
+		T.ID,T.NAME,T.REMARK,T.UPDATE_USER_ID,T.UPDATE_USER_NAME,T.UPDATE_TIME
+		FROM SYS_ROLE T WHERE 1=1
+		<if test="name!=null and name!=''">AND T.NAME LIKE '%'||#{name,jdbcType=VARCHAR}||'%'</if>
+		<if test="user_id!=null">
+			AND EXISTS(SELECT SLPR.ROLE_ID FROM SYS_LINK_POST_USER
+			SLPU,SYS_LINK_POST_ROLE SLPR
+			WHERE SLPR.ROLE_ID = T.ID AND SLPU.POST_ID=SLPR.POST_ID
+			AND SLPU.USER_ID=#{user_id,jdbcType=NUMERIC})
+		</if>
+		ORDER BY UPDATE_TIME DESC
+		limit #{start,jdbcType=NUMERIC},#{rows,jdbcType=NUMERIC}
+	</select>
+	<select id="querySysRoleById" parameterType="Integer" resultMap="baseResultMap">
+		SELECT
+		T.ID,T.NAME,T.REMARK,T.UPDATE_USER_ID,T.UPDATE_USER_NAME,T.UPDATE_TIME
+		FROM SYS_ROLE T WHERE ID=#{id,jdbcType=NUMERIC}
+	</select>
+	<insert id="addSysRole" parameterMap="baseParameterMap">
+		INSERT INTO
+		SYS_ROLE(NAME,REMARK,UPDATE_USER_ID,UPDATE_USER_NAME,UPDATE_TIME)
+		VALUES(#{name,jdbcType=VARCHAR},#{remark,jdbcType=VARCHAR},
+		#{update_user_id,jdbcType=NUMERIC},#{update_user_name,jdbcType=VARCHAR},#{update_time,jdbcType=TIMESTAMP})
+	</insert>
+	<update id="updateSysRole" parameterMap="baseParameterMap">
+		UPDATE SYS_ROLE SET
+		NAME=#{name,jdbcType=VARCHAR},REMARK=#{remark,jdbcType=VARCHAR},
+		UPDATE_USER_ID=#{update_user_id,jdbcType=NUMERIC},UPDATE_USER_NAME=#{update_user_name,jdbcType=VARCHAR},
+		UPDATE_TIME=#{update_time,jdbcType=TIMESTAMP} WHERE
+		ID=#{id,jdbcType=NUMERIC}
+	</update>
+	<delete id="deleteLinkSysRoleMenu" parameterMap="baseParameterMap">
+		DELETE FROM SYS_LINK_ROLE_MENU WHERE ROLE_ID=#{id,jdbcType=NUMERIC}
+	</delete>
+	<delete id="deleteLinkSysRolePost" parameterMap="baseParameterMap">
+		DELETE FROM SYS_LINK_POST_ROLE WHERE ROLE_ID=#{id,jdbcType=NUMERIC}
+	</delete>
+	<delete id="deleteSysRole" parameterMap="baseParameterMap">
+		DELETE FROM SYS_ROLE WHERE ID=#{id,jdbcType=NUMERIC}
+	</delete>
+	<select id="querySysPostRoleIncludeSum" parameterMap="baseParameterMap"
+		resultType="Integer">
+		SELECT COUNT(T.ID) FROM SYS_ROLE T WHERE
+		EXISTS(SELECT ROLE_ID FROM SYS_LINK_POST_ROLE PR WHERE PR.ROLE_ID=T.ID AND
+		PR.POST_ID=#{post_id,jdbcType=NUMERIC})
+		<if test="name!=null and name!=''">AND T.NAME LIKE '%'||#{name,jdbcType=VARCHAR}||'%'</if>
+	</select>
+	<select id="querySysPostRoleIncludeList" parameterMap="baseParameterMap"
+		resultMap="baseResultMap">
+		SELECT
+		T.ID,T.NAME,T.REMARK,T.UPDATE_USER_ID,T.UPDATE_USER_NAME,T.UPDATE_TIME
+		FROM SYS_ROLE T WHERE
+		EXISTS(SELECT ROLE_ID FROM SYS_LINK_POST_ROLE PR WHERE PR.ROLE_ID=T.ID AND
+		PR.POST_ID=#{post_id,jdbcType=NUMERIC})
+		<if test="name!=null and name!=''">AND T.NAME LIKE '%'||#{name,jdbcType=VARCHAR}||'%'</if>
+		ORDER BY T.UPDATE_TIME DESC
+	</select>
+	<select id="querySysPostRoleUncludeSum" parameterMap="baseParameterMap"
+		resultType="Integer">
+		SELECT COUNT(T.ID) FROM SYS_ROLE T WHERE
+		NOT EXISTS(SELECT ROLE_ID FROM SYS_LINK_POST_ROLE PR WHERE
+		PR.ROLE_ID=T.ID AND PR.POST_ID=#{post_id,jdbcType=NUMERIC})
+		<if test="name!=null and name!=''">AND T.NAME LIKE '%'||#{name,jdbcType=VARCHAR}||'%'</if>
+	</select>
+	<select id="querySysPostRoleUncludeList" parameterMap="baseParameterMap"
+		resultMap="baseResultMap">
+		SELECT
+		T.ID,T.NAME,T.REMARK,T.UPDATE_USER_ID,T.UPDATE_USER_NAME,T.UPDATE_TIME
+		FROM SYS_ROLE T WHERE
+		NOT EXISTS(SELECT ROLE_ID FROM SYS_LINK_POST_ROLE PR WHERE
+		PR.ROLE_ID=T.ID AND PR.POST_ID=#{post_id,jdbcType=NUMERIC})
+		<if test="name!=null and name!=''">AND T.NAME LIKE '%'||#{name,jdbcType=VARCHAR}||'%'</if>
+		ORDER BY T.UPDATE_TIME DESC
+	</select>
+	<select id="addLinkRoleMenu" parameterMap="baseParameterMap">
+		INSERT INTO
+		SYS_LINK_ROLE_MENU(ROLE_ID,MENU_ID)VALUES(#{id,jdbcType=NUMERIC},#{menu_id,jdbcType=NUMERIC})
+	</select>
+	<select id="deleteLinkRoleMenu" parameterMap="baseParameterMap">
+		DELETE T FROM SYS_LINK_ROLE_MENU T WHERE T.ROLE_ID=#{id,jdbcType=NUMERIC}
+	</select>
+	<select id="queryLinkRoleMenu" parameterMap="baseParameterMap"
+		resultMap="baseResultMap">
+		SELECT MENU_ID FROM SYS_LINK_ROLE_MENU T WHERE
+		T.ROLE_ID=#{id,jdbcType=NUMERIC}
+	</select>
+	<select id="queryMenuParentIdAndRoleLinkCount" parameterMap="baseParameterMap"
+		resultMap="baseResultMap">
+		SELECT PARENT_ID MENU_ID,COUNT(LRM.MENU_ID) PARENT_LINK_ROLE_COUNT FROM
+		SYS_MENU T
+		LEFT JOIN SYS_LINK_ROLE_MENU LRM ON T.PARENT_ID=LRM.MENU_ID AND
+		LRM.ROLE_ID=#{id,jdbcType=NUMERIC}
+		WHERE T.ID=#{menu_id,jdbcType=NUMERIC} GROUP BY T.PARENT_ID
+	</select>
+</mapper>

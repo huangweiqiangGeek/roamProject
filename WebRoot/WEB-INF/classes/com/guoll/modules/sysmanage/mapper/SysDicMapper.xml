@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.guoll.modules.sysmanage.mapper.SysDicMapper">
+<!-- Parameter Map-->
+<parameterMap id="baseParameterMap" type="com.guoll.modules.sysmanage.bean.SysDicType"/>
+<parameterMap id="baseParameterMap1" type="com.guoll.modules.sysmanage.bean.SysDicItem"/>
+<!-- Result Map-->
+<resultMap id="baseResultMap" type="com.guoll.modules.sysmanage.bean.SysDicType"/>
+<resultMap id="baseResultMap1" type="com.guoll.modules.sysmanage.bean.SysDicItem"/>
+
+<select id="querySysDicTypeSum" parameterMap="baseParameterMap" resultType="Integer">
+	SELECT COUNT(T.ID) FROM SYS_DIC_TYPE T WHERE 1=1 
+	<if test="code!=null and code!=''">AND T.CODE like '%'||#{code,jdbcType=VARCHAR}||'%'</if>
+	<if test="name!=null and name!=''">AND T.NAME like '%'||#{name,jdbcType=VARCHAR}||'%'</if>
+</select>
+<select id="querySysDicTypeList" parameterMap="baseParameterMap" resultMap="baseResultMap">
+	SELECT T.ID,T.CODE,T.NAME,T.CODE_BUILD_TYPE,REMARK,T.UPDATE_USER_ID,T.UPDATE_USER_NAME,T.UPDATE_TIME 
+	FROM SYS_DIC_TYPE T	WHERE 1=1 
+	<if test="code!=null and code!=''">AND T.CODE like '%'||#{code,jdbcType=VARCHAR}||'%'</if>
+	<if test="name!=null and name!=''">AND T.NAME like '%'||#{name,jdbcType=VARCHAR}||'%'</if>
+	ORDER BY UPDATE_TIME DESC
+</select>
+<select id="querySysDicTypeById" parameterType="Integer" resultMap="baseResultMap">
+	SELECT T.ID,T.CODE,T.NAME,T.CODE_BUILD_TYPE,REMARK,T.UPDATE_USER_ID,T.UPDATE_USER_NAME,T.UPDATE_TIME 
+	FROM SYS_DIC_TYPE T	WHERE ID=#{id,jdbcType=NUMERIC}
+</select>
+<insert id="addSysDicType" parameterMap="baseParameterMap">
+	INSERT INTO SYS_DIC_TYPE(ID,CODE,NAME,CODE_BUILD_TYPE,REMARK,UPDATE_USER_ID,UPDATE_USER_NAME,UPDATE_TIME)
+	VALUES(SEQ_SYS_DIC_TYPE.NEXTVAL,#{code,jdbcType=VARCHAR},#{name,jdbcType=VARCHAR},#{code_build_type,jdbcType=NUMERIC},
+	#{remark,jdbcType=VARCHAR},#{update_user_id,jdbcType=NUMERIC},#{update_user_name,jdbcType=VARCHAR},#{update_time,jdbcType=TIMESTAMP})
+</insert>
+<update id="updateSysDicType" parameterMap="baseParameterMap">
+	UPDATE SYS_DIC_TYPE SET CODE_BUILD_TYPE=#{code_build_type,jdbcType=NUMERIC},NAME=#{name,jdbcType=VARCHAR},
+	REMARK=#{remark,jdbcType=VARCHAR},UPDATE_USER_ID=#{update_user_id,jdbcType=NUMERIC},
+	UPDATE_USER_NAME=#{update_user_name,jdbcType=VARCHAR},UPDATE_TIME=#{update_time,jdbcType=TIMESTAMP} WHERE ID=#{id,jdbcType=NUMERIC}
+</update>
+<delete id="deleteSysDicType" parameterMap="baseParameterMap">
+	DELETE FROM SYS_DIC_TYPE WHERE ID=#{id,jdbcType=NUMERIC}
+</delete>
+<!-- 字典明细部分 -->
+<select id="querySysDicItemSum" parameterMap="baseParameterMap" resultType="Integer">
+	SELECT COUNT(T.ID) FROM SYS_DIC_ITEM T WHERE T.DIC_TYPE_ID=#{dic_type_id,jdbcType=NUMERIC}
+	<if test="code!=null and code!=''">AND T.CODE like '%'||#{code,jdbcType=VARCHAR}||'%'</if>
+	<if test="name!=null and name!=''">AND T.NAME like '%'||#{name,jdbcType=VARCHAR}||'%'</if>
+</select>
+<select id="querySysDicItemList" parameterMap="baseParameterMap" resultMap="baseResultMap1">
+	SELECT T.ID,T.DIC_TYPE_ID,T.CODE,T.NAME,T.UPDATE_USER_ID,T.UPDATE_USER_NAME,T.UPDATE_TIME 
+	FROM SYS_DIC_ITEM T	WHERE T.DIC_TYPE_ID=#{dic_type_id,jdbcType=NUMERIC}
+	<if test="code!=null and code!=''">AND T.CODE like '%'||#{code,jdbcType=VARCHAR}||'%'</if>
+	<if test="name!=null and name!=''">AND T.NAME like '%'||#{name,jdbcType=VARCHAR}||'%'</if>
+	ORDER BY UPDATE_TIME DESC
+</select>
+<select id="querySysDicItemById" parameterType="Integer" resultMap="baseResultMap1">
+	SELECT T.ID,T.DIC_TYPE_ID,T.CODE,T.NAME,T.UPDATE_USER_ID,T.UPDATE_USER_NAME,T.UPDATE_TIME 
+	FROM SYS_DIC_ITEM T	WHERE T.ID=#{id,jdbcType=NUMERIC}
+</select>
+<insert id="addSysDicItem" parameterMap="baseParameterMap">
+	INSERT INTO SYS_DIC_ITEM(ID,DIC_TYPE_ID,CODE,NAME,UPDATE_USER_ID,UPDATE_USER_NAME,UPDATE_TIME)
+	VALUES(SEQ_SYS_DIC_ITEM.NEXTVAL,#{dic_type_id,jdbcType=NUMERIC},#{code,jdbcType=VARCHAR},#{name,jdbcType=VARCHAR},
+	#{update_user_id,jdbcType=NUMERIC},#{update_user_name,jdbcType=VARCHAR},#{update_time,jdbcType=TIMESTAMP})
+</insert>
+<update id="updateSysDicItem" parameterMap="baseParameterMap">
+	UPDATE SYS_DIC_ITEM T SET T.NAME=#{name,jdbcType=VARCHAR},T.CODE=#{code,jdbcType=VARCHAR},UPDATE_USER_ID=#{update_user_id,jdbcType=NUMERIC},
+	UPDATE_USER_NAME=#{update_user_name,jdbcType=VARCHAR},UPDATE_TIME=#{update_time,jdbcType=TIMESTAMP} WHERE ID=#{id,jdbcType=NUMERIC}
+</update>
+<delete id="deleteSysDicItem" parameterMap="baseParameterMap">
+	DELETE FROM SYS_DIC_ITEM WHERE ID=#{id,jdbcType=NUMERIC}
+</delete>
+<resultMap type="com.guoll.modules.sysmanage.bean.SysDic" id="sysDic">
+<result column="DICT_TYPE" property="dict_type"/>
+	<result column="DICT_CODE" property="code"/>
+	<result column="NAME" property="name"/>
+</resultMap>
+<select id="queryDic" parameterType="Integer" resultMap="sysDic">
+   SELECT T.DICT_CODE,T.NAME FROM SYS_DICTIONARY T 
+   WHERE T.DICT_TYPE=#{dict_type,jdbcType=NUMERIC}
+   ORDER BY T.DICT_CODE
+</select>
+</mapper>

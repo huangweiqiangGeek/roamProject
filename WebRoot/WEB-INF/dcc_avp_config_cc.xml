@@ -1,0 +1,301 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dcc_avp province="cq">
+	<cmd_code_list>
+		<cmdCode code="272" request_name="CCR" respond_name="CCA" />
+		<cmdCode code="258" request_name="RAR" respond_name="RAA" />
+		<cmdCode code="274" request_name="ASR" respond_name="ASA" />
+		<cmdCode code="280" request_name="DWR" respond_name="DWA" />
+		<cmdCode code="282" request_name="DPR" respond_name="DPA" />
+		<cmdCode code="257" request_name="CER" respond_name="CEA" />
+	</cmd_code_list>
+	<avp_data>
+		<avpCode code="1" name="User-Name" type="UTF8String"
+			data="CCA|logic|if:272=CCA:then:null||illustrate|CCA消息包不应该出现User-Name字段|||CCR|" />
+		<avpCode code="2" name="3GPP-Charging-Id" type="OctetString"
+			data="CCR|logic|if:272=parentId:then:null$if:874=null:then:null||illustrate|3GPP计费标识|||CCA|logic|if:865=null:then:null||illustrate|3GPP计费标识" />
+		<avpCode code="3" name="3GPP-PDP-Type" type="Enumerated"
+			data="CCR|logicAndValues|if:272=parentId:then:null#0;1;2;3||illustrate|0:IPv4;1:PPP;2:IPv6;3:IPv4v6|||CCA|logic|if:272=CCA:then:null||illustrate|CCA消息包不应该出现3GPP-PDP-Type字段" />
+		<avpCode code="5" name="3GPP-GPRS-Negotiated-QoS-Profile"
+			type="UTF8String"
+			data="CCA|logic|if:272=CCA:then:null||illustrate|CCA消息包不应该出现3GPP-GPRS-Negotiated-QoS-Profile字段|||CCR|" />
+		<avpCode code="8" name="3GPP-IMSI-MCC-MNC" type="UTF8String"
+			data="CCA|logic|if:272=CCA:then:null||illustrate|CCA消息包不应该出现3GPP-IMSI-MCC-MNC字段|||CCR|logic|if:456=parentId:then:null||illustrate|从IMSI中获取的MCC和MNC" />
+		<avpCode code="9" name="3GPP-GGSN-MCC-MNC" type="UTF8String"
+			data="CCA|logic|if:272=CCA:then:null||illustrate|CCA消息包不应该出现3GPP-GGSN-MCC-MNC字段|||CCR|" />
+		<avpCode code="10" name="3GPP-NSAPI" type="UTF8String"
+			data="CCA|logic|if:272=CCA:then:null||illustrate|CCA消息包不应该出现3GPP-NSAPI字段|||CCR|" />
+		<avpCode code="11" name="Filter-Id" type="OctetString"
+			data="CCA|logic|if:416=3:then:null||illustrate|用户的过滤清单名称|||CCR|" />
+		<avpCode code="12" name="3GPP-Selection-Mode" type="UTF8String"
+			data="CCA|logic|if:272=CCA:then:null||illustrate|CCA消息包不应该出现3GPP-Selection-Mode字段|||CCR|" />
+		<avpCode code="13" name="3GPP-Charging-Characteristics" type="UTF8String"
+			data="CCA|logic|if:272=CCA:then:null||illustrate|CCA消息包不应该出现3GPP-Charging-Characteristics字段|||CCR|" />
+		<avpCode code="18" name="3GPP-SGSN-MCC-MNC" type="UTF8String"
+			data="CCA|logic|if:272=CCA:then:null||illustrate|CCA消息包不应该出现3GPP-SGSN-MCC-MNC字段|||CCR|" />
+		<avpCode code="21" name="3GPP-RAT-Type" type="OctetString"
+			data="CCA|logic|if:272=CCA:then:null||illustrate|CCA消息包不应该出现3GPP-RAT-Type字段|||CCR|" />
+		<avpCode code="22" name="3GPP-User-Location-Info" type="OctetString"
+			data="CCA|logic|if:272=CCA:then:null||illustrate|CCA消息包不应该出现3GPP-User-Location-Info字段|||CCR|" />
+		<avpCode code="23" name="3GPP-MS-TimeZone" type="OctetString"
+			data="CCA|logic|if:272=CCA:then:null||illustrate|CCA消息包不应该出现3GPP-MS-TimeZone字段|||CCR|" />
+		<avpCode code="25" name="Class" type="OctetString" />
+		<avpCode code="30" name="Called-Station-Id" type="UTF8String"
+			data="CCA|logic|if:272=CCA:then:null||illustrate|CCA消息包不应该出现Called-Station-Id字段|||CCR|" />
+		<avpCode code="33" name="Proxy-State" type="UTF8String" />
+		<avpCode code="55" name="Event-Timestamp" type="Time"
+			data="CCR|logic|time:greatEqual:1990-01-01||illustrate|该AVP的时间值应该是1990年1月1日零时以来的时间|||CCA|logic|if:272=CCA:then:null||illustrate|CCA消息包不应该出现Event-Timestamp字段" />
+		<!-- <avpCode code=";55" name="Event-Timestamp" type="Unsigned32" /> -->
+		<avpCode code="257" name="Host-IP-Address" type="IPAddress" />
+		<avpCode code="258" name="Auth-Application-Id" type="Unsigned32"
+			data="value|4||illustrate|DCCA消息该AVP对应的值为4" />
+		<avpCode code="259" name="Acct-Application-Id" type="Unsigned32" />
+		<avpCode code="260" name="Vendor-Specific-App" type="Grouped" />
+		<avpCode code="261" name="Redirect-Host-Usage" type="Enumerated"
+			data="illustrate|表示为一个DCC业务的唯一标识" />
+		<avpCode code="262" name="ARedirect-Max-Cache-Time" type="Unsigned32" />
+		<avpCode code="263" name="Session-Id" type="UTF8String"
+			data="CCR|logic|splitBy:;:3||illustrate|该AVP的值应以“;”相隔|||CCA|logic|splitBy:;:3||illustrate|该AVP的值应以“;”相隔" />
+		<avpCode code="264" name="Origin-Host" type="DiameterIdentity"
+			data="CCR|logic|endWith:.node.epc.mnc000.mcc460.3gppnetwork.org||illustrate|该AVP的值应以.node.epc.mnc000.mcc460.3gppnetwork.org结尾|||CCA|logic|endWith:.cmcc.com||illustrate|发出Diameter消息的主机,与CCR的Destination-Host必须相同" />
+		<avpCode code="265" name="Supported-Verdor-Id" type="Unsigned32" />
+		<avpCode code="266" name="Vendor-Id" type="Unsigned32" />
+		<avpCode code="267" name="Fireware-Revision" type="Unsigned32" />
+		<avpCode code="268" name="Result-Code" type="Unsigned32"
+			data="CCA|values|1001;2001;2002;3001;3002;3003;3004;3005;3006;3007;3008;3009;3010;4001;4002;4003;4010;4011;4012;5001;5002;5003;5004;5005;5006;5007;5008;5009;5010;5011;5012;5013;5014;5015;5016;5017;5030;5031||illustrate|1xxx:Informational;2xxx:Success;3xxx:ProtocolErrors;4xxx:TransientFailures;5xxx:PermanentFailure|||CCR|if:272=CCR:then:null||illustrate|CCR消息包不应该出现Result-Code字段" />
+		<avpCode code="269" name="Product-Name" type="UTF8String" />
+		<avpCode code="273" name="Disconnect-Cause" type="Enumerated" />
+		<avpCode code="278" name="Origin-State-Id" type="Unsigned32"
+			data="CCA|logic|if:272=CCA:then:null||illustrate|CCA消息包不应该出现Origin-State-Id字段|||CCR|" />
+		<avpCode code="279" name="Failed-AVP" type="Grouped"
+			data="CCR|logic|if:272=CCR:then:null||illustrate|CCR消息包不应该出现Failed-AVP字段|||CCA|" />
+		<avpCode code="280" name="Proxy-Host" type="UTF8String" />
+		<avpCode code="281" name="Error-Message" type="UTF8String" />
+		<avpCode code="282" name="Route-Record" type="DiameterIdentity"
+			data="illustrate|路由记录" />
+		<avpCode code="283" name="Destination-Realm" type="DiameterIdentity"
+			data="CCR|value|cmcc.com||illustrate|该AVP应取值为cmcc.com|||CCA|" />
+		<avpCode code="284" name="Proxy-Info" type="Grouped" />
+		<avpCode code="285" name="ReAuth_Request-Type" type="Enumerated" />
+		<avpCode code="292" name="Redirect-Host" type="DiameterIdentity" />
+		<avpCode code="293" name="Destination-Host" type="DiameterIdentity"
+			data="CCR|logic|endWith:.cmcc.com||illustrate|该AVP的值应以.cmcc.com结尾|||CCA|logic|if:272=CCA:then:null||illustrate|CCA消息包不应该有Destination-Host字段" />
+		<avpCode code="294" name="Error-Reporting-Host" type="DiameterIdentity" />
+		<avpCode code="295" name="Termination-Cause" type="Enumerated"
+			data="logic|if:272=CCR and 416=3:then:1-8:else:null||illustrate|1:DIAMETER_LOGOUT(用户发起的中断)；2:DIAMETER_SERVICE_NOT_PROVIDED(业务无法提供导致的中断)；3:DIAMETER_BAD_ANSWER(Diameter客户端收到的授权应答未被成功处理)；4:DIAMETER_ADMINISTRATIVE(因为管理原因，用户没有获得接入授权或连接被断开)；5:DIAMETER_LINK_BROKEN(与用户的通信突然断开)；6:DIAMETER_AUTH_EXPIRED(会话时间到期，用户的接入终止)；7:DIAMETER_USER_MOVED(用户正在接收其它Diameter客户端的服务)；8:DIAMETER_SESSION_TIMEOUT(在线计费会话超时，服务已经终止)" />
+		<avpCode code="296" name="Origin-Realm" type="DiameterIdentity"
+			data="CCR|value|epc.mnc000.mcc460.3gppnetwork.org||illustrate|该AVP应取值为epc.mnc000.mcc460.3gppnetwork.org|||CCA|value|cmcc.com||illustrate|该AVP应取值为cmcc.com,与CCR的Destination-Realm必须相同" />
+		<avpCode code="411" name="CC-Correlation-Id" type="OctetString" />
+		<avpCode code="412" name="CC-Input-Octets" type="Unsigned64"
+			data="logic|mustContain:414||illustrate|该AVP表示从终端用户收到的已使用字节数，单位为Byte" />
+		<avpCode code="413" name="CC-Money" type="Grouped" />
+		<avpCode code="414" name="CC-Output-Octets" type="Unsigned64"
+			data="logic|mustContain:412||illustrate|该AVP表示发送到终端用户的已使用字节数，单位为Byte" />
+		<avpCode code="415" name="CC-Request-Number" type="Unsigned32"
+			data="logic|if:416=1:then:0||illustrate|I包该AVP应取值为0，其他的相应加1" />
+		<avpCode code="416" name="CC-Request-Type" type="Enumerated"
+			data="values|1;2;3||illustrate|I包取值为1;U包取值为2;T包取值为3" />
+		<avpCode code="417" name="CC-Service-Specific-Units" type="Unsigned64" />
+		<avpCode code="418" name="CC-Session-Failover" type="Enumerated"
+			data="CCA|logic|mustContain:427$if:416=3:then:null||illustrate|标明是否支持在一个CC会话进行过程中将CC消息流转向备用服务器|||CCR|if:272=CCR:then:null||illustrate|CCR消息包不应该出现CC-Session-Failover字段" />
+		<avpCode code="420" name="CC-Time" type="Unsigned32"
+			data="illustrate|该AVP表示为已使用时间" />
+		<avpCode code="421" name="CC-Total-Octets" type="Unsigned64"
+			data="illustrate|该AVP表示为已使用的上下行总字节数" />
+		<avpCode code="425" name="Currency-Code" type="Unsigned32" />
+		<avpCode code="427" name="Credit-Control-Failure-Handling"
+			type="Enumerated"
+			data="CCA|logicAndValues|if:416=3:then:null#0;1;2||illustrate|0:TERMINATE;1:CONTINUE;2:RETRY_AND_TERMINATE|||CCR|if:272=CCR:then:null||illustrate|CCR消息包不应该出现Credit-Control-Failure-Handling字段" />
+		<avpCode code="429" name="Exponent" type="Integer32" />
+		<avpCode code="430" name="Final-Unit-Indication" type="Grouped"
+			data="CCA|logic|if:416=3:then:null$if:416=1 or 416=2:thenContain:449||illustrate|CCA的T包不应该出现Final-Unit-Indication字段;I包和U包必须出现Final-Unit-Action|||CCR|" />
+		<avpCode code="431" name="Granted-Service-Unit" type="Grouped"
+			data="CCA|logic|if:416=3:then:null$if:416=1 or 416=2:thenContain:421||illustrate|CCA中T包不需要携带该字段;I包和U包必须包含CC-Total-Octets|||CCR|" />
+		<avpCode code="432" name="Rating-Group" type="Unsigned32"
+			data="illustrate|该AVP表示为Rating组标识" />
+		<avpCode code="433" name="Redirect-Address-Type" type="Enumerated"
+			data="CCR|logic|if:272=CCR:then:null||illustrate|CCR消息包中不应该出现Redirect-Address-Type字段|||CCA|logic|if:416=3:then:null||illustrate|CCA的T包不应该出现Redirect-Address-Type字段" />
+		<avpCode code="434" name="Redirect-Server" type="Grouped"
+			data="CCR|logic|if:272=CCR:then:null||illustrate|CCR消息包中不应该出现Redirect-Server字段|||CCA|logic|if:416=3:then:null$if:416=1 or 416=2:thenContain:433;435||illustrate|CCA的T包不应该出现Redirect-Server字段;I包和U包必须出现Redirect-Address-Type和Redirect-Server-Address两个子AVP" />
+		<avpCode code="435" name="Redirect-Server-Address" type="UTF8String"
+			data="CCR|logic|if:272=CCR:then:null||illustrate|CCR消息包中不应该出现Redirect-Server-Address字段|||CCA|logic|if:416=3:then:null||illustrate|CCA的T包不应该出现Redirect-Server-Address字段" />
+		<avpCode code="436" name="Requested-Action" type="Enumerated" />
+		<avpCode code="437" name="Requested-Service-Unit" type="Grouped"
+			data="CCR|logic|mustContain:null$if:416=3:then:null||illustrate|要求该AVP内容为空,不能携带其他子AVP|||CCA|logic|if:272=CCA:then:null||illustrate|CCA消息包不应该出现Requested-Service-Unit字段" />
+		<avpCode code="438" name="Restriction-Filter-Rule" type="OctetString"
+			data="CCR|logic|if:272=CCR:then:null||illustrate|CCR消息包中不应该出现Restriction-Filter-Rule字段|||CCA|logic|if:416=3:then:null||illustrate|CCA的T包不应该出现Restriction-Filter-Rule字段" />
+		<avpCode code="439" name="Service-Identifier" type="Unsigned32"
+			data="illustrate|该AVP表示为业务识别标识" />
+		<avpCode code="443" name="Subscription-Id" type="Grouped"
+			data="CCR|logic|appearCount:greatEqual:2$mustContain:450;444||illustrate|该AVP必须包含Subscription-id-type和Subscription-id-data|||CCA|logic|if:272=CCA:then:null||illustrate|CCA消息包不应该出现Subscription-Id字段" />
+		<avpCode code="444" name="Subscription-Id-Data" type="UTF8String"
+			data="CCR|illustrate|该AVP表示为终端用户标志，用作计费号码|||CCA|logic|if:272=CCA:then:null||illustrate|CCA消息包不应该出现Subscription-Id-Type字段" />
+		<avpCode code="445" name="Unit-Value" type="Grouped" />
+		<avpCode code="446" name="Used-Service-Unit" type="Grouped"
+			data="CCR|logic|if:416=1:then:null$if:416=2 or 416=3:thenContain:421||illustrate|从业务激活开始所测算出的已使用单元总数,CCR-I包中不出现此AVP;且U包和T包必须出现CC-Total-Octets子AVP|||CCA|logic|if:272=CCA:then:null||illustrate|CCA消息包不应该出现Used-Service-Unit字段" />
+		<avpCode code="447" name="Value-Digits" type="Integer64" />
+		<avpCode code="448" name="Validity-Time" type="Unsigned32"
+			data="CCA|logicAndValues|if:272=parentId:then:null$if:416=3:then:null#300-1800||illustrate|CCA的T包不应该出现Validity-Time字段，并且该字段取值应为5分钟到30分钟|||CCR|logic|if:272=CCR:then:null||illustrate|CCR消息包中不应该出现Validity-Time字段" />
+		<avpCode code="449" name="Final-Unit-Action" type="Enumerated"
+			data="CCA|logicAndValues|if:416=3:then:null#0;1;2||illustrate|0:TERMINATE(DCC客户端必须终止业务会话);1:REDIRECT(业务处理单元必须将用户重新定向);2:RESTRICT_ACCESS(接入设备必须按照Restriction-Filter-Rule或者Filter-Id中定义的IP包过滤器来限制用户的接入)|||CCR|if:272=CCR:then:null||illustrate|CCR消息包不应该出现Final-Unit-Action字段" />
+		<avpCode code="450" name="Subscription-Id-Type" type="Enumerated"
+			data="CCR|logicAndValues|appearCount:greatEqual:2:0;1#0-4||illustrate|0:END_USER_E164(携带MSISDN信);1:END_USER_IMSI(携带IMSI);2:END_USER_SIP_URI;3:END_USER_NAI;4:END_USER_PRIVATE|||CCA|logic|if:272=CCA:then:null||illustrate|CCA消息包不应该出现Subscription-Id-Type字段" />
+		<avpCode code="451" name="Tariff-Time-Change" type="Time"
+			data="CCR|logic|if:272=CCR:then:null||illustrate|CCR消息包不应该出现Tariff-Time-Change字段|||CCA|" />
+		<avpCode code="452" name="Tariff-Change-Usage" type="Enumerated"
+			data="CCR|illustrate|该AVP定义了在一个报告周期中发生费率切换时，所使用的单元是在费率切换前、后，或者跨越不同的费率|||CCA|logic|if:272=CCA:then:null||illustrate|CCA消息包不应该出现Tariff-Change-Usage字段" />
+		<avpCode code="455" name="Multiple-Services-Indicator" type="Enumerated"
+			data="CCR|value|1||illustrate|该AVP表示多业务标识,取值要求置为1|||CCA|logic|if:272=CCA:then:null||illustrate|CCA消息包不应该出现Multiple-Services-Indicator字段" />
+		<avpCode code="456" name="Multiple-Services-Credit-Control"
+			type="Grouped"
+			data="CCR|logic|if:416=3:thenContain:446;432||illustrate|多业务独立信用控制;CCR的T包必须携带Used-Service-Unit和Rating-Group两个子AVP|||CCA|logic|mustContain:432;268||illustrate|多业务独立信用控制" />
+		<avpCode code="458" name="User-Equipment-Info" type="Grouped"
+			data="CCR|logic|mustContain:459;450||illustrate|该AVP表示国际移动设备身份码及软件版本|||CCA|logic|if:272=CCA:then:null||illustrate|CCA消息包不应该出现User-Equipment-Info字段" />
+		<avpCode code="459" name="User-Equipment-Info-Type" type="Enumerated"
+			data="CCR|value|0||illustrate|该AVP取固定值0|||CCA|logic|if:272=CCA:then:null||illustrate|CCA消息包不应该出现User-Equipment-Info-Type字段" />
+		<avpCode code="460" name="User-Equipment-Info-Value" type="OctetString"
+			data="CCA|logic|if:272=CCA:then:null||illustrate|CCA消息包不应该出现User-Equipment-Info-Value字段|||CCR|" />
+		<avpCode code="461" name="Service-Context-Id" type="UTF8String"
+			data="CCR|value|ps@cmcc.com||illustrate|网络侧的Service-Context-Id使用ps@cmcc.com|||CCA|logic|if:272=CCA:then:null||illustrate|CCA消息包不应该出现Service-Context-Id字段" />
+		<avpCode code="505" name="AF-Charging-Identifier" type="OctetString"
+			data="CCA|logic|if:272=CCA:then:null||illustrate|CCA消息包不应该包含AF-Charging-Identifier字段|||CCR|" />
+		<avpCode code="510" name="Flows" type="Grouped"
+			data="CCA|logic|if:272=CCA:then:null||illustrate|CCA消息包不应该包含Flows字段|||CCR|" />
+		<avpCode code="515" name="Max-Requested-Bandwidth-DL" type="Unsigned32"
+			data="CCA|logic|if:272=CCA:then:null||illustrate|CCA消息包不应该出现Max-Requested-Bandwidth-DL字段|||CCR|illustrate|GBR-UL,上行确保比特速率" />
+		<avpCode code="516" name="Max-Requested-Bandwidth-UL" type="Unsigned32"
+			data="CCA|logic|if:272=CCA:then:null||illustrate|CCA消息包不应该出现Max-Requested-Bandwidth-UL字段|||CCR|illustrate|MRB_DL,下行最大带宽请求" />
+		<avpCode code="601" name="MSC-Address1" type="UTF8String" />
+		<avpCode code="603" name="Calling-Party-Number" type="UTF8String" />
+		<avpCode code="604" name="Called-Party-Number" type="UTF8String" />
+		<avpCode code="605" name="Calling-Vlr-Number" type="UTF8String" />
+		<avpCode code="606" name="Called-Vlr-Number" type="UTF8String" />
+		<avpCode code="607" name="Calling-CellID-Or-SAI" type="UTF8String" />
+		<avpCode code="608" name="Called-CellID-Or-SAI" type="UTF8String" />
+		<avpCode code="611" name="Redirection-Counter" type="Unsigned32" />
+		<avpCode code="612" name="Redirection-Counter" type="Unsigned32" />
+		<avpCode code="613" name="Charge-Flag" type="Integer32" />
+		<avpCode code="614" name="Time-Unit-Type" type="Integer32" />
+		<avpCode code="615" name="Bearer-Capability" type="Unsigned32" />
+		<avpCode code="846" name="CG-Address" type="IPAddress"
+			data="CCA|logic|if:272=CCA:then:null||illustrate|CCA消息包不应该出现CG-Address字段|||CCR|" />
+		<avpCode code="847" name="GGSN-Address" type="IPAddress"
+			data="CCA|logic|if:272=CCA:then:null||illustrate|CCA消息包不应该出现GGSN-Address字段|||CCR|" />
+		<avpCode code="865" name="PS-Furnish-Charging-Information"
+			type="Grouped"
+			data="CCR|logic|if:272=CCR:then:null||illustrate|CCR消息包中不应该出现PS-Furnish-Charging-Information字段|||CCA|illustrate|在线和离线FCI计费标识" />
+		<avpCode code="866" name="PS-Free-Format-Data" type="OctetString"
+			data="CCR|logic|if:272=CCR:then:null||illustrate|CCR消息包中不应该出现PS-Free-Format-Data字段|||CCA|" />
+		<avpCode code="867" name="PS-Append-Free-Format-Data" type="Enumerated"
+			data="CCR|logic|if:272=CCR:then:null||illustrate|CCR消息包中不应该出现PS-Append-Free-Format-Data字段|||CCA|" />
+		<avpCode code="868" name="Time-Quota-Threshold" type="Unsigned32"
+			data="CCR|if:272=CCR:then:null||illustrate|CCR消息包不应该出现Time-Quota-Threshold字段|||CCA|if:416=3:then:null||illustrate|CCA的T包不应该出现Time-Quota-Threshold字段" />
+		<avpCode code="869" name="Volume-Quota-Threshold" type="Unsigned32" />
+		<avpCode code="870" name="Trigger-Type" type="Enumerated"
+			data="illustrate|该AVP用于指示单个重授权事件类型" />
+		<avpCode code="871" name="Quota-Holding-Time" type="Unsigned32"
+			data="illustrate|配额占用时间，单位为秒" />
+		<avpCode code="872" name="Reporting-Reason" type="Enumerated"
+			data="CCR|logic|if:272=CCA:then:null$if:456=parentId:then:1;2;4;6;7$if:446=parentId:then:0;3;5||illustrate|0:THRESHOLD(门限Threshold到达);1:QHT(QHT到达);2:FINAL(PDP访问终止);3:QUOTA_EXHAUSTED(配额用尽);4:VALIDITY_TIME(生命期Validity-Time已经结束);5:OTHER_QUOTA_TYPE(其它配额到达报告触发条件)|||CCA|if:272=CCA:then:null||illustrate|CCA消息包不应该出现Reporting-Reason字段" />
+		<avpCode code="873" name="Service-Information" type="Grouped"
+			data="CCR|logic|mustContain:874||illustrate|业务信息，包括PS-Information信息组：874，属性为Grouped|||CCA|illustrate|业务信息" />
+		<avpCode code="874" name="PS-Information" type="Grouped" />
+		<avpCode code="876" name="IMS-Information" type="Grouped" />
+		<avpCode code="878" name="LCS-Information" type="Grouped" />
+		<avpCode code="879" name="PoC-Information" type="Grouped" />
+		<avpCode code="881" name="Quota-Consumption-Time" type="Unsigned32"
+			data="CCA|logic|lessEqualAvp:871||illustrate|配额空耗时间，单位为秒;Quota-Holding-Time必须大于等于Quota-consumption-Time|||CCR|logic|if:272=CCR:then:null||illustrate|CCR消息包不应该出现Quota-Consumption-Time字段" />
+		<avpCode code="1004" name="Charging-Rule-Base-Name" type="UTF8String"
+			data="CCA|logic|if:272=CCA:then:null||illustrate|CCA消息包不应该出现Charging-Rule-Base-Name字段|||CCR|" />
+		<avpCode code="1016" name="qos-infomation" type="Grouped"
+			data="CCA|logic|if:272=CCA:then:null||illustrate|CCA消息包不应该出现qos-infomation字段|||CCR|" />
+		<avpCode code="1020" name="Bearer-Identifier" type="OctetString"
+			data="CCA|logic|if:272=CCA:then:null||illustrate|CCA消息包不应该出现Bearer-Identifier字段|||CCR|illustrate|承载标识" />
+		<avpCode code="1025" name="Guaranteed-Bitrate-DL" type="Unsigned32"
+			data="CCA|logic|if:272=CCA:then:null||illustrate|CCA消息包不应该出现Guaranteed-Bitrate-DL字段|||CCR|illustrate|GBR-DL,下行确保比特速率" />
+		<avpCode code="1026" name="Guaranteed-Bitrate-UL" type="Unsigned32"
+			data="CCA|logic|if:272=CCA:then:null||illustrate|CCA消息包不应该出现Guaranteed-Bitrate-UL字段|||CCR|illustrate|GBR-UL,上行确保比特速率" />
+		<avpCode code="1028" name="QoS-Class-Identifier" type="Enumerated"
+			data="CCA|logic|if:272=CCA:then:null||illustrate|CCA消息包不应该出现QoS-Class-Identifier字段|||CCR|illustrate|QCI-QoS分类标识" />
+		<avpCode code="1034" name="Allocation-Retention-Priority"
+			type="Grouped"
+			data="CCA|logic|if:272=CCA:then:null||illustrate|CCA消息包不应该出现Allocation-Retention-Priority字段|||CCR|" />
+		<avpCode code="1040" name="APN-Aggregate-Max-Bitrate-DL" type="Unsigned32"
+			data="CCA|logic|if:272=CCA:then:null||illustrate|CCA消息包不应该出现APN-Aggregate-Max-Bitrate-DL字段|||CCR|illustrate|下行APN所有非GBR承载IP流聚合的最大比特率" />
+		<avpCode code="1041" name="APN-Aggregate-Max-Bitrate-UL" type="Unsigned32"
+			data="CCA|logic|if:272=CCA:then:null||illustrate|CCA消息包不应该出现APN-Aggregate-Max-Bitrate-UL字段|||CCR|illustrate|上行APN所有非GBR承载IP流聚合的最大比特率" />
+		<avpCode code="1046" name="Priority-Level" type="Unsigned32"
+			data="CCA|logic|if:272=CCA:then:null||illustrate|CCA消息包不应该出现Priority-Level字段|||CCR|values|1-15||illustrate|优先级，用来指示当资源紧张时建立或修改承载是否应该被优先接受。1表示最高优先级" />
+		<avpCode code="1047" name="Pre-emption-Capability" type="Enumerated"
+			data="CCA|logic|if:272=CCA:then:null||illustrate|PEC，用来指示某业务流是否可以从其它低优先级(Prioriti-Level)抢占资源,CCA消息包不应该出现Pre-emption-Capability字段。0:PRE-EMPTION_CAPABILITY_ENABLED(允许该业务流抢占已分配到其它业务流的资源);1:PRE-EMPTION_CAPABILITY_DISABLED(不允许该业务流抢占已分配到其它业务流的资源)|||CCR|values|0;1||illustrate|PEC，用来指示某业务流是否可以从其它低优先级(Prioriti-Level)抢占资源,CCA消息包不应该出现Pre-emption-Capability字段.0:PRE-EMPTION_CAPABILITY_ENABLED(允许该业务流抢占已分配到其它业务流的资源);1:PRE-EMPTION_CAPABILITY_DISABLED(不允许该业务流抢占已分配到其它业务流的资源)" />
+		<avpCode code="1048" name="Pre-emption-Vulnerability" type="Enumerated"
+			data="CCA|logic|if:272=CCA:then:null||illustrate|CCA消息包不应该出现Pre-emption-Vulnerability字段|||CCR|values|0;1||illustrate|用来指示某业务流已分配的资源是否可以被其它高优先级业务流抢占,0:PRE-EMPTION_VULNERABILITY_ENABLED;1:PRE-EMPTION_VULNERABILITY_DISABLED" />
+		<avpCode code="1226" name="Unit-Quota-Threshold" type="Unsigned32" />
+		<avpCode code="1227" name="PDP-Address" type="IPAddress"
+			data="CCA|logic|if:272=CCA:then:null||illustrate|CCA消息包不应该出现PDP-Address字段|||CCR|" />
+		<avpCode code="1228" name="SGSN-Address" type="IPAddress"
+			data="CCA|logic|if:272=CCA:then:null||illustrate|CCA消息包不应该出现SGSN-Address字段|||CCR|" />
+		<avpCode code="1247" name="PDP-Context-Type" type="Enumerated"
+			data="CCA|logic|if:272=CCA:then:null||illustrate|CCA消息包不应该出现PDP-Context-Type字段|||CCR|" />
+		<avpCode code="1258" name="Event-Charging-TimeStamp" type="Time" />
+		<avpCode code="1264" name="Trigger" type="Grouped"
+			data="CCR|logic|if:416=1:then:null||illustrate|CCR消息中发生的事件，CCR的I包不应该出现Trigger字段|||CCA|" />
+		<avpCode code="1276" name="AF-Correlation-Information" type="Grouped"
+			data="CCA|logic|if:272=CCA:then:null||illustrate|CCA消息包不应该出现AF-Correlation-Information段|||CCR|mustContain:505||illustrate|CCR消息包中该AVP出现，必须出现AF-Charging-Identifier子AVP" />
+		<avpCode code="2041" name="Start-Time" type="Time"
+			data="CCA|logic|if:272=CCA:then:null||illustrate|CCA消息包不应该出现Start-Time字段|||CCR|illustrate|P-GW上代表用户会话开始时间" />
+		<avpCode code="2042" name="Stop-Time" type="Time"
+			data="CCA|logic|if:272=CCA:then:null||illustrate|CCA消息包不应该出现Stop-Time字段|||CCR|illustrate|P-GW上代表用户会话结束时间" />
+		<avpCode code="2047" name="Serving-Node-Type" type="Enumerated"
+			data="CCA|logic|if:272=CCA:then:null||illustrate|CCA消息包不应该出现Serving-Node-Type字段|||CCR|values|0-5||illustrate|服务节点类型,0:SGSN;1:PMIPSGW;2:GTPSGW;3:ePDG;4:hSGW;5:MME" />
+		<avpCode code="2050" name="PDN-Connection-Charging-ID" type="Unsigned32"
+			data="CCA|logic|if:272=CCA:then:null||illustrate|CCA消息包不应该出现PDN-Connection-Charging-ID字段|||CCR|" />
+		<avpCode code="2051" name="Dynamic-Address-Flag" type="Enumerated"
+			data="CCR|values|0;1||illustrate|0:静态;1:动态|||CCA|logic|if:272=CCA:then:null||illustrate|CCA消息包不应该出现Dynamic-Address-Flag字段" />
+		<avpCode code="20300" name="IN-information" type="Grouped" />
+		<avpCode code="20302" name="Calling-Vlr-Number" type="UTF8String" />
+		<avpCode code="20303" name="Calling-CellID-Or-SAI" type="UTF8String" />
+		<avpCode code="20305" name="Called-Vlr-Number" type="UTF8String" />
+		<avpCode code="20306" name="Called-CellID-Or-SAI" type="UTF8String" />
+		<avpCode code="20310" name="Original-Called-Party-Id" type="UTF8String" />
+		<avpCode code="20313" name="Bearer-Capability" type="UTF8String" />
+		<avpCode code="20316" name="Redirecting-Party-Id" type="UTF8String" />
+		<avpCode code="20317" name="Redirection-Counter" type="Unsigned32" />
+		<avpCode code="20321" name="Call-Reference-Number" type="UTF8String" />
+		<avpCode code="20322" name="MSC-Address" type="UTF8String" />
+		<avpCode code="20327" name="Real-Called-Number" type="UTF8String" />
+		<avpCode code="20336" name="Calling-Party-Address" type="UTF8String" />
+		<avpCode code="20337" name="Called-Party-Address" type="UTF8String" />
+		<avpCode code="20339" name="Charge-Flow-Typ" type="Unsigned32" />
+		<avpCode code="20358" name="Access-Code" type="OctetString12" />
+		<avpCode code="20363" name="Redirection-Reason" type="Unsigned32" />
+		<avpCode code="20364" name="Time-Unit-Type" type="Enumerated" />
+		<avpCode code="20365" name="Charge-Flag" type="Enumerated" />
+		<avpCode code="20387" name="MF-Indicator" type="Unsigned32" />
+		<avpCode code="20400" name="P2PSMS-Information" type="Grouped" />
+		<avpCode code="20500" name="DSMP-Information" type="Grouped" />
+		<avpCode code="20600" name="DVAS-Information" type="Grouped" />
+		<avpCode code="82801" name="Routing-Type" type="UTF8String" />
+		<avpCode code="82802" name="Routing-Value" type="UTF8String" />
+		<avpCode code="82803" name="Routing-Domain" type="UTF8String" />
+	</avp_data>
+	<notContain_mscc>
+		<usecase
+			names="CCR-I-0002,CCR-I-1001,CCA-I-0003,CCA-I-0021,CCA-I-0023,CCA-I-0031,CCA-I-0036,CCA-I-0037,CCA-I-0039,CCA-I-0040,CCA-I-0047,CCA-I-0049,CCA-I-0053,CCA-I-0054,CCA-U-0022,CCA-U-0024,CCA-U-0032,CCA-U-0037,CCA-U-0038,CCA-U-0040,CCA-U-0041,CCA-U-0048,CCA-U-0050,CCA-U-0054,CCA-U-0055,CCA-T-0008,CCA-T-0018" />
+	</notContain_mscc>
+	<notContain_gsu>
+		<usecase
+			names="CCA-I-0003,CCA-I-0021,CCA-I-0023,CCA-I-0031,CCA-I-0035,CCA-I-0036,CCA-I-0037,CCA-I-0039,CCA-I-0040,CCA-I-0047,CCA-I-0049,CCA-I-0053,CCA-I-0054,CCA-U-0003,CCA-U-0022,,CCA-U-0024,CCA-U-0032,CCA-U-0034,CCA-U-0036,CCA-U-0037,CCA-U-0038,CCA-U-0040,CCA-U-0041,CCA-U-0048,CCA-U-0050,CCA-U-0054,CCA-U-0055,CCA-T-0001,CCA-T-0004,CCA-T-0008,CCA-T-0018,CCA-T-0021" />
+	</notContain_gsu>
+	<notContain_usu>
+		<usecase
+			names="CCR-I-0001,CCR-I-0002,CCR-I-0003,CCR-I-1001,CCR-I-1002,CCR-U-0014,CCR-U-0020,CCR-U-0021" />
+	</notContain_usu>
+	<notContain_fui>
+		<usecase
+			names="CCA-I-0003,CCA-I-0004,CCA-I-0005,CCA-I-0006,CCA-I-0007,CCA-I-0008,CCA-I-0009,CCA-I-0021,CCA-I-0023,CCA-I-0031,CCA-I-0033,CCA-I-0034,CCA-I-0035,CCA-I-0036,CCA-I-0037,CCA-I-0039,CCA-I-0040,CCA-I-0047,CCA-I-0049,CCA-I-0053,CCA-I-0054,CCA-U-0003,CCA-U-0004,CCA-U-0005,CCA-U-0006,CCA-U-0007,CCA-U-0008,CCA-U-0009,CCA-U-0022,CCA-U-0024,CCA-U-0032,CCA-U-0034,CCA-U-0035,CCA-U-0036,CCA-U-0037,CCA-U-0038,CCA-U-0040,CCA-U-0041,CCA-U-0048,CCA-U-0050,CCA-U-0054,CCA-U-0055,CCA-T-0001,CCA-T-0004,CCA-T-0008,CCA-T-0018,CCA-T-0021" />
+	</notContain_fui>
+	<notContain_si>
+		<usecase
+			names="CCA-I-0021,CCA-I-0023,CCA-I-0031,CCA-I-0033,CCA-I-0036,CCA-I-0037,CCA-I-0039,CCA-I-0040,CCA-I-0047,CCA-I-0049,CCA-I-0053,CCA-I-0054,CCA-U-0022,CCA-U-0024,CCA-U-0032,CCA-U-0036,CCA-U-0037,CCA-U-0038,CCA-U-0040,CCA-U-0041,CCA-U-0048,CCA-U-0050,CCA-U-0054,CCA-U-0055,CCA-U-0058,CCA-T-0008,CCA-T-0018" />
+	</notContain_si>
+</dcc_avp>

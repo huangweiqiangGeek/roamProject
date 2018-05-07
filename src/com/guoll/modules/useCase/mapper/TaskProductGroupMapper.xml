@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.guoll.modules.useCase.mapper.TaskProductGroupMapper">
+	<!-- Parameter Map -->
+	<parameterMap id="baseParameterMap" type="com.guoll.modules.useCase.bean.TaskProductGroup" />
+	<!-- Result Map -->
+	<resultMap id="baseResultMap" type="com.guoll.modules.useCase.bean.TaskProductGroup" />
+
+	<insert id="addProductGroupToTask" parameterMap="baseParameterMap" useGeneratedKeys="true" keyProperty="id">
+		INSERT INTO TASK_PRODUCT_GROUP 
+		(`ID`,TASK_ID,GROUP_ID,PROVINCESPELL,productsMark,PHONE_NUMBER_STR,createTime) 
+		VALUES
+		(#{id,jdbcType=NUMERIC},#{task_id,jdbcType=NUMERIC},#{group_id,jdbcType=NUMERIC},#{provinceSpell,jdbcType=VARCHAR},
+		#{productsMark,jdbcType=VARCHAR},#{phone_number_str,jdbcType=VARCHAR},now());
+	</insert>
+	
+	<!-- 根据任务，产品名，电话号码等条件查询产品组列表 -->
+	<select id="queryProductGroupListByTask" parameterMap="baseParameterMap" resultMap="baseResultMap">
+		SELECT ID,TASK_ID,GROUP_ID,PROVINCESPELL,productsMark,phone_number_str FROM TASK_PRODUCT_GROUP
+		WHERE provinceSpell = #{provinceSpell,jdbcType=VARCHAR}
+		<if test=" task_id !='' and task_id != null">AND task_id = #{task_id,jdbcType=NUMERIC}</if>
+		<if test=" productsMark !='' and productsMark != null">AND productsMark LIKE CONCAT('%',#{productsMark,jdbcType=VARCHAR},'%')</if>
+		<if test=" phone_number_str !='' and phone_number_str != null">AND phone_number_str LIKE CONCAT('%',#{phone_number_str,jdbcType=VARCHAR},'%')</if>
+	</select>
+	
+	<!--查询taskProductGroup的是否存在 -->
+	<select id="queryProductGroup" parameterMap="baseParameterMap" resultMap="baseResultMap">
+		SELECT  ID,TASK_ID,GROUP_ID,PROVINCESPELL,productsMark,phone_number_str FROM TASK_PRODUCT_GROUP
+		WHERE 1=1
+		<if  test="provinceSpell !=null  and  provinceSpell !='' ">
+		   and provinceSpell = #{provinceSpell,jdbcType=VARCHAR}
+		</if>
+		<if test=" task_id !='' and task_id != null">AND task_id = #{task_id,jdbcType=NUMERIC}</if>
+		<if  test="group_id !=null  and  group_id  !=''  ">
+		and GROUP_ID=#{group_id,jdbcType=NUMERIC}
+		</if>
+	</select>
+	
+	<!-- 根据id查询 -->
+	<select id="queryProductGroupById" parameterType="java.lang.Integer" resultMap="baseResultMap">
+		SELECT ID,TASK_ID,GROUP_ID,PROVINCESPELL,productsMark,phone_number_str FROM TASK_PRODUCT_GROUP
+		WHERE ID=#{id,jdbcType=NUMERIC}
+	</select>
+	
+	<!-- 删除产品组信息 -->
+	 <delete id = "deleteProductGroupToTask"  parameterMap="baseParameterMap">
+		DELETE FROM TASK_PRODUCT_GROUP WHERE ID=#{id,jdbcType=NUMERIC}
+	</delete> 
+	
+	<!--  <delete id = "delectProductnode"  parameterMap="baseParameterMap">
+		DELETE FROM TASK_PRODUCT_GROUP WHERE ID=#{id,jdbcType=NUMERIC}
+	</delete>  -->
+</mapper>

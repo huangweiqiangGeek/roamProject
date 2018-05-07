@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.guoll.modules.statistics.mapper.ProjectExecuteTraceMapper">
+	
+	<!-- Parameter Map -->
+	<parameterMap id="baseParameterMap" type="com.guoll.modules.statistics.bean.ProjectExecuteTrace" />
+	
+	<!-- Result Map -->
+	<resultMap id="baseResultMap" type="com.guoll.modules.statistics.bean.ProjectExecuteTrace" />
+
+	<!--表名 -->
+	<sql id="tableName">
+		project_execute_trace
+	</sql>
+
+	<!--查询字段 -->
+	<sql id="Field">
+		id,
+		proID,
+		proName,
+		proExecuteBatch,
+		proExecuteDate,
+		allCaseCount,
+		allCaseListJson,
+		passCaseCount,
+		passCaseListJson,
+		failedCaseCount,
+		failedCaseListJson,
+		disableCaseCount,
+		disableCaseListJson
+	</sql>
+	
+	<!--插入用字段 -->
+	<sql id="FieldValue">
+		#{id},
+		#{proID},
+		#{proName},
+		#{proExecuteBatch},
+		now(),
+		#{allCaseCount},
+		#{allCaseListJson},
+		#{passCaseCount},
+		#{passCaseListJson},
+		#{failedCaseCount},
+		#{failedCaseListJson},
+		#{disableCaseCount},
+		#{disableCaseListJson}
+	</sql>
+	
+	<!-- 新增项目执行记录 -->
+	<insert id="addProjectExecuteTrace" parameterMap="baseParameterMap">
+		INSERT INTO
+		<include refid="tableName"></include>
+		(
+		<include refid="Field"></include>
+		)
+		VALUES
+		(
+		<include refid="FieldValue"></include>
+		)
+	</insert>
+	
+	<!-- 查询项目列表 -->
+	<select id="queryProjectExecuteTraceByExampleWithPaging" parameterMap="baseParameterMap"
+		resultMap="baseResultMap">
+		SELECT 
+		<include refid="Field"></include>
+		FROM
+		<include refid="tableName"></include>
+		WHERE 1=1
+		<if test=" proID !=null and proID !='' and proID != 0 ">
+			AND proID = #{proID}
+		</if>		
+		<if test=" proExecuteBatch !=null and proExecuteBatch !='' and proExecuteBatch != 0 ">
+			AND proExecuteBatch = #{proExecuteBatch}
+		</if>
+		ORDER BY proExecuteBatch DESC
+		limit #{start,jdbcType=NUMERIC},#{rows,jdbcType=NUMERIC}
+	</select>
+	
+	<!-- 查询项目列表 -->
+	<select id="queryLastExecuteBatch" parameterType="int"
+		resultType="int">
+		SELECT 
+		proExecuteBatch
+		FROM
+		<include refid="tableName"></include>
+		WHERE 
+		proID = #{proID}
+		ORDER BY id DESC
+		limit 0,1
+	</select>
+	
+	<!-- 根据id查询项目执行轨迹 -->
+	<select id="queryProjectExecuteTraceById" parameterType="int"
+		resultMap="baseResultMap">
+		SELECT 
+		<include refid="Field"></include>
+		from
+		<include refid="tableName"></include>
+		where 
+		id = #{id}
+	</select>
+	
+	<!-- 通过标识删除 -->
+	<delete id="delete" parameterType="int">
+		DELETE FROM
+		<include refid="tableName"></include>
+		WHERE
+		id=#{id}
+	</delete>
+	
+</mapper>

@@ -1,0 +1,45 @@
+function searchMethod(){
+	var provincSpell = $('#provincSpell').val();
+	var params ={provincSpell:provincSpell};
+	$("#dg").datagrid("reload",params);
+}
+
+
+function formatOperate(value,rowDatas,rowIndex){
+	console.log(value,rowDatas,rowIndex)
+}
+/**
+ * 下载统计数据
+ * @returns {Boolean}
+ */
+function downLoad(){
+	//var province=$('.sele').val();
+	var province="shandong";
+	var urlStr1="statisticsController/downloadProvinceStatistic2HomeProject?province="+province;
+	//form提交下载  
+	var form = $('<form></form>');
+	form.attr('style', 'display:none');
+	form.attr('method', 'post'); //form提交路径        
+	form.attr('action', urlStr1);
+	var input = $('<input type="text" name="params" id="params" />'); // 可以添加一些参数              
+	input.attr('value',province );
+	form.append(input);
+	$(document.body).append(form);
+	form.submit();
+	$.post(urlStr1,function(responseText){
+		$('.iconBtn').linkbutton('enable');$('.iconLoad').linkbutton('enable');},"text"); 
+	/*$.messager.confirm('谨慎操作提示', '确认下载当前省份的统计数据吗?', function(r){
+		if (r){//true
+			$.ajax({
+				type:"POST",
+				url:"statisticsController/downloadProvinceStatistic2HomeProject",
+				dataType:"json",
+				data:province,
+				success:function(){
+					console.log(province);
+				}
+			});
+		//请求成功
+		}
+	});*/
+}

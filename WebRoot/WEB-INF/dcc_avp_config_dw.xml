@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dcc_avp province="cq">
+	<cmd_code_list>
+		<cmdCode code="272" request_name="CCR" respond_name="CCA" />
+		<cmdCode code="258" request_name="RAR" respond_name="RAA" />
+		<cmdCode code="274" request_name="ASR" respond_name="ASA" />
+		<cmdCode code="280" request_name="DWR" respond_name="DWA" />
+		<cmdCode code="282" request_name="DPR" respond_name="DPA" />
+		<cmdCode code="257" request_name="CER" respond_name="CEA" />
+	</cmd_code_list>
+	<avp_data>
+		<avpCode code="264" name="Origin-Host" type="DiameterIdentity"
+			data="DWR|logic|endWith:.node.epc.mnc000.mcc460.3gppnetwork.org%.cmcc.com||illustrate|发出Diameter消息的主机|||DWA|logic|endWith:.node.epc.mnc000.mcc460.3gppnetwork.org%.cmcc.com||illustrate|发出Diameter消息的主机" />
+		<avpCode code="268" name="Result-Code" type="Unsigned32"
+			data="DWA|values|1001;2001;2002;3001;3002;3003;3004;3005;3006;3007;3008;3009;3010;4001;4002;4003;4010;4011;4012;5001;5002;5003;5004;5005;5006;5007;5008;5009;5010;5011;5012;5013;5014;5015;5016;5017;5030;5031||illustrate|1xxx:Informational;2xxx:Success;3xxx:ProtocolErrors;4xxx:TransientFailures;5xxx:PermanentFailure|||DWR|if:280=DWR:then:null||illustrate|DWR消息包不应该出现Result-Code字段" />
+		<avpCode code="278" name="Origin-State-Id" type="Unsigned32"/>
+		<avpCode code="279" name="Failed-AVP" type="Grouped"
+			data="DWR|logic|if:280=DWR:then:null||illustrate|DWR消息包不应该出现Failed-AVP字段|||DWA|" />
+		<avpCode code="281" name="Error-Message" type="UTF8String" 
+		    data="DWR|logic|if:280=DWR:then:null||illustrate|DWR消息包不应该出现Error-Message字段|||DWA|"/>
+		<avpCode code="296" name="Origin-Realm" type="DiameterIdentity"
+			data="DWR|values|epc.mnc000.mcc460.3gppnetwork.org;cmcc.com||illustrate|发出Diameter消息的主机所在的域|||DWA|values|epc.mnc000.mcc460.3gppnetwork.org;cmcc.com||illustrate|发出Diameter消息的主机所在的域" />
+	</avp_data>
+</dcc_avp>

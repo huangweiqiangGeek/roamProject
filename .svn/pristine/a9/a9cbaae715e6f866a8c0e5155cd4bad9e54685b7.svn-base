@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<count_models>
+	<models model="字段、省份"/>
+	<models model="字段、问题类型、省份"/>
+	<models model="字段、问题类型、省份、用例"/>
+	<models model="省份、字段"/>
+	<models model="省份、问题类型"/>
+	<models model="省份、网元厂商，网元类型版本"/>
+	<models model="省份、网元厂商，测试进度"/>
+	<models model="网元厂商，网元类型版本，省份"/>
+</count_models>

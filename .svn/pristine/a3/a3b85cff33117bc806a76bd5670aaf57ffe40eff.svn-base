@@ -1,0 +1,350 @@
+package com.guoll.modules.useCase.controller;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+
+import org.codehaus.jackson.annotate.JsonIgnore;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.google.gson.Gson;
+import com.guoll.modules.commType.bean.CommType;
+import com.guoll.modules.framework.base.BaseController;
+import com.guoll.modules.framework.util.SessionUtils;
+import com.guoll.modules.product_customer.bean.ProductGroup;
+import com.guoll.modules.product_customer.bean.ProductGroupDetails;
+import com.guoll.modules.product_customer.service.ProductGroupDetailsService;
+import com.guoll.modules.product_customer.service.ProductGroupService;
+import com.guoll.modules.project.bean.Project;
+import com.guoll.modules.sysmanage.bean.SysUser;
+import com.guoll.modules.useCase.bean.TaskProductGroup;
+import com.guoll.modules.useCase.bean.UseCase;
+import com.guoll.modules.useCase.service.TaskProductGroupService;
+import com.guoll.modules.useCase.service.UseCaseService;
+
+import net.sf.json.JSON;
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
+
+@Controller
+@RequestMapping("/userCaseTreeController")
+public class UserCaseTreeController extends BaseController{
+	
+	@Autowired(required=false)
+	TaskProductGroupService taskProductGroupService;
+	@Autowired(required=false)
+	ProductGroupService productGroupService;
+	@Autowired(required = false)
+	UseCaseService useCaseService;
+	@Autowired(required = false)
+	ProductGroupDetailsService productGroupDetailsService;
+	
+	/**
+	 * 跳转到新增任务下的产品组页面
+	 * 
+	 * @return
+	 */
+	@RequestMapping("/taskGroupView")
+	public String taskGroupView(HttpServletRequest request) {
+		String task_id=request.getParameter("task_id");
+	  String  useCase_id=request.getParameter("useCase_id");
+		request.setAttribute("task_id", task_id);
+		request.setAttribute("useCase_id", useCase_id);
+		return "productGroup/list2";
+	}
+	
+	/**
+	 * 任务下添加产品组关联
+	 */
+	@RequestMapping("/addProductGroupToTask")
+	@ResponseBody
+	public String addProductGroupToTask(HttpServletRequest request){
+		SysUser sysUser = (SysUser) SessionUtils.getAttr(request, SessionUtils.SESSION_USER);
+		String user_code=sysUser.getUser_code();
+		String task_id=request.getParameter("task_id");
+		String group=request.getParameter("group");
+		String  useCase_id=request.getParameter("useCase_id");
+		try {
+			
+		String[] groupAry=group.split("#");
+		
+		for(int i=0;i<groupAry.length;i++){
+			Integer group_id=Integer.parseInt(groupAry[i]);
+			//查询出该产品组  
+			ProductGroup pg=productGroupService.queryProductGroupByGroupID(group_id);
+//			String is_voice="0";
+//			String is_gprs="0";
+//			if(pg.getVoiceProductJson() !=null && !"".equals(pg.getVoiceProductJson())){
+//				 is_voice="1";
+//			}
+//			if(pg.getGprsProductJson() !=null && !"".equals(pg.getGprsProductJson())){
+//				 is_gprs="1";
+//			}
+			TaskProductGroup tpg=new TaskProductGroup();
+			tpg.setGroup_id(group_id);
+			tpg.setTask_id(Integer.parseInt(task_id));
+//			tpg.setIs_gprs(is_gprs);
+//			tpg.setIs_voice(is_voice);
+			tpg.setProvinceSpell(user_code);
+			tpg.setProductsMark(pg.getProductsMark());
+			tpg.setPhone_number_str(pg.getPhone_number_str());
+			//生成TaskProductGroup的ID
+			int taskProductGroup_id=useCaseService.getOverviewid(13);
+			tpg.setId(taskProductGroup_id);
+			
+			taskProductGroupService.addProductGroupToTask(tpg);
+			//得到taskProductGroup的task_Group_id 更新到useCase表中task_Group_id 
+			if(!"".equals(useCase_id)&& useCase_id !=null){
+//				TaskProductGroup  tg=taskProductGroupService.queryProductGroup(tpg);
+				UseCase  us=new  UseCase();
+			     us.setId(Integer.parseInt(useCase_id));
+				us.setTask_group_id(taskProductGroup_id);
+				useCaseService.updateUseCaseById(us);
+			}
+			
+		}
+		
+		} catch (Exception e) {
+			e.printStackTrace();
+			return "1";
+		}
+		return "0";
+	}
+	
+	/**
+	 * 删除任务下的产品组关联
+	 */
+	@RequestMapping("/deleteProductGroupToTask")
+	@ResponseBody
+	public void deleteProductGroupToTask(TaskProductGroup tpg,HttpServletRequest request){		
+		taskProductGroupService.deleteProductGroupToTask(tpg);
+	}
+	
+	/**
+	 * 根据产品组名或电话号码和任务ID查询改任务下的产品组列表
+	 */
+	@RequestMapping("/queryUsercaseTreeList")
+	@ResponseBody
+	public JSONArray queryUsercaseTreeList(HttpServletRequest request){
+		SysUser sysUser = (SysUser) SessionUtils.getAttr(request, SessionUtils.SESSION_USER);
+		String user_code=sysUser.getUser_code();
+		
+		JSONArray jsonA=new JSONArray();
+		
+		String task_id=request.getParameter("task_id");
+		if("".equals(task_id) || task_id==null){
+			return jsonA;
+		}
+		String phoneNum=request.getParameter("groupName");//同一个输入框
+		String groupName=request.getParameter("groupName");
+		
+		TaskProductGroup tpg=new TaskProductGroup();
+		tpg.setProvinceSpell(user_code);
+		tpg.setTask_id(Integer.parseInt(task_id));
+		tpg.setProductsMark(groupName);
+		tpg.setPhone_number_str(phoneNum);
+		
+		List<TaskProductGroup> list=taskProductGroupService.queryProductGroupListByTask(tpg);
+		int index=1;
+		
+		if(list.size()>0){
+			for(TaskProductGroup ls:list){
+				int tid=index;
+				JSONObject attributes1=new JSONObject();
+				attributes1.put("group_id", ls.getGroup_id());
+				attributes1.put("billType","");
+				ls.setPid(0);
+				ls.setTid(index++);
+				ls.setAttributes(attributes1);
+				Gson gson = new Gson(); 
+				String jsonStr = gson.toJson(ls);
+				
+				jsonA.add(jsonStr);
+				
+				Integer  group_id=ls.getGroup_id();
+				ProductGroupDetails pgd=new ProductGroupDetails();
+				pgd.setGroup_id(group_id);
+				//根据产品组ID查询子产品
+				List<ProductGroupDetails> grouplist=productGroupDetailsService.queryProductGroupDetails(pgd);
+				for(ProductGroupDetails gls:grouplist){
+					JSONObject json1 = new JSONObject();
+					JSONObject attributes=new JSONObject();//给树节点增加自定义属性
+					attributes.put("billType", gls.getBusiness_type());
+					attributes.put("group_id", gls.getGroup_id());
+						json1.put("pid",tid);
+						json1.put("tid",index++);
+						json1.put("productsMark", gls.getBusiness_type_name());
+						json1.put("id", ls.getId());
+						json1.put("attributes",attributes);
+						jsonA.add(json1);
+				}
+//				JSONObject json2 = new JSONObject();
+//				
+//				if("1".equals(ls.getIs_gprs())){
+//					json2.put("pid",tid);
+//					json2.put("tid",index++);
+//					json2.put("productsMark", "流量");
+//					json2.put("id", ls.getId());
+//					json2.put("billType", "2");
+//				}
+				
+				
+				
+				//jsonA.add(json2);
+				
+//				JSONObject json = new JSONObject();
+//				json.put("id", index);
+//				json.put("pid", 0);
+//				json.put("name",ls.getProductsMark());
+			}
+		}
+		return jsonA;
+	}
+	
+	
+	/**
+	 * 展示任务下产品组的用力列表
+	 */
+	
+	@RequestMapping("/listPage")
+	@ResponseBody
+	public Map<String, Object> showUserCaseList(HttpServletRequest request) {
+		Map<String, Object> pageData = new HashMap<String, Object>();
+		UseCase c=new UseCase();
+		String task_group_id=request.getParameter("task_group_id");
+		String uCName=request.getParameter("uCName");
+		String billType=request.getParameter("billType");
+		if(!"".equals(task_group_id)&& task_group_id !=null){
+			c.setTask_group_id(Integer.parseInt(task_group_id));
+		}else{
+			return  pageData;
+		}
+		c.setuCName(uCName);
+		c.setBillType(billType);
+		c.setPages();// 设置分页信息
+		Integer queryUseCaseSum = useCaseService.queryUseCaseSum(c);
+		pageData.put("total", queryUseCaseSum);// 获取查询总记录条数
+		List<UseCase> queryUseCaseList = useCaseService.queryUseCaseList(c);
+		pageData.put("rows", queryUseCaseList);// 获取查询的集合
+		return pageData;
+	}
+	
+	/**
+	 * 复制用例  在当前产品组下复制多个用例，在用例名字后面新增(副本一)类型的字样，并且标注复制的用例有没有被编辑
+	 * @param args
+	 */
+	public String copyAllUserCase(HttpServletRequest request){
+		//只需要拿到所有被勾选的用例ID
+		
+		
+		return "";
+	} 
+	
+	
+	public static void main(String[] args) {
+		TaskProductGroup ls=new TaskProductGroup();
+		ls.setId(1);
+//		ls.setIs_gprs("1");
+//		ls.setIs_voice("1");
+		ls.setPid(0);
+		ls.setProductsMark("hahahahaha");
+		ls.setProvinceSpell("shanxi");
+		ls.setTask_id(2);
+		ls.setTid(1);
+		int index=1;
+		int tid=index;
+		JSONArray jsonA=new JSONArray();
+		
+		
+		Gson gson = new Gson(); 
+		String jsonStr = gson.toJson(ls);
+		
+		JSONObject json1 = new JSONObject();
+		json1.put("pid",tid);
+		json1.put("tid",index++);
+		json1.put("productsMark", "语音");
+		JSONObject json2 = new JSONObject();
+		json2.put("pid",tid);
+		json2.put("tid",index++);
+		json2.put("productsMark", "流量");
+		
+		jsonA.add(jsonStr);
+		jsonA.add(json1);
+		jsonA.add(json2);
+		
+		System.out.println(jsonA.toString());
+		
+	}
+	
+	
+	
+	/**
+	 * 根据用例ID获取用例的信息
+	 */
+	
+	@RequestMapping("/queryUseCaseValueByID")
+	@ResponseBody
+	public  Map<String, Object>  queryUseCaseValueByID(HttpServletRequest request){
+		Map<String, Object>  map=new HashMap<String, Object>();
+		UseCase usercase=new UseCase();
+		String usercase_id=request.getParameter("usercase_id");
+	try {
+		int usecaseId=0;
+		if(!"".equals(usercase_id)&& usercase_id !=null){
+			usecaseId=Integer.parseInt(usercase_id);
+		}else{
+			map.put("data", usercase);
+			return  map;
+		}
+		usercase= useCaseService.queryUseCaseById(usecaseId);
+		byte[] uCTicket=usercase.getuCTicket();
+		byte[] uCAccumulate=usercase.getuCAccumulate();
+		byte[] uCResource=usercase.getuCResource();
+		byte[] uCExpect=usercase.getuCExpect();
+		byte[] uCExpAmount=usercase.getuCExpAmount();
+		byte[] uCExpDetail=usercase.getuCExpDetail();
+		if( uCTicket !=null){
+			String ticketJson = new String(uCTicket,"GBK");
+			usercase.setTicketJson(ticketJson);
+		}
+		if( uCAccumulate !=null){
+			String accumulateJson = new String(uCAccumulate,"GBK");
+			usercase.setAccumulateJson(accumulateJson);
+		}
+		if( uCResource !=null){
+			String resourceJson = new String(uCResource,"GBK");
+			usercase.setResourceJson(resourceJson);
+		}
+		if( uCExpect !=null){
+			String expectJson = new String(uCExpect,"GBK");
+			usercase.setExpectJson(expectJson);
+		}
+		if( uCExpAmount !=null){
+			String expAmountJson = new String(uCExpAmount,"GBK");
+			usercase.setExpAmountJson(expAmountJson);
+		}
+		if( uCExpDetail !=null){
+			String expDetailJson = new String(uCExpDetail,"GBK");
+			usercase.setExpDetailJson(expDetailJson);
+		}
+		map.put("data",usercase);
+	} catch (Exception e) {
+		map.put("data",usercase);
+		e.printStackTrace();
+	}
+		return map;
+	}
+	
+	
+	/**
+	 * 初始化免费资源的子产品下拉选
+	 * 根据产品组ID和用例的类型
+	 */
+	//public List query
+}

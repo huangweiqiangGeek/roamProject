@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.guoll.modules.product_customer.mapper.ProductMapper">
+	<!-- Parameter Map -->
+	<parameterMap id="baseParameterMap" type="com.guoll.modules.product_customer.bean.Product" />
+	<!-- Result Map -->
+	<resultMap id="baseResultMap" type="com.guoll.modules.product_customer.bean.Product" />
+
+	<insert id="addNewProduct" parameterMap="baseParameterMap">
+		INSERT INTO 
+		product(productType,productId,productName,productDescribe,provinceSpell,resourcesQuantity,chargeType,
+		charge1,charge2,charge3,charge4,tScope,pScope,postName)
+		VALUES (#{productType},#{productId},#{productName},#{productDescribe},#{provinceSpell},#{resourcesQuantity},
+		#{chargeType},#{charge1},#{charge2},#{charge3},#{charge4},#{tScope},#{pScope},#{postName});
+	</insert>
+
+	<delete id="deleteProductById" parameterMap="baseParameterMap">
+		DELETE FROM product WHERE id = #{id};
+	</delete>
+
+	<update id="updateProduct" parameterMap="baseParameterMap">
+		UPDATE product
+		SET
+		productId = #{productId},
+		<if test=" productDescribe !='' and productDescribe != null">
+			productDescribe = #{productDescribe},
+		</if>
+		<if test=" resourcesQuantity !='' and resourcesQuantity != null">
+			resourcesQuantity = #{resourcesQuantity},
+		</if>
+		<if test=" chargeType !='' and chargeType != null">
+			chargeType = #{chargeType},
+		</if>
+		<if test=" charge1 !='' and charge1 != null">
+			charge1 = #{charge1},
+		</if>
+		<if test=" charge2 !='' and charge2 != null">
+			charge2 = #{charge2},
+		</if>
+		<if test=" charge3 !='' and charge3 != null">
+			charge3 = #{charge3},
+		</if>
+		<if test=" charge4 !='' and charge4 != null">
+			charge4 = #{charge4},
+		</if>
+		<if test=" tScope !='' and tScope != null">
+			tScope = #{tScope},
+		</if>
+		<if test=" pScope !='' and pScope != null">
+			pScope = #{pScope},
+		</if>
+		
+		
+		productName = #{productName}
+		WHERE
+		id = #{id};
+	</update>
+	
+	<select id="selectProducts" parameterMap="baseParameterMap"
+		resultMap="baseResultMap">
+		SELECT
+		id,productType,productId,productName,productDescribe,provinceSpell,resourcesQuantity,chargeType,
+		charge1,charge2,charge3,charge4,tScope,pScope,postName
+		from  product
+		WHERE 1 = 1
+		<if test=" id !='' and id != null">
+			AND id = #{id}
+		</if>
+		<if test=" productType !='' and productType != null">
+			AND productType = #{productType}
+		</if>
+		<if test=" productId !='' and productId != null">
+			AND productId = #{productId}
+		</if>
+		<if test=" productName !='' and productName != null">
+			AND productName = #{productName}
+		</if>
+		<if test=" productDescribe !='' and productDescribe != null">
+			AND productDescribe = #{productDescribe}
+		</if>
+		<if test=" provinceSpell !='' and provinceSpell != null">
+			AND provinceSpell = #{provinceSpell}
+		</if>
+		<if test=" chargeType !='' and chargeType != null">
+			AND chargeType = #{chargeType}
+		</if>
+		<if test=" postName !='' and postName != null">
+			AND postName = #{postName}
+		</if>
+		
+		
+		ORDER BY id DESC
+		LIMIT
+		#{start,jdbcType=NUMERIC},#{rows,jdbcType=NUMERIC}
+	</select>
+	
+	
+	<select id="queryCountOfProduct" parameterMap="baseParameterMap"
+		resultType="int">
+		SELECT
+		count(id)
+		from  product
+		WHERE 1 = 1
+		<if test=" id !='' and id != null">
+			AND id = #{id}
+		</if>
+		<if test=" productType !='' and productType != null">
+			AND productType = #{productType}
+		</if>
+		<if test=" productId !='' and productId != null">
+			AND productId = #{productId}
+		</if>
+		<if test=" productName !='' and productName != null">
+			AND productName = #{productName}
+		</if>
+		<if test=" productDescribe !='' and productDescribe != null">
+			AND productDescribe = #{productDescribe}
+		</if>
+		<if test=" provinceSpell !='' and provinceSpell != null">
+			AND provinceSpell = #{provinceSpell}
+		</if>
+		<if test=" chargeType !='' and chargeType != null">
+			AND chargeType = #{chargeType}
+		</if>
+		<if test=" postName !='' and postName != null">
+			AND postName = #{postName}
+		</if>
+	</select>
+	
+</mapper>

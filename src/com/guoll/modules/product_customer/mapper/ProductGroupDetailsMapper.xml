@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.guoll.modules.product_customer.mapper.ProductGroupDetailsMapper">
+	<!-- Parameter Map -->
+	<parameterMap id="baseParameterMap" type="com.guoll.modules.product_customer.bean.ProductGroupDetails" />
+	<!-- Result Map -->
+	<resultMap id="baseResultMap" type="com.guoll.modules.product_customer.bean.ProductGroupDetails" />
+	
+	<!-- 插入产品组的各类型子产品JSON -->
+	<insert id="addProductGroupDetails" parameterType="java.util.List"
+	useGeneratedKeys="true" keyProperty="id">
+		<selectKey keyProperty="id" resultType="int" order="AFTER">
+			select LAST_INSERT_ID() as id;
+		</selectKey>
+		INSERT INTO PRODUCT_GROUP_DETAILS (GROUP_ID,BUSINESS_TYPE,PRODUCTS_JSON,BUSINESS_TYPE_NAME)
+		VALUES
+		<foreach collection="list" item="item" index="index"
+			separator=",">
+			(#{item.group_id,jdbcType=NUMERIC},#{item.business_type,jdbcType=VARCHAR},#{item.products_json,jdbcType=BLOB},#{item.business_type_name,jdbcType=VARCHAR})
+			</foreach>
+	</insert>
+	<!-- 查询子产品 -->
+	<select id="queryProductGroupDetails" resultMap="baseResultMap"  parameterMap="baseParameterMap">
+		SELECT ID,GROUP_ID,BUSINESS_TYPE,BUSINESS_TYPE_NAME,PRODUCTS_JSON FROM  PRODUCT_GROUP_DETAILS
+		WHERE 1=1
+		<if test=" group_id !='' and group_id != null">AND group_id = #{group_id}</if>
+		<if test=" business_type !='' and business_type != null">AND business_type = #{business_type}</if>
+	</select>
+	<!-- 根据groupid删除 -->
+	<delete id="deleteProductGroupDetailsByGroupid" parameterType="java.lang.Integer">
+	DELETE FROM PRODUCT_GROUP_DETAILS WHERE group_id = #{group_id}
+	</delete>
+	</mapper>

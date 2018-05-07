@@ -1,0 +1,245 @@
+package com.guoll.modules.useCase.service;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
+
+import com.alibaba.fastjson.JSON;
+import com.guoll.modules.billtemplate.bean.BillTemplate;
+import com.guoll.modules.billtemplate.mapper.BillTemplateMapper;
+import com.guoll.modules.sysmanage.bean.SysUser;
+import com.guoll.modules.useCase.bean.UseCase;
+import com.guoll.modules.useCase.mapper.UseCaseMapper;
+
+import util.fields.BillFieldForParseJson;
+import util.fields.BillTemplateAttribute;
+
+/**
+ * 用例
+ * 
+ * @author lukas 414024003@qq.com
+ * @version 1.0
+ */
+@Repository("useCaseService")
+public class UseCaseService {
+
+	@Autowired
+	private UseCaseMapper mapper;
+	@Autowired
+	private BillTemplateMapper billTemplateMapper;
+	/**
+	 * 查询用例总数量
+	 * 
+	 * @return
+	 */
+	public Integer queryUseCaseSum(UseCase c) {
+		return mapper.queryUseCaseSum(c);
+	}
+
+	/**
+	 * 查询用例列表
+	 * 
+	 * @return
+	 */
+	public List<UseCase> queryUseCaseList(UseCase c) {
+		return mapper.queryUseCaseList(c);
+	}
+
+	/**
+	 * 查询所有用例列表
+	 * 
+	 * @return
+	 */
+	public List<UseCase> queryUseCaseListAll(UseCase c) {
+		return mapper.queryUseCaseListAll(c);
+	}
+
+	/**
+	 * 通过标识集合查询用例记录
+	 * 
+	 * @return
+	 */
+	public List<UseCase> queryUseCaseListByIds(String[] item) {
+		return mapper.queryUseCaseListByIds(item);
+	}
+
+	/**
+	 * 通过标识查询用例记录
+	 * 
+	 * @return
+	 * @throws Exception 
+	 */
+	public UseCase queryUseCaseById(Integer id) throws Exception {
+		return mapper.queryUseCaseById(id);
+	}
+
+	/**
+	 * 保存人员
+	 * 
+	 * @return
+	 * @throws Exception 
+	 */
+	public void saveUseCase(UseCase c) throws Exception {
+		if (c.getId() != null&&!"".equals(c.getId())) {
+			//查询就得用例以保留一些数据
+			UseCase oldCase = queryUseCaseById(c.getId());
+			c.setuCStauts(oldCase.getuCStauts());
+			mapper.updateUseCase(c);
+		} else {
+			c.setExecuteNum(0);
+			//主动生成用例编码
+			Integer ucNumber=mapper.getOverviewid(10);
+			c.setuCNumber(c.getAbbreviation()+"_"+ucNumber);// 用例编号);
+			mapper.addUseCase(c);
+		}
+	}
+
+	/**
+	 * 通过标识修改用例状态
+	 * 
+	 * @return
+	 */
+	public void updateUseCaseByStatus(UseCase c) {
+		mapper.updateUseCaseByStatus(c);
+	}
+
+	/**
+	 * 通过标识修改用例执行次数
+	 * 
+	 * @return
+	 */
+	public void updateUseCaseByCount(UseCase c) {
+		mapper.updateUseCaseByCount(c);
+	}
+
+	/**
+	 * 通过标识修改用例是否执行通过
+	 * 
+	 * @return
+	 */
+	public void updateUseCaseByPass(UseCase c) {
+		mapper.updateUseCaseByPass(c);
+	}
+
+	/**
+	 * 通过单个标识删除
+	 * 
+	 * @return
+	 */
+	public void deleteUseCase(UseCase c) {
+		mapper.deleteUseCase(c);
+	}
+
+	/**
+	 * 通过标识批量删除
+	 * 
+	 * @return
+	 */
+	public void deleteUseCaseAll(String[] item) {
+		mapper.deleteUseCaseAll(item);
+	}
+	
+	
+	public void updateUseCaseWithBillTemplate(Integer id) throws Exception{
+		//查询用例和话单模板
+		UseCase useCase = mapper.queryUseCaseById(id);
+		BillTemplate billTemplate = billTemplateMapper.querySysBillTemplateById(useCase.getBillId());
+		mergerBillTemplateAttribute(useCase, billTemplate);
+	}
+	
+	
+	
+	/**
+	 * 同步话单模板和用例字段
+	 * @throws Exception 
+	 */
+	public void mergerBillTemplateAttribute(UseCase useCase,BillTemplate billTemplate) throws Exception{
+		//解析用例的话单字段
+		useCase.setTicketJson(new String(useCase.getuCTicket(), "GBK"));
+		String useCaseAttr = useCase.getTicketJson().substring(useCase.getTicketJson().indexOf("["), useCase.getTicketJson().lastIndexOf("]")+1);
+		List<BillFieldForParseJson> usecaseBillAttribute = JSON.parseArray(useCaseAttr, BillFieldForParseJson.class);
+		//解析更新记录的map的List
+		List<HashMap> mapListOfUpdateJson = JSON.parseArray(new String(billTemplate.getUpdateTrace(),"GBK"),HashMap.class);
+		// 遍历更新记录集合
+		for (int i = 0; i < mapListOfUpdateJson.size(); i++) {
+			Map map = mapListOfUpdateJson.get(i);
+			// 获取更新记录map集合
+			// json格式：[{"batch":"1","value":"[{\"choiceAway\":\"9\",\"default\":\"1-3\",\"explain\":\"1-4-5\",\"fieldName\":\"1\",\"hide\":\"是\",\"range\":\"1-1\",\"scriptUrl\":\"1-2\"}]"}]
+			//获取更新字段记录集合
+			String updateJSon = (String) map.get("value");
+			List<BillTemplateAttribute> updateList = JSON.parseArray(updateJSon, BillTemplateAttribute.class);
+			//遍历更新字段记录集合
+			for (BillTemplateAttribute updateFeld : updateList) {
+				//遍历用例话单字段集合
+				for (BillFieldForParseJson useCaseFeld : usecaseBillAttribute){
+					//对比字段英文名找出对应的
+					if(updateFeld.getFieldName().equals(useCaseFeld.getName())){
+						//更新值
+						useCaseFeld.setVal(updateFeld.getDefault());
+						if (updateFeld.getChoiceAway().equals("12")) {
+							useCaseFeld.setsTime(updateFeld.getDefault());
+						}
+					}
+				}
+			}
+		}
+		//转换成字符串保存
+		String jsonString = JSON.toJSONString(usecaseBillAttribute);
+		jsonString = "{\"stepOnes\":" + jsonString + "}";
+		useCase.setuCTicket(jsonString.getBytes());
+		mapper.updateUseCase(useCase);
+	}
+	
+	/**
+	 * 同步用例和模板
+	 * @param useCaseId
+	 * @throws Exception 
+	 */
+	public void updateUseCaseTemplate(Integer useCaseId) throws Exception {
+		UseCase useCase = mapper.queryUseCaseById(useCaseId);
+		BillTemplate billTemplate = billTemplateMapper.querySysBillTemplateById(useCase.getBillId());
+		mergerBillTemplateAttribute(useCase, billTemplate);
+	}
+	
+	/*
+	 * 通过id给task_group_id 赋值关联
+	 */
+   public  void  updateUseCaseById(UseCase  c){
+	   mapper.updateUseCaseById(c);
+   };
+   
+   /*
+    * 查询刚刚生成usecase的id
+    */
+      
+      public  UseCase  queryUseCase(UseCase  c){
+    	  return  mapper.queryUseCase(c);
+      };
+      
+      /*
+       * 查询任务下产品的用例
+       * 
+       */
+       public  List<UseCase>  projectOfUsecase(Integer  projectId){
+    	   return  mapper.projectOfUsecase(projectId);
+       };
+    
+       /*
+        * 主动生成产品Id
+        */
+      
+       public  Integer  getOverviewid(Integer id){
+         return  mapper.getOverviewid(id);   	   
+       };
+       
+       //编辑用例
+       public void  updateUseCase(UseCase  c){
+    	   mapper.updateUseCase(c);
+       }
+       
+}

@@ -1,0 +1,251 @@
+.error{border:1px solid red;}
+.success{border:1px solid green;}
+.formTable th {
+	font: bold 11px "Trebuchet MS", Verdana, Arial, Helvetica, sans-serif;
+	color: #4f6b72;
+	border-right: 1px solid #C1DAD7;
+	border-bottom: 1px solid #C1DAD7;
+	border-top: 0;
+	letter-spacing: 2px;
+	text-transform: uppercase;
+	text-align: right;
+	padding: 6px 6px 6px;
+	background: RGB(236,247,253) no-repeat;
+	font-family: ËÎÌו, Arial;
+	font-size: 12px;
+}
+.formTable th.nobg {
+	border-top: 0;
+	border-left: 0;
+	border-right: 1px solid #C1DAD7;
+	background: none;
+}
+.formTable td {
+	border-right: 1px solid #C1DAD7;
+	border-bottom: 1px solid #C1DAD7;
+	background: #fff;
+	font-size: 11px;
+	padding: 6px 3px 6px 3px;
+	color: #4f6b72;
+}
+.formTable td.alt {
+	background: #F5FAFA;
+	color: #797268;
+}
+.formTable th.spec {
+	border-left: 1px solid #C1DAD7;
+	border-top: 0;
+	background: #fff no-repeat;
+	font: bold 10px "Trebuchet MS", Verdana, Arial, Helvetica, sans-serif;
+}
+.formTable th.specalt {
+	border-left: 1px solid #C1DAD7;
+	border-top: 0;
+	background: #f5fafa no-repeat;
+	font: bold 10px "Trebuchet MS", Verdana, Arial, Helvetica, sans-serif;
+	color: #797268;
+}
+.formTable {
+	margin-top: 5px;
+	margin-left: 5px;
+	border-left: 1px solid #C1DAD7;
+	border-top: 1px solid #C1DAD7;
+}
+.select {
+	padding: 10px 10px;
+	height: 25px;
+	width: 120px;
+	line-height: 10px;
+	position: relative;
+	cursor: pointer;
+	color: #000000;
+	background: #FFFFFF;
+	border: 1px solid #ddd;
+	border-radius: 4px;
+	overflow: hidden;
+	display: inline-block;
+	appearance: none;
+	-moz-appearance: none;
+	-webkit-appearance: none;
+	*display: inline;
+	*zoom: 1;
+	line-height: 20px;
+}
+.select1 {
+	padding: 3px 3px;
+	height: 25px;
+	width: 118px;
+	line-height: 10px;
+	position: relative;
+	cursor: pointer;
+	color: #000000;
+	background: #FFFFFF;
+	border: 1px solid #ddd;
+	border-radius: 4px;
+	overflow: hidden;
+	display: inline-block;
+	appearance: none;
+	-moz-appearance: listbox;
+	/* -webkit-appearance: none; */
+	*display: inline;
+	*zoom: 1;
+	line-height: 20px;
+}
+
+.select2 {
+	padding: 3px 3px;
+	height: 25px;
+	width: 70px;
+	line-height: 10px;
+	position: relative;
+	cursor: pointer;
+	color: #000000;
+	background: #FFFFFF;
+	border: 1px solid #ddd;
+	border-radius: 4px;
+	overflow: hidden;
+	display: inline-block;
+	appearance: none;
+	-moz-appearance: listbox;
+	/* -webkit-appearance: none; */
+	*display: inline;
+	*zoom: 1;
+	line-height: 20px;
+}
+.select3 {
+	padding: 3px 3px;
+	height: 25px;
+	width: 95px;
+	line-height: 10px;
+	position: relative;
+	color: #000000;
+	background: #FFFFFF;
+	border: 1px solid #ddd;
+	border-radius: 4px;
+	overflow: hidden;
+	display: inline-block;
+	 appearance: none;
+	-moz-appearance: none;
+	/* -webkit-appearance: none; */
+	*display: inline;
+	*zoom: 1;
+	line-height: 20px;
+}
+.select_Task {
+	padding: 3px 3px;
+	height: 25px;
+	width: 140px;
+	line-height: 10px;
+	position: relative;
+	color: #000000;
+	background: #FFFFFF;
+	border: 1px solid #ddd;
+	border-radius: 4px;
+	overflow: hidden;
+	display: inline-block;
+	 appearance: none;
+	-moz-appearance: none;
+	/* -webkit-appearance: none; */
+	*display: inline;
+	*zoom: 1;
+	line-height: 20px;
+}
+.a-upload {
+	padding: 10px 10px;
+	height: 40px;
+	line-height: 15px;
+	position: relative;
+	cursor: pointer;
+	color: #000000;
+	background: #ffffff;
+	border: 1px solid #ddd;
+	border-radius: 4px;
+	overflow: hidden;
+	width: 718px;
+	display: inline-block;
+	font-color: red;
+	*display: inline;
+	*zoom: 1;
+	cursor: pointer;
+}
+.a-upload  input {
+	position: absolute;
+	font-size: 100px;
+	right: 0;
+	top: 0;
+	opacity: 0;
+	filter: alpha(opacity = 0);
+	cursor: pointer
+}
+
+.a-upload:hover {
+	color: #444;
+	background: #eee;
+	border-color: #ccc;
+	text-decoration: none
+}
+
+.over {
+	margin-left: -300px;
+	margin-top: -200px;
+	position: absolute;
+	top: 70%;
+	left: 50%;
+	z-index: 1000;
+	overflow: hidden;
+	text-align: center
+}
+
+.a-upload2 {
+	padding: 10px 10px;
+	height: 40px;
+	line-height: 15px;
+	position: relative;
+	cursor: pointer;
+	color: #000000;
+	background: #ffffff;
+	border: 1px solid #ddd;
+	border-radius: 4px;
+	overflow: hidden;
+	width: 558px;
+	display: inline-block;
+	font-color: red;
+	*display: inline;
+	*zoom: 1;
+	cursor: pointer;
+}
+.a-upload2  input {
+	position: absolute;
+	font-size: 100px;
+	right: 0;
+	top: 0;
+	opacity: 0;
+	filter: alpha(opacity = 0);
+	cursor: pointer
+}
+
+.a-upload2:hover {
+	color: #444;
+	background: #eee;
+	border-color: #ccc;
+	text-decoration: none
+}
+.input1 {
+	padding: 3px 3px;
+	height: 25px;
+	width: 118px;
+	line-height: 10px;
+	position: relative;
+	cursor: text;
+	color: #000000;
+	background: #FFFFFF;
+	border: 1px solid #ddd;
+	border-radius: 4px;
+	overflow: hidden;
+	display: inline-block;
+	appearance: none;
+	-moz-appearance: listbox;
+	*display: inline;
+	*zoom: 1;
+	line-height: 20px;
+}

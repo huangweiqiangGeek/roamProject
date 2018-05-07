@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.guoll.modules.sysmanage.mapper.SysOrgMapper">
+<!-- Parameter Map-->
+<parameterMap id="baseParameterMap" type="com.guoll.modules.sysmanage.bean.SysOrg"/>
+<!-- Result Map-->
+<resultMap id="baseResultMap" type="com.guoll.modules.sysmanage.bean.SysOrg"/>
+<sql id="base_column_list" >
+	ID,NAME,CODE,ORG_TYPE,BUSINESS_DESC,ADDRESS,ZONE_CODE,TELEPHONE,ZIPCODE,EMAIL,LEADER_NAME,LEADER_MOBILE,CONTACTER_MOBILE,
+	CONTACTER_NAME,REMARK,PARENT_ID,ORDER_NO,UPDATE_USER_ID,UPDATE_USER_NAME,UPDATE_TIME
+</sql>
+
+
+
+<select id="queryByParentId" parameterType="Integer" resultMap="baseResultMap">
+	SELECT <include refid="base_column_list" /> FROM SYS_ORG D 
+	WHERE D.PARENT_ID=#{PARENT_ID} 
+	ORDER BY D.ORDER_NO ASC
+</select>
+
+<!-- 
+<select id="queryByParentId" parameterType="Integer" resultMap="baseResultMap">
+	SELECT <include refid="base_column_list" /> FROM SYS_ORG D 
+	START WITH D.PARENT_ID=#{PARENT_ID} CONNECT BY PRIOR D.ID=D.PARENT_ID
+	ORDER SIBLINGS BY D.ORDER_NO ASC
+</select>
+
+ -->
+<insert id="addSysOrg" parameterMap="baseParameterMap">
+	INSERT INTO SYS_ORG(NAME,PARENT_ID,ORDER_NO,UPDATE_USER_ID,UPDATE_USER_NAME,UPDATE_TIME)
+	VALUES(#{name,jdbcType=VARCHAR},#{parent_id,jdbcType=NUMERIC},#{order_no,jdbcType=NUMERIC},
+	#{update_user_id,jdbcType=NUMERIC},#{update_user_name,jdbcType=VARCHAR},#{update_time,jdbcType=DATE})
+</insert>
+<update id="updateSysOrg" parameterMap="baseParameterMap">
+	UPDATE SYS_ORG SET NAME=#{name,jdbcType=VARCHAR},CODE=#{code,jdbcType=VARCHAR},ORG_TYPE=#{org_type,jdbcType=VARCHAR},BUSINESS_DESC=#{business_desc,jdbcType=VARCHAR},
+	ADDRESS=#{address,jdbcType=VARCHAR},ZIPCODE=#{zipcode,jdbcType=VARCHAR},TELEPHONE=#{telephone,jdbcType=VARCHAR},ZONE_CODE=#{zone_code,jdbcType=VARCHAR},EMAIL=#{email,jdbcType=VARCHAR},LEADER_NAME=#{leader_name,jdbcType=VARCHAR},
+	LEADER_MOBILE=#{leader_mobile,jdbcType=VARCHAR},CONTACTER_NAME=#{contacter_name,jdbcType=VARCHAR},CONTACTER_MOBILE=#{contacter_mobile,jdbcType=VARCHAR},
+	REMARK=#{remark,jdbcType=VARCHAR},PARENT_ID=#{parent_id,jdbcType=NUMERIC},ORDER_NO=#{order_no,jdbcType=NUMERIC},UPDATE_USER_ID=#{update_user_id,jdbcType=NUMERIC},
+	UPDATE_USER_NAME=#{update_user_name,jdbcType=VARCHAR},UPDATE_TIME=#{update_time,jdbcType=DATE} WHERE ID=#{id,jdbcType=NUMERIC}
+</update>
+<update id="dragSysOrg" parameterMap="baseParameterMap">
+	UPDATE SYS_ORG SET PARENT_ID=#{parent_id,jdbcType=NUMERIC},ORDER_NO=#{order_no,jdbcType=NUMERIC},UPDATE_USER_ID=#{update_user_id,jdbcType=NUMERIC},
+	UPDATE_USER_NAME=#{update_user_name,jdbcType=VARCHAR},UPDATE_TIME=#{update_time,jdbcType=DATE} WHERE ID=#{id,jdbcType=NUMERIC}
+</update>
+<update id="renameSysOrg" parameterMap="baseParameterMap">
+	UPDATE SYS_ORG SET NAME=#{name,jdbcType=VARCHAR},UPDATE_USER_ID=#{update_user_id,jdbcType=NUMERIC},
+	UPDATE_USER_NAME=#{update_user_name,jdbcType=VARCHAR},UPDATE_TIME=#{update_time,jdbcType=DATE} WHERE ID=#{id,jdbcType=NUMERIC}
+</update>
+<delete id="deleteSysOrg" parameterMap="baseParameterMap">
+	DELETE T FROM SYS_ORG T WHERE T.ID=#{id,jdbcType=NUMERIC}
+</delete>
+<delete id="deleteLinkSysOrgPostRole" parameterMap="baseParameterMap">
+	DELETE LPR FROM SYS_LINK_POST_ROLE LPR WHERE EXISTS(
+		SELECT SP.ID FROM SYS_POST SP WHERE SP.ID=LPR.POST_ID AND SP.ORG_ID=#{id,jdbcType=NUMERIC}
+		)
+</delete>
+<delete id="deleteLinkSysOrgPostUser" parameterMap="baseParameterMap">
+	DELETE LPU FROM SYS_LINK_POST_USER LPU WHERE EXISTS(
+		SELECT SP.ID FROM SYS_POST SP WHERE SP.ID=LPU.POST_ID AND SP.ORG_ID=#{id,jdbcType=NUMERIC}
+		)
+</delete>
+<delete id="deleteSysOrgPost" parameterMap="baseParameterMap">
+	DELETE FROM SYS_POST WHERE ORG_ID=#{id,jdbcType=NUMERIC}
+</delete>
+<delete id="deleteSysOrgUser" parameterMap="baseParameterMap">
+	DELETE FROM SYS_USER WHERE ORG_ID=#{id,jdbcType=NUMERIC}
+</delete>
+</mapper>

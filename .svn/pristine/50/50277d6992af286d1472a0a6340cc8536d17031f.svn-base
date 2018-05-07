@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.guoll.modules.sysmanage.mapper.SysProvinceMapper">
+<!-- Parameter Map-->
+<parameterMap id="baseParameterMap" type="com.guoll.modules.sysmanage.bean.SysProvince"/>
+<!-- Result Map-->
+<resultMap id="baseResultMap" type="com.guoll.modules.sysmanage.bean.SysProvince"/>
+<select id="findSysProvinceBySpell" resultMap="baseResultMap" parameterType="string">
+	SELECT 
+		id,provinceName,provinceSpell 
+	FROM 
+		sys_province 
+	WHERE 
+		provinceSpell = #{provinceSpell}
+</select>
+
+<select id="queryAllSysprovinceList" resultMap="baseResultMap" parameterType="string">
+	SELECT 
+		id,provinceName,provinceSpell 
+	FROM 
+		sys_province 
+</select>
+</mapper>

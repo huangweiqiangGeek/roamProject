@@ -1,0 +1,12 @@
+#version 2017-07-31-01
+driver=com.mysql.jdbc.Driver
+url=jdbc:mysql://127.0.0.1:3306/yidong?useUnicode=true&characterEncoding=utf8&characterSetResults=utf8
+username=root
+password=mk1644
+proxool.maximum-connection-count=10
+proxool.minimum-connection-count=2
+proxool.house-keeping-sleep-time=90000
+proxool.maximum-new-connections=10
+proxool.prototype-count=5
+proxool.simultaneous-build-throttle=5
+proxool.statistics=1d

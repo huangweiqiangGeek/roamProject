@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.guoll.modules.sysmanage.mapper.SysMenuMapper">
+<!-- Parameter Map-->
+<parameterMap id="baseParameterMap" type="com.guoll.modules.sysmanage.bean.SysMenu"/>
+<!-- Result Map-->
+<resultMap id="baseResultMap" type="com.guoll.modules.sysmanage.bean.SysMenu"/>
+
+<select id="queryByParentId" parameterType="Integer" resultMap="baseResultMap">
+	SELECT T.ID,T.MENU_TYPE,T.NAME,T.PARENT_ID,T.ORDER_NO,T.HREF FROM SYS_MENU T
+where T.state=0 
+<if test="_parameter!=null">and parent_id = #{_parameter} </if>
+<if test="_parameter==null">and parent_id is null</if>
+</select>
+
+<select id="queryByUserLimitsMenu" parameterMap="baseParameterMap" resultMap="baseResultMap">
+SELECT T.ID,T.MENU_TYPE,T.NAME,T.PARENT_ID,T.ORDER_NO,T.HREF FROM SYS_MENU T
+where 
+<if test="parent_id!=null">parent_id = #{parent_id,jdbcType=NUMERIC} </if>
+<if test="parent_id==null">parent_id is null</if>
+and T.state=0 and
+exists (select 1 from SYS_LINK_ROLE_MENU LRM,SYS_LINK_POST_ROLE LPR,SYS_LINK_POST_USER LPU
+where LRM.MENU_ID=T.ID and LPR.ROLE_ID=LRM.ROLE_ID and LPU.POST_ID=LPR.POST_ID 
+and LPU.USER_ID=#{user_id,jdbcType=NUMERIC})
+</select>
+
+<select id="queryByUserLimitsMenu_" parameterMap="baseParameterMap" resultMap="baseResultMap">
+SELECT T.ID,T.MENU_TYPE,T.NAME,T.PARENT_ID,T.ORDER_NO,T.HREF FROM SYS_MENU T
+where FIND_IN_SET(T.ID, getMenuChildLst(#{parent_id,jdbcType=NUMERIC})) and T.state=0 and
+exists (select 1 from SYS_LINK_ROLE_MENU LRM,SYS_LINK_POST_ROLE LPR,SYS_LINK_POST_USER LPU
+where LRM.MENU_ID=T.ID and LPR.ROLE_ID=LRM.ROLE_ID and LPU.POST_ID=LPR.POST_ID 
+and LPU.USER_ID=#{user_id,jdbcType=NUMERIC})
+</select>
+
+<insert id="addSysMenu" parameterMap="baseParameterMap">
+	INSERT INTO SYS_MENU(NAME,MENU_TYPE,PARENT_ID,ORDER_NO,STATE,UPDATE_USER_ID,UPDATE_USER_NAME,UPDATE_TIME)
+	VALUES(#{name,jdbcType=VARCHAR},0,#{parent_id,jdbcType=NUMERIC},#{order_no,jdbcType=NUMERIC},0,
+	#{update_user_id,jdbcType=NUMERIC},#{update_user_name,jdbcType=VARCHAR},#{update_time,jdbcType=TIMESTAMP})
+</insert>
+<update id="updateSysMenu" parameterMap="baseParameterMap">
+	UPDATE SYS_MENU SET NAME=#{name,jdbcType=VARCHAR},MENU_TYPE=#{menu_type,jdbcType=VARCHAR},PARENT_ID=#{parent_id,jdbcType=NUMERIC},
+	ORDER_NO=#{order_no,jdbcType=NUMERIC},HREF=#{href,jdbcType=VARCHAR},STATE=#{state,jdbcType=NUMERIC},UPDATE_USER_ID=#{update_user_id,jdbcType=NUMERIC},
+	UPDATE_USER_NAME=#{update_user_name,jdbcType=VARCHAR},UPDATE_TIME=#{update_time,jdbcType=TIMESTAMP} WHERE ID=#{id,jdbcType=NUMERIC}
+</update>
+<update id="dragSysMenu" parameterMap="baseParameterMap">
+	UPDATE SYS_MENU SET PARENT_ID=#{parent_id,jdbcType=NUMERIC},ORDER_NO=#{order_no,jdbcType=NUMERIC},UPDATE_USER_ID=#{update_user_id,jdbcType=NUMERIC},
+	UPDATE_USER_NAME=#{update_user_name,jdbcType=VARCHAR},UPDATE_TIME=#{update_time,jdbcType=TIMESTAMP} WHERE ID=#{id,jdbcType=NUMERIC}
+</update>
+<update id="renameSysMenu" parameterMap="baseParameterMap">
+	UPDATE SYS_MENU SET NAME=#{name,jdbcType=VARCHAR},UPDATE_USER_ID=#{update_user_id,jdbcType=NUMERIC},
+	UPDATE_USER_NAME=#{update_user_name,jdbcType=VARCHAR},UPDATE_TIME=#{update_time,jdbcType=TIMESTAMP} WHERE ID=#{id,jdbcType=NUMERIC}
+</update>
+<delete id="deleteSysMenu" parameterMap="baseParameterMap">
+	DELETE FROM SYS_MENU WHERE ID=#{id,jdbcType=NUMERIC}
+</delete>
+</mapper>

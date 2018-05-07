@@ -1,0 +1,208 @@
+<%@ page language="java" import="java.util.*,com.guoll.modules.framework.util.SessionUtils,com.guoll.modules.sysmanage.bean.SysUser" pageEncoding="UTF-8"%>
+<%
+	String path = request.getContextPath();
+	String basePath = request.getScheme() + "://"
+			+ request.getServerName() + ":" + request.getServerPort()
+			+ path + "/";
+%>
+
+<!DOCTYPE html>
+<html>
+<head>
+<base href="<%=basePath%>">
+
+<title>资费测试工具</title>
+
+<meta http-equiv="pragma" content="no-cache">
+<meta http-equiv="cache-control" content="no-cache">
+<meta http-equiv="expires" content="0">
+<meta http-equiv="keywords" content="keyword1,keyword2,keyword3">
+<meta http-equiv="description" content="This is my page">
+<link rel="shortcut icon" href="images/image/tag.jpg" />
+<link rel="stylesheet" type="text/css" href="framework/jquery-easyui-1.3.2/themes/default/easyui.css">
+<link rel="stylesheet" type="text/css" href="framework/jquery-easyui-1.3.2/themes/icon.css">
+<link rel="stylesheet" type="text/css" href="framework/jquery-easyui-1.3.2/demo/demo.css">
+<script type="text/javascript" src="framework/jquery-easyui-1.3.2/jquery-1.8.0.min.js"></script>
+<script type="text/javascript" src="framework/jquery-easyui-1.3.2/jquery.easyui.min.js"></script>
+<script type="text/javascript" src="framework/js/common.js"></script>
+<script type="text/javascript" src="pages/main.js"></script>
+<script type="text/javascript" src="framework/js/md5-min.js"></script>
+<style type="text/css">
+.icon1 {
+	background: url(images/image/cion1.png) left top no-repeat;
+}
+
+.icon2 {
+	background: url(images/image/cion2.png) left top no-repeat;
+}
+</style>
+</head>
+
+<body class="easyui-layout" onload="ddd();">
+	<input type="hidden" id="parentId" name="parentId" value="0">
+	<div data-options="region:'north',border:false" style="height:82px;background-image:url(images/image/toplogo.png);background-repeat:repeat;">
+		<img  style="padding-left:10px;padding-top:20px;vertical-align:middle" class="login_top" src="images/image/log_top.jpg" />
+		<div style="float:right;padding-bottom:5px;padding-top:45px;font-family:宋体;
+		white-space: nowrap;font-size:12px;font-weight:normal;font-style:normal;text-decoration:none;color:white;">
+			&nbsp;${session_user.cn_name}&nbsp;&nbsp;&nbsp;<a style="color:white;" href="javascript:editPassWord()">修改密码</a>&nbsp;&nbsp;<a style="color:white;padding-right:20px" href="passageway/logout">注销</a>
+		</div>
+		<img style="padding-top:30px;height:30px;float:right" class="login_user" src="images/image/bg_button_r2.png">
+		<div style="float:right;padding-bottom:5px;padding-top:45px;font-family:宋体;
+		white-space: nowrap;font-size:12px;font-weight:normal;font-style:normal;text-decoration:none;color:white" id="time"></div>
+		<div style="float:right;padding-bottom:5px;padding-top:20px;font-family:宋体;
+		white-space: nowrap;font-size:30px;font-weight:normal;font-style:normal;padding-right:10%;text-decoration:none;color:white" id="titleLable">全网资费测试平台</div>
+	</div>
+	<div data-options="region:'west',split:true,title:'功能清单',iconCls:'icon1'" style="width:255px;padding:8px;">
+		<iframe width="98%" scrolling="no" height="99%" src="passageway/leftSysMenu" style="border: 0;margin: 0;padding: 0;"></iframe>
+	</div>
+	<div id="main" data-options="region:'center',title:'工作区域',iconCls:'icon2'" style="overflow:hidden;background-repeat:no-repeat;">
+		<iframe id="mainFrame" width="100%" height="100%" src="project/listInit" style="border: 0;margin: 0;padding: 0"></iframe>
+	</div>
+	<div data-options="region:'south',border:false" style="height:34px;background-image:url('images/image/bg_bottom.png');padding:10px;">
+		<div style="float: right">
+			<font size="6" color="blue">版权所有：中国移动(深圳)有限公司</font>
+		</div>
+	</div>
+
+	<div id="win_div" class="easyui-window" data-options="closed:true" style="overflow: hidden;width:850px;height:580px">
+		<form id="addOrUpateForm" action="sysUser/updatePassWord" method="post">
+			<table width="100%" border="0" cellspacing="0" cellpadding="0" class="formTable">
+				<tr>
+					<th>原始密码：</th>
+					<td><input type="password" id="user_pass" name="user_pass" maxlength="50" /></td>
+				</tr>
+				<br/>
+				<tr>
+					<th>&nbsp;</th>
+					<td>&nbsp;</td>
+				</tr>
+				<tr>
+					<th>新密码：</th>
+					<td><input type="password" id="new_user_pass" name="new_user_pass" maxlength="50"></td>
+				</tr>
+				<tr>
+					<th>&nbsp;</th>
+					<td>&nbsp;</td>
+				</tr>
+				<tr>
+					<th>确认密码：</th>
+					<td><input type="password" id="confirm_user_pass" name="confirm_user_pass" maxlength="50"></td>
+				</tr>
+			</table>
+			<div align="center" style="padding:5px;">
+				<a href="javascript:saveMethod();" class="easyui-linkbutton" data-options="iconCls:'icon-save'">保存</a>
+				<a href="javascript:cancelMethod();" class="easyui-linkbutton" data-options="iconCls:'icon-cancel'">取消</a>
+			</div>
+		</form>
+		<form id="tempForm" action="passageway/temp" method="post">
+			
+		</form>
+	</div>
+
+	<script type="text/javascript">
+
+		function ddd(){
+			//
+			<%
+			SysUser s = (SysUser)request.getSession(true).getAttribute("session_user");
+			//System.out.println(s);
+				if(s==null){%>
+					document.getElementById("tempForm").submit();
+					<%}
+			%>
+			
+		}
+	
+		$(function() {
+			var date = new Date();
+			var month1 = (parseInt(date.getMonth()) + 1).toString();
+			month = (month1.length == 1) ? "0" + month1 : month1;
+			var day = (date.getDate().toString().length == 1) ? "0"
+					+ date.getDate() : date.getDate();
+			var hour = (date.getHours().toString().length == 1) ? "0"
+					+ date.getHours() : date.getHours();
+			var minute = (date.getMinutes().toString().length == 1) ? "0"
+					+ date.getMinutes() : date.getMinutes();
+			var second = date.getSeconds().toString().length == 1 ? "0"
+					+ date.getSeconds() : date.getSeconds();
+			var curtime = date.getFullYear() + "-" + month + "-" + day
+					+ "&nbsp;&nbsp;" + hour + ":" + minute + ":" + second;
+			document.getElementById("time").innerHTML = "时间：" + curtime
+					+ "&nbsp;&nbsp;&nbsp;";
+		});
+
+		function editPassWord() {
+			var $win;
+			$win = $('#win_div').window({
+				title : '密码修改',
+				width : 300,
+				height : 200,
+				top : 200,
+				left : ($(window).width() - 300) * 0.5,
+				shadow : true,
+				modal : true,
+				closed : true,
+				iconCls : 'icon-save',
+				minimizable : false,
+				maximizable : false,
+				collapsible : false
+			});
+			$win.window('open');
+		}
+
+		function saveMethod() {
+			var password = $("#user_pass").val();
+			var newpwd = $("#new_user_pass").val();
+			var confirmPwd = $("#confirm_user_pass").val();
+			if (password.length <= 0) {
+				alert("请输入原始密码!");
+				return;
+			}
+			if (newpwd.length <= 7) {
+				alert("请输入新密码且不能小于8位!");
+				return;
+			} else {
+				var bool = checkpwd(newpwd, 0);
+				if (bool == false) {
+					return;
+				}
+			}
+
+			if (confirmPwd.length <= 7) {
+				alert("请输入确认密码且不能小于8位!");
+				return;
+			} else {
+				var boolean = checkpwd(confirmPwd, 1);
+				if (boolean == false) {
+					return;
+				}
+			}
+			if (newpwd != confirmPwd) {
+				alert("新密码和确认密码不一致！");
+				return;
+			} 
+			$.messager.confirm('谨慎操作提示', '确认修改密码?', function(r) {
+				if (r) {
+					ajaxRequest1("sysUser/updatePassWord", {
+						user_pass : hex_md5(password),
+						new_user_pass : hex_md5(newpwd)
+					});
+				}
+			});
+		}
+
+		function ajaxRequestSuccessBackInvokeMethod1(data) {
+			if (data == 1) {
+				$.messager.alert('操作提示', '原始密码输入错误!', 'error');
+			} else {
+				$.messager.alert('操作提示', '密码修改成功!');
+				window.parent.closeWin(false, "win_div_1");
+			}
+		}
+
+		function cancelMethod() {
+			window.parent.closeWin(true, "win_div_1");
+		}
+	</script>
+</body>
+</html>

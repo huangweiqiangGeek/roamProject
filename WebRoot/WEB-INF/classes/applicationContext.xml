@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+         http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+         http://www.springframework.org/schema/context
+         http://www.springframework.org/schema/context/spring-context-3.0.xsd
+         http://www.springframework.org/schema/tx
+         http://www.springframework.org/schema/tx/spring-tx-3.0.xsd
+         http://www.springframework.org/schema/aop 
+         http://www.springframework.org/schema/aop/spring-aop-3.0.xsd">
+
+	<context:component-scan base-package="com.guoll.modules.*.service"  />
+	
+	<!-- <bean id="dataSource" class="org.springframework.jndi.JndiObjectFactoryBean">
+		<property name="jndiName" value="jdbc/roam"></property>
+		<property name="resourceRef">
+			<value>true</value>
+		</property>
+	</bean> -->
+	
+	<context:property-placeholder location="classpath:jdbc.properties" />
+	<bean id="dataSource" class="org.logicalcobwebs.proxool.ProxoolDataSource">
+		<property name="alias" value="proxoolDataSource"/>
+		<property name="driver" value="${driver}" />
+		<property name="driverUrl" value="${url}" />
+		<property name="user" value="${username}" />
+		<property name="password" value="${password}" />
+		<property name="maximumConnectionCount" value="${proxool.maximum-connection-count}"/>
+		<property name="minimumConnectionCount" value="${proxool.minimum-connection-count}" />
+		<property name="statistics" value="${proxool.statistics}" />
+		<property name="simultaneousBuildThrottle" value="${proxool.simultaneous-build-throttle}"/>
+	</bean>
+ 	
+	<!-- SqlSessionFactory -->
+	<bean id="paginationInterceptor" class="com.guoll.modules.framework.interceptor.PaginationInterceptor"></bean>
+	<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="configLocation" value="classpath:mybatis-config.xml" />
+		<property name="plugins">
+	        <array>
+	            <ref bean="paginationInterceptor"/>
+	        </array>
+    	</property>
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+	<!-- Mapper接口所在包名，Spring会自动查找其下的Mapper -->
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="basePackage" value="com.guoll.modules.*.mapper" />
+	</bean>
+
+	<!-- ================================事务相关控制================================================= -->
+	<bean name="transactionManager"
+		class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="dataSource"></property>
+	</bean>
+	<bean id="locationReport" class="server.CompLocationReportImpl"></bean>
+
+	<tx:advice id="userTxAdvice" transaction-manager="transactionManager">
+		<tx:attributes>
+			<tx:method name="delete*" propagation="REQUIRED" rollback-for="java.lang.Exception" no-rollback-for="java.lang.RuntimeException" />
+			<tx:method name="save*" propagation="REQUIRED" rollback-for="java.lang.RuntimeException" />
+			<tx:method name="add*" propagation="REQUIRED" rollback-for="java.lang.RuntimeException" />
+			<tx:method name="update*" propagation="REQUIRED" rollback-for="java.lang.Exception" />
+			<tx:method name="drag*" propagation="REQUIRED" rollback-for="java.lang.Exception" />
+			
+			<tx:method name="query*" propagation="SUPPORTS"/>
+            <tx:method name="*" read-only="true" />
+		</tx:attributes>
+	</tx:advice>
+
+	<aop:config>
+		<aop:pointcut id="pc"
+			expression="execution(public * com.guoll.modules.*.service.*.*(..))" /> <!--把事务控制在Service层 -->
+		<aop:advisor pointcut-ref="pc" advice-ref="userTxAdvice" />
+	</aop:config>
+
+</beans>

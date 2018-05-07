@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.guoll.modules.sysmanage.mapper.SysPostMapper">
+<!-- Parameter Map-->
+<parameterMap id="baseParameterMap" type="com.guoll.modules.sysmanage.bean.SysPost"/>
+<!-- Result Map-->
+<resultMap id="baseResultMap" type="com.guoll.modules.sysmanage.bean.SysPost"/>
+<select id="querySysPostSum" parameterMap="baseParameterMap" resultType="Integer">
+	SELECT COUNT(T.ID) FROM SYS_POST T WHERE 1=1
+	<if test="org_id!=null">AND T.ORG_ID = #{org_id,jdbcType=NUMERIC} </if>
+	<if test="user_id!=null">
+	AND	EXISTS(SELECT ID FROM SYS_LINK_POST_USER SLPU WHERE SLPU.POST_ID=T.ID AND SLPU.USER_ID=#{user_id,jdbcType=NUMERIC})
+	</if>
+	<if test="name!=null and name!=''">AND T.NAME LIKE '%'||#{name,jdbcType=VARCHAR}||'%'</if>
+	<if test="job!=null and job!=''">AND T.JOB LIKE '%'||#{job,jdbcType=VARCHAR}||'%'</if>
+</select>
+<select id="querySysPostList" parameterMap="baseParameterMap" resultMap="baseResultMap">
+	SELECT T.ID,T.ORG_ID,T.NAME,T.JOB,T.REMARK,T.UPDATE_USER_ID,T.UPDATE_USER_NAME,T.UPDATE_TIME,T.provinceSpell
+	FROM SYS_POST T WHERE 1=1 
+	<if test="org_id!=null">AND T.ORG_ID = #{org_id,jdbcType=NUMERIC} </if>
+	<if test="name!=null and name!=''">AND T.NAME LIKE '%'||#{name,jdbcType=VARCHAR}||'%'</if>
+	<if test="job!=null and job!=''">AND T.JOB LIKE '%'||#{job,jdbcType=VARCHAR}||'%'</if>
+	ORDER BY UPDATE_TIME DESC
+</select>
+
+<select id="querySysPostById" parameterType="Integer" resultMap="baseResultMap">
+	SELECT T.ID,T.ORG_ID,T.NAME,T.JOB,T.REMARK,T.UPDATE_USER_ID,T.UPDATE_USER_NAME,T.UPDATE_TIME,T.provinceSpell
+	FROM SYS_POST T WHERE ID=#{id,jdbcType=NUMERIC}
+</select>
+<insert id="addSysPost" parameterMap="baseParameterMap">
+	INSERT INTO SYS_POST(ORG_ID,NAME,JOB,REMARK,UPDATE_USER_ID,UPDATE_USER_NAME,UPDATE_TIME,provinceSpell)
+	VALUES(#{org_id,jdbcType=NUMERIC},#{name,jdbcType=VARCHAR},#{job,jdbcType=VARCHAR},#{remark,jdbcType=VARCHAR},
+	#{update_user_id,jdbcType=NUMERIC},#{update_user_name,jdbcType=VARCHAR},#{update_time,jdbcType=DATE},#{provinceSpell,jdbcType=VARCHAR})
+	
+</insert>
+<update id="updateSysPost" parameterMap="baseParameterMap">
+	UPDATE SYS_POST SET NAME=#{name,jdbcType=VARCHAR},job=#{job,jdbcType=VARCHAR},REMARK=#{remark,jdbcType=VARCHAR},
+	UPDATE_USER_ID=#{update_user_id,jdbcType=NUMERIC},UPDATE_USER_NAME=#{update_user_name,jdbcType=VARCHAR},
+	UPDATE_TIME=#{update_time,jdbcType=DATE},provinceSpell=#{provinceSpell,jdbcType=VARCHAR} WHERE ID=#{id,jdbcType=NUMERIC}
+</update>
+<!-- 删除岗位 -->
+<delete id="deleteLinkSysPostUser" parameterMap="baseParameterMap">
+	DELETE LPU FROM SYS_LINK_POST_USER LPU WHERE LPU.POST_ID=#{id,jdbcType=NUMERIC}
+</delete>
+<delete id="deleteLinkSysPostRole" parameterMap="baseParameterMap">
+	DELETE LPR FROM SYS_LINK_POST_ROLE LPR WHERE LPR.POST_ID=#{id,jdbcType=NUMERIC}
+</delete>
+<delete id="deleteSysPost" parameterMap="baseParameterMap">
+	DELETE FROM SYS_POST WHERE ID=#{id,jdbcType=NUMERIC}
+</delete>
+<!-- 岗位人员管理部分 -->
+<insert id="addUserToPost" parameterMap="baseParameterMap">
+	INSERT INTO SYS_LINK_POST_USER(POST_ID,USER_ID)VALUES(#{id,jdbcType=NUMERIC},#{user_id,jdbcType=NUMERIC})
+</insert>
+<delete id="deleteUserFromPost" parameterMap="baseParameterMap">
+	DELETE T FROM SYS_LINK_POST_USER T WHERE T.POST_ID=#{id,jdbcType=NUMERIC} AND T.USER_ID=#{user_id,jdbcType=NUMERIC}
+</delete>
+<!-- 岗位角色管理部分 -->
+<insert id="addRoleToPost" parameterMap="baseParameterMap">
+	INSERT INTO SYS_LINK_POST_ROLE(POST_ID,ROLE_ID)VALUES(#{id,jdbcType=NUMERIC},#{role_id,jdbcType=NUMERIC})
+</insert>
+<delete id="deleteRoleFromPost" parameterMap="baseParameterMap">
+	DELETE T FROM SYS_LINK_POST_ROLE T WHERE T.POST_ID=#{id,jdbcType=NUMERIC} AND T.ROLE_ID=#{role_id,jdbcType=NUMERIC}
+</delete>
+<select id="queryUserSysPostList" parameterMap="baseParameterMap" resultMap="baseResultMap">
+	SELECT T.ID,T.ORG_ID,T.NAME,T.JOB,T.REMARK,T.UPDATE_USER_ID,T.UPDATE_USER_NAME,T.UPDATE_TIME,T.provinceSpell
+	FROM SYS_POST T LEFT JOIN SYS_LINK_POST_USER SLPU ON SLPU.POST_ID=T.ID
+	WHERE SLPU.USER_ID=#{user_id,jdbcType=NUMERIC}
+</select>
+
+<select id="queryPostToOrgId" parameterMap="baseParameterMap" resultMap="baseResultMap">
+	SELECT T.ID,T.ORG_ID,T.NAME,T.JOB,T.REMARK,T.UPDATE_USER_ID,T.UPDATE_USER_NAME,T.UPDATE_TIME FROM SYS_POST T 
+	WHERE T.NAME=#{name,jdbcType=VARCHAR}  <if test="org_id!=null and org_id!=''">AND T.ORG_ID=#{org_id,jdbcType=NUMERIC}</if>
+</select>
+<!-- 根据省份拼写查询岗位 -->
+<select id="querySysPostByProvinceSpell" parameterMap="baseParameterMap" resultMap="baseResultMap">
+	SELECT id,NAME,REMARK,job,provinceSpell FROM sys_post WHERE provinceSpell = #{provinceSpell,jdbcType=VARCHAR}
+	<if test="org_id!=null and org_id!=''">AND org_id = #{org_id,jdbcType=NUMERIC}</if>
+</select>
+</mapper>

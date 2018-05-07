@@ -1,0 +1,159 @@
+package com.guoll.modules.product_customer.service;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.ibatis.annotations.Param;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.guoll.modules.product_customer.bean.Product;
+import com.guoll.modules.product_customer.bean.ProductGroup;
+import com.guoll.modules.product_customer.mapper.ProductGroupMapper;
+import com.guoll.modules.sysmanage.bean.SysUser;
+
+/**
+ * 
+ * @author htnm
+ *
+ */
+@Service
+public class ProductGroupService {
+	@Autowired
+	private ProductGroupMapper productGroupMapper;
+	
+	/**
+	 * 保存新增或修改
+	 * @param productGroup
+	 * @param user
+	 */
+	public void save(ProductGroup productGroup,SysUser user){
+		if (productGroup.getId() == null) {
+			//新增组
+			productGroup.setProvinceSpell(user.getProvinceSpell());
+			productGroup.setPostName(user.getPost_name());
+			productGroupMapper.addNewProductGroup(productGroup);//保存并返回组的id
+			//处理组与产品表间的关联关系
+			String productsMark = productGroup.getProductsMark();
+			String[] proIds = productsMark.split("\\+");
+			String provinceSpell = user.getProvinceSpell();
+			for (String productStrId : proIds) {
+				Map<String, Object> link = new HashMap<String, Object>();
+				link.put("provinceSpell", provinceSpell);
+				link.put("productStrId", productStrId);
+				link.put("groupId", productGroup.getId());
+				productGroupMapper.addNewProductGroupLink(link);
+			}
+		}else{
+			//删除原有的组和产品关联关系
+			productGroupMapper.deleteProductGroupLinkByGroupId(productGroup.getId());
+			//保存新的关系
+			String productsMark = productGroup.getProductsMark();
+			String[] proIds = productsMark.split("\\+");
+			String provinceSpell = user.getProvinceSpell();
+			for (String productStrId : proIds) {
+				Map<String, Object> link = new HashMap<String, Object>();
+				link.put("provinceSpell", provinceSpell);
+				link.put("productStrId", productStrId);
+				link.put("groupId", productGroup.getId());
+				productGroupMapper.addNewProductGroupLink(link);
+			}
+			
+			
+//			ProductGroup oldGroup = queryProductGroupById(productGroup.getId());
+//			String[] split = oldGroup.getProductsMark().split("\\+");
+//			for (String productStrId : split) {
+//				Map<String, Object> link = new HashMap<String, Object>();
+//				link.put("provinceSpell", oldGroup.getProvinceSpell());
+//				link.put("productStrId", productStrId);
+//				link.put("groupId", productGroup.getId());
+//				productGroupMapper.deleteProductGroupLink(link);
+//			}
+//			//保存更新
+			productGroupMapper.updateProductGroup(productGroup);
+			
+		}
+	}
+	
+	/**
+	 * 处理产品组中的产品与数据库中产品表的关系并将响应产品添加到产品组的set集合以便获取productMark
+	 */
+	private void handleLinkBetweenGropsProductAndDatabase(ProductGroup productGroup) {
+		
+	}
+	
+	/**
+	 * 根据id或产品id组刪除，并将同省本组合的用户的组合清空
+	 */
+	public void delete(Integer id){
+		int flag1=productGroupMapper.deleteByIdOrProductsMark(id);
+		int flag2=productGroupMapper.deleteProductGroupLinkByID(id);
+	}
+	
+	/**
+	 * 根据id查询
+	 */
+	public ProductGroup queryProductGroupById(ProductGroup productGroup) {
+		List<ProductGroup> list = productGroupMapper.queryProductGroupByList(productGroup);
+		if (list.size() > 0) {
+			ProductGroup group = list.get(0);
+			group.setProductList(productGroupMapper.queryProductListOfGroupByGroupId(group.getId()));
+			return group;
+		}else {
+			return null;
+		}
+	}
+	
+	/**
+	 * 根据id查询
+	 */
+	public ProductGroup queryProductGroupById(Integer productGroupId) {
+		ProductGroup productGroup = new ProductGroup();
+		productGroup.setId(productGroupId);
+		List<ProductGroup> list = productGroupMapper.queryProductGroupByList(productGroup);
+		if (list.size() > 0) {
+			ProductGroup group = list.get(0);
+			group.setProductList(productGroupMapper.queryProductListOfGroupByGroupId(group.getId()));
+			return group;
+		}else {
+			return null;
+		}
+	}
+	
+	/**
+	 * 根据模型查询
+	 */
+	public List<ProductGroup> queryProductGroupListByModel(ProductGroup productGroup) {
+		List<ProductGroup> list = productGroupMapper.queryProductGroupByList(productGroup);
+		for (ProductGroup group : list) {
+			List<Product> list2 = productGroupMapper.queryProductListOfGroupByGroupId(group.getId());
+			group.setProductList(list2);
+		}
+		return list;
+	}
+
+	/**
+	 * 根据模型查询数量
+	 * @param productGroup
+	 * @return
+	 */
+	public Integer getCountOfProductGroup(ProductGroup productGroup) {
+		return productGroupMapper.queryCountOfProductGroup(productGroup);
+	}
+	
+	/**
+	 * 根据产品组ID查询产品组
+	 * @param id
+	 * @return
+	 */
+	public ProductGroup queryProductGroupByGroupID(int id){
+		return productGroupMapper.queryProductGroupByGroupID(id);
+	}
+	
+	public List<ProductGroup> queryProductGroupListByProvince(ProductGroup productGroup){
+		return productGroupMapper.queryProductGroupListByProvince(productGroup);
+	}
+}

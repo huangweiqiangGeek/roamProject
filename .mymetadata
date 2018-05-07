@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project-module
+  type="WEB"
+  name="roamProject"
+  id="myeclipse.1358125879860"
+  context-root="/roamProject"
+  j2ee-spec="5.0"
+  archive="roamProject.war">
+  <attributes>
+    <attribute name="webrootdir" value="WebRoot" />
+  </attributes>
+</project-module>
+

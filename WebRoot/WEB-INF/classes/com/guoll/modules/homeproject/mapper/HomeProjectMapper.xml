@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.guoll.modules.homeproject.mapper.HomeProjectMapper">
+	<!-- Parameter Map -->
+	<parameterMap id="baseParameterMap"
+		type="com.guoll.modules.homeproject.bean.HomeProject" />
+	<!-- Result Map -->
+	<resultMap id="baseResultMap"
+		type="com.guoll.modules.homeproject.bean.HomeProject" />
+
+	<!--表名 -->
+	<sql id="tableName">
+		<!-- BILL_TEMPLATE -->
+		home_project
+	</sql>
+
+	<!--查询字段 -->
+	<sql id="Field">
+		id,
+		name,
+		provinceSpell,
+		introduction,
+		postName
+	</sql>
+
+	<!-- 字段值 -->
+	<sql id="FieldValue">
+		#{id},
+		#{name},
+		#{provinceSpell},
+		#{introduction},
+		#{postName}
+	</sql>
+
+	<insert id="save" parameterMap="baseParameterMap">
+		INSERT INTO
+		<include refid="tableName"></include>
+		(
+		name,
+		provinceSpell,
+		introduction,
+		postName
+		)
+		VALUES
+		(
+		#{name},
+		#{provinceSpell},
+		#{introduction},
+		#{postName}
+		)
+	</insert>
+
+	<update id="update" parameterMap="baseParameterMap">
+		UPDATE
+		home_project
+		SET
+		name =#{name},provinceSpell=#{provinceSpell},introduction=#{introduction},postName=#{postName}
+		WHERE
+		id = #{id};
+	</update>
+
+	<select id="queryList" parameterMap="baseParameterMap"
+		resultMap="baseResultMap">
+		SELECT
+		<include refid="Field"></include>
+		FROM 
+		<include refid="tableName"></include>
+		WHERE 1=1
+		<if test="id !=null and id !='' ">
+			AND id=#{id}
+		</if>
+		<if test="provinceSpell !=null and provinceSpell !='' ">
+			AND provinceSpell=#{provinceSpell}
+		</if>
+		<if test=" postName !='' and postName !=null">
+			AND postName=#{postName}
+		</if>
+		ORDER BY id DESC
+		limit #{start,jdbcType=NUMERIC},#{rows,jdbcType=NUMERIC}
+	</select>
+	
+	<select id="queryCount" parameterMap="baseParameterMap"
+		resultType="int">
+		SELECT
+		count(id)
+		FROM 
+		<include refid="tableName"></include>
+		WHERE 1=1
+		<if test="provinceSpell !=null and provinceSpell !='' ">
+			AND provinceSpell=#{provinceSpell}
+		</if>
+		<if test=" postName !='' and postName !=null">
+			AND postName=#{postName}
+		</if>
+	</select>
+	<delete id="deleteById" parameterMap="baseParameterMap">
+		DELETE FROM home_project WHERE id = #{id}
+	</delete>
+	
+</mapper>

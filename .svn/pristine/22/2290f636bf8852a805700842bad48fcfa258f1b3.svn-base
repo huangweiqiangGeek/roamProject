@@ -1,0 +1,401 @@
+function searchMethod(){
+	var provincSpell = $('#provincSpell').val();
+	var params ={provincSpell:provincSpell};
+	$("#dg").datagrid("reload",params);
+}
+
+function formatOperate(value,rowDatas,rowIndex){
+	console.log(value,rowDatas,rowIndex)
+}
+
+function formatDt(value,rowDatas,rowIndex){
+	if(!isNull(value)){
+		return new Date(value).pattern("yyyy-MM-dd HH:mm:ss");
+	}
+	return "";
+	
+}
+//省级任务统计
+$(function(){
+	drawStatistics1();
+	drawStatistics2();
+	detail();
+});
+function detail(){
+	$.ajax({
+		url: 'statisticsController/projectOfGroupUseCaseList?projectId=690',
+		dataType: 'json',  
+		async: true,
+		success: function (res) { 
+			  console.log("res",res);
+		}
+	})
+}
+//绘制任务柱状图
+function drawStatistics1(){
+	var homeProjectNames = [];
+	var projectUseCasePassRates = [];
+	$.ajax({
+		url: 'statisticsController/getProvinceStatisticProjectEchart',
+		dataType: 'json',  
+		async: true,
+		success: function (res) { 
+			  console.log(res);
+			  var homeProjectNames = [];//任务名称
+			  var projectUseCasePassRates = [];//任务通过率
+			  for(var i in res.data){
+				  homeProjectNames.push(res.data[i].projectName);
+				  projectUseCasePassRates.push(parseInt(res.data[i].projectUseCasePassRate));
+			  }
+			  var pTestPassRate = $("#pTestPassRate")[0];
+				//得到echarts的实例对象
+			    var Chart = echarts.init(pTestPassRate);
+			    //pTestPassRate.title = '多 Y 轴示例';
+			    var colors = ['#5793f3'];
+			    option = {
+			        color: colors,
+
+			        tooltip: {
+			            trigger: 'axis',
+			            axisPointer: {
+			                type: 'cross'
+			            }
+			        },
+			        grid: {
+			            right: '2%'
+			        },
+			        toolbox: {
+			            feature: {
+			                dataView: {show: true, readOnly: false},
+			                restore: {show: true},
+			                saveAsImage: {show: true}
+			            }
+			        },
+			        legend: {
+			            data:["任务通过率"]
+			        },
+			        xAxis: [
+			            {
+			                type: 'category',
+			                axisTick: {
+			                    alignWithLabel: true
+			                },
+			                data: homeProjectNames
+			            }
+			        ],
+			        yAxis: [
+			            {
+			                type: 'value',
+			                name: "任务通过率",
+			                min: 0,
+			                max: 100,
+			                position: 'left',
+			                axisLine: {
+			                    lineStyle: {
+			                        color: colors[0]
+			                    }
+			                },
+			                axisLabel: {
+			                    formatter: '{value}%'
+			                }
+			            }
+			        ],
+			        series: [
+			            {
+			                name:"任务通过率",
+			                type:'bar',
+			                data:projectUseCasePassRates
+			            }
+			        ]
+			    };
+			    Chart.setOption(option);
+		},
+		error: function (res){
+			console.log(res);
+		}
+	}); 
+}
+//绘制任务饼状图
+function drawStatistics2(){
+	$.ajax({
+		url: 'statisticsController/getProvinceStatisticProjectCircle',
+		dataType: 'json',  
+		async: true,
+		success: function (res) { 
+			  console.log(res);
+				var pTestPassRate1 = $("#pTestPassRate1")[0];
+				var Chart1 = echarts.init(pTestPassRate1);
+				var pTestPassRate2 = $("#pTestPassRate2")[0];
+				var Chart2 = echarts.init(pTestPassRate2);
+			    //右上
+			    var dataStyle = {
+			            normal: {
+			                label: {show:true},
+			                labelLine: {show:true,length:20},
+			                shadowBlur: 40,
+			                shadowColor: 'rgba(40, 40, 40, 0.5)',
+			            }
+			        };
+			    var dataStyle1 = {
+			            normal: {
+			                label: {show:true,position:'center'},
+			                labelLine: {show:true,length:20},
+			                shadowBlur: 40,
+			                shadowColor: 'rgba(40, 40, 40, 0.5)'
+			            }
+			        };
+			        var placeHolderStyle = {
+			            normal : {
+			                color: 'rgba(0,0,0,0)',
+			                label: {show:true},
+			                labelLine: {show:true},
+			                position:'center'
+			            },
+			            emphasis : {
+			                color: 'rgba(0,0,0,0)'
+			            }
+			        };
+			        var option1 = {
+			            backgroundColor: '#fff', //图表的配置颜色
+			            color: ['#FF4EF9', '#1FF9F5','#FA4805'], //每一项对应的颜色
+			            tooltip : {  //提示框组件
+			                show: true,
+			                formatter: "{b} : {c}"  //正则设置格式
+			            },
+			            /*legend: {  //图例组件
+			                orient:'vertical', //图例的布局朝向
+			                x:190,  //图例的位置--离左边的距离
+			                y:50,  //图例的位置--离上边的距离
+			                itemGap:20, //图例每项之间的间隔。横向布局时为水平间隔，纵向布局时为纵向间隔。
+			                data:['总用例数', '通过数', '未通过数']
+			            },*/
+			            series : [  //系列列表
+			                {
+			                    name:'总用例数',  //名字--用于tooltip的显示
+			                    type:'pie',    //类型--饼状图
+			                    clockWise:false,   //饼图的扇区是否是顺时针排布。
+			                    radius : [50,60], //饼图的半径，数组的第一项是内半径，第二项是外半径。 内半径是0就是一个真正的饼
+			                    center:['79%', '50%'], //饼图片的中心
+			                    itemStyle : dataStyle1, //样式
+			                    hoverAnimation: false, //是否开启 hover 在扇区上的放大动画效果。
+			                    zlevel:2,			           
+			                    labelLine: {  
+			                        normal: {  
+			                            show: true  
+			                        }  
+			                    },
+			                    data:[  //系列中的数据内容数组
+			                        {
+			                            value:res.data.provinceUseCaseCount,     //数据值总的值
+			                            name:'总用例数'  //数据项名称。
+			                        },
+			                        {
+			                            value:res.data.provinceUseCaseCount,     //剩下的值
+			                            name:'invisible',
+			                            itemStyle : placeHolderStyle
+			                        }
+
+			                    ],
+			                },
+			                {
+			                    name:'通过数',
+			                    type:'pie',
+			                    clockWise:false,
+			                    radius : [40, 50],
+			                    center:['79%', '50%'], //饼图片的中心
+			                    itemStyle : dataStyle,
+			                    hoverAnimation: false,
+			                    zlevel:100,
+			                    data:[
+			                        {
+			                            value:res.data.provinceUseCasePassCount,   //数据值总的值
+			                            name:'通过数'
+			                        },
+			                        {
+			                            value:res.data.provinceUseCaseCount,
+			                            name:'invisible',
+			                            itemStyle : placeHolderStyle
+			                        }
+			                    ]
+			                },
+			                {
+			                    name:'未通过数 ',
+			                    type:'pie',
+			                    clockWise:false,
+			                    hoverAnimation: false,
+			                    radius : [30, 40],
+			                    center:['79%', '50%'], //饼图片的中心
+			                    itemStyle : dataStyle,
+
+			                    data:[
+			                        {
+			                            value:res.data.provinceUseCaseFailedCount,
+			                            name:'未通过数 '
+			                        },
+			                        {
+			                            value:res.data.provinceUseCaseCount,
+			                            name:'invisible',
+			                            itemStyle : placeHolderStyle
+			                        }
+			                    ]
+			                },			           
+			            ]
+			        };
+			        var option2 = {
+				            backgroundColor: '#fff', //图表的配置颜色
+				            color: ['#FF4EF9', '#1FF9F5','#FA4805'], //每一项对应的颜色
+				            tooltip : {  //提示框组件
+				                show: true,
+				                formatter: "{b} : ({d}%)"  //正则设置格式
+				            },
+				            /*legend: {  //图例组件
+				                orient:'vertical', //图例的布局朝向
+				                x:190,  //图例的位置--离左边的距离
+				                y:50,  //图例的位置--离上边的距离
+				                itemGap:20, //图例每项之间的间隔。横向布局时为水平间隔，纵向布局时为纵向间隔。
+				                data:['总用例数', '通过数', '未通过数']
+				            },*/
+				            series : [  //系列列表
+				                {
+				                    name:'平均通过率',  //名字--用于tooltip的显示
+				                    type:'pie',    //类型--饼状图
+				                    clockWise:false,   //饼图的扇区是否是顺时针排布。
+				                    radius : [50,60], //饼图的半径，数组的第一项是内半径，第二项是外半径。 内半径是0就是一个真正的饼
+				                    center:['79%', '50%'], //饼图片的中心
+				                    itemStyle : dataStyle1, //样式
+				                    hoverAnimation: false, //是否开启 hover 在扇区上的放大动画效果。
+				                    zlevel:2,			           
+				                    labelLine: {  
+				                        normal: {  
+				                            show: true  
+				                        }  
+				                    },
+				                    data:[  //系列中的数据内容数组
+				                        {
+				                            value:res.data.provinceUseCasePassCount,     //通过的
+				                            name:'\n平均通过率'  //数据项名称。
+				                        },
+				                        {
+				                            value:res.data.provinceUseCaseCount-res.data.provinceUseCasePassCount,     //总的-通过的
+				                            name:'invisible',
+				                            itemStyle : placeHolderStyle
+				                        }
+
+				                    ],
+				                },
+				                {
+				                    name:'通过率',
+				                    type:'pie',
+				                    clockWise:false,
+				                    radius : [40, 50],
+				                    center:['79%', '50%'], //饼图片的中心
+				                    itemStyle : dataStyle,
+				                    hoverAnimation: false,
+				                    zlevel:100,
+				                    data:[
+				                        {
+				                            value:res.data.provinceUseCasePassCount,   //数据值总的值
+				                            name:'通过率'
+				                        },
+				                        {
+				                            value:res.data.provinceUseCaseCount-res.data.provinceUseCasePassCount,
+				                            name:'invisible',
+				                            itemStyle : placeHolderStyle
+				                        }
+				                    ]
+				                },
+				                {
+				                    name:'未通过率 ',
+				                    type:'pie',
+				                    clockWise:false,
+				                    hoverAnimation: false,
+				                    radius : [30, 40],
+				                    center:['79%', '50%'], //饼图片的中心
+				                    itemStyle : dataStyle,
+
+				                    data:[
+				                        {
+				                            value:res.data.provinceUseCaseFailedCount,
+				                            name:'未通过率 '
+				                        },
+				                        {
+				                            value:res.data.provinceUseCaseCount-res.data.provinceUseCaseFailedCount,
+				                            name:'invisible',
+				                            itemStyle : placeHolderStyle
+				                        }
+				                    ]
+				                },				                
+				            ]
+				        };
+			        Chart1.setOption(option1);
+			        Chart2.setOption(option2);
+		},
+		error: function (res){
+			console.log(res);
+		}
+	});
+}
+//查看全部
+function lookList(){
+	window.open("statisticsController/LookList");
+	//window.location.href="statisticsController/LookList";
+}
+//查看详情
+function formatOperate(value,rowDatas,rowIndex){
+	var h='<a class="btn handleBtn" href="statisticsController/projectOfGroupUseCaseList?projectId='+value+'">查看详细</a>'
+	return h;
+}
+/**
+ * 下载统计数据
+ * @returns {Boolean}
+ */
+function downLoad(){
+	var province=$('.sele').val();
+	//var province="shandong";
+	$.messager.confirm('下载提示', '确认下载当前省份的统计数据吗?', function(r){
+		if (r){
+			var urlStr1="statisticsController/downloadProvinceStatistic2HomeProject?province="+province;
+			var form = $('<form></form>');
+			form.attr('style', 'display:none');
+			form.attr('method', 'post'); //form提交路径        
+			form.attr('action', urlStr1);
+			var input = $('<input type="text" name="params" id="params" />'); // 可以添加一些参数              
+			input.attr('value',province );
+			form.append(input);
+			$(document.body).append(form);
+			form.submit();
+			$.post(urlStr1,function(data){
+				//console.log(data)
+				//if(data.success=="true"){
+					$.messager.confirm('下载提示', '文件下载成功！', function(){});
+				//}else{
+				//	$.messager.confirm('下载提示', '文件下载失败！', function(){})
+				//}
+			})
+			/*
+			$.ajax({
+				type:"POST",
+				url:"statisticsController/downloadProvinceStatistic2HomeProject",
+				data:province,
+				success:function(data){
+					if(data.success=="true"){
+						$.messager.confirm('下载提示', '文件下载成功！', function(){})
+					}else{
+						$.messager.confirm('下载提示', '文件下载失败！', function(){})
+					}
+				}
+			})*/
+		}
+	});
+}
+
+function formatName(value,rowDatas,rowIndex){
+	var str='<input type="text" value="'+value+'" style="width:120px;border:1px solid #CFCFCF;border-radius:5px" readonly="readonly">'
+	return str;
+}
+
+function formatProName(value,rowDatas,rowIndex){
+	var str='<input type="text" value="'+value+'" style="width:120px;border:1px solid #CFCFCF;border-radius:5px" readonly="readonly">'
+	return str;
+}
+

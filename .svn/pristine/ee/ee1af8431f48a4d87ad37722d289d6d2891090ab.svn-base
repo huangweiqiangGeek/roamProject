@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.guoll.modules.product_customer.mapper.ProductGroupMapper">
+	<!-- Parameter Map -->
+	<parameterMap id="baseParameterMap" type="com.guoll.modules.product_customer.bean.ProductGroup" />
+	<!-- Result Map -->
+	<resultMap id="baseResultMap" type="com.guoll.modules.product_customer.bean.ProductGroup" />
+	<insert id="addNewProductGroup"  parameterMap="baseParameterMap" useGeneratedKeys="true" keyProperty="id">
+		INSERT INTO product_group(name,productsMark,provinceSpell,postName,groupProductJsonBytes,
+		groupNoJsonBytes,business_type,phone_number_str) 
+		VALUES(#{name},#{productsMark},#{provinceSpell},#{postName},#{groupProductJsonBytes},
+		#{groupNoJsonBytes},#{business_type},#{phone_number_str})
+	</insert>
+
+	<update id="updateProductGroup" parameterMap="baseParameterMap">
+		UPDATE product_group
+		SET
+		name = #{name},
+		productsMark = #{productsMark},
+		groupProductJsonBytes = #{groupProductJsonBytes},
+		groupNoJsonBytes=#{groupNoJsonBytes},
+		business_type=#{business_type},
+		phone_number_str=#{phone_number_str}
+		WHERE id = #{id}
+	</update>
+
+	<delete id="deleteByIdOrProductsMark" parameterType="java.lang.Integer">
+		DELETE FROM product_group WHERE ID=#{id}
+	</delete>
+
+	<select id="queryProductGroupByList" parameterMap="baseParameterMap" resultMap="baseResultMap">
+		SELECT id,name,productsMark,provinceSpell,postName,groupProductJsonBytes,groupNoJsonBytes,
+		business_type,phone_number_str
+		FROM product_group
+		WHERE 1 = 1
+		<if test=" id !='' and id != null">
+			AND id = #{id}
+		</if>
+		<if test=" name !='' and name != null">
+			AND name LIKE CONCAT(CONCAT('%', #{name,jdbcType=VARCHAR}),'%')
+		</if>
+		<if test=" productsMark !='' and productsMark != null">
+			AND productsMark = #{productsMark}
+		</if>
+		<if test=" provinceSpell !='' and provinceSpell != null">
+			AND provinceSpell = #{provinceSpell}
+		</if>
+		
+		<if test=" postName !='' and postName != null">
+			AND postName = #{postName}
+		</if>
+		
+		<if test ="phone_number_str !='' and phone_number_str !=null">
+			AND phone_number_str =#{phone_number_str}
+		</if>
+		ORDER BY id DESC
+		LIMIT
+		#{start,jdbcType=NUMERIC},#{rows,jdbcType=NUMERIC}
+	</select>
+	
+	<select id="queryCountOfProductGroup" parameterMap="baseParameterMap" resultType="java.lang.Integer">
+		SELECT count(id)
+		FROM product_group
+		WHERE 1 = 1
+		<if test=" id !='' and id != null">
+			AND id = #{id}
+		</if>
+		<if test=" name !='' and name != null">
+			AND name LIKE CONCAT(CONCAT('%', #{name,jdbcType=VARCHAR}),'%')
+		</if>
+		<if test=" productsMark !='' and productsMark != null">
+			AND productsMark = #{productsMark}
+		</if>
+		<if test=" provinceSpell !='' and provinceSpell != null">
+			AND provinceSpell = #{provinceSpell}
+		</if>
+		<if test=" postName !='' and postName != null">
+			AND postName = #{postName}
+		</if>
+		<if test ="phone_number_str !='' and phone_number_str !=null">
+			AND phone_number_str =#{phone_number_str}
+		</if>
+	</select>
+	
+	<!-- 新增产品-组合关系 -->
+	<insert id="addNewProductGroupLink" parameterType="java.util.Map">
+		 insert  into product_group_link   
+         <foreach collection="link.keys" item="key" open="(" close=")" separator="," >  
+            ${key}  
+         </foreach>  
+         values   
+         <foreach collection="link.keys"  item="key" open="(" close=")" separator=",">  
+            #{link[${key}]}  
+         </foreach>  
+	</insert>
+	
+	<!-- 根据产品-组关系查询产品组中的产品 -->
+	<select id="queryProductListOfGroupByGroupId" parameterType="int" 
+		resultType="com.guoll.modules.product_customer.bean.Product">
+		SELECT P.id,P.productType,P.productId,P.productName,P.productDescribe,P.provinceSpell,
+		P.resourcesQuantity,P.chargeType,P.charge1,P.charge2,P.charge3,P.charge4,P.tScope,P.pScope,P.postName 
+		FROM 
+		product P,product_group_link G 
+		WHERE 
+		P.provinceSpell = G.provinceSpell AND P.productId = G.productStrId AND G.groupId = #{groupId}
+	</select>
+
+	<!-- 删除产品-组合关系 -->
+	<delete id="deleteProductGroupLink" parameterType="java.util.Map">
+		 delete  from product_group_link  where
+		 <foreach collection="params.keys" item="key"  separator="," >  
+            ${key} =  #{params[${key}]}  
+         </foreach>  
+	</delete>
+	<!-- 根据groupid删除product_group_link数据 -->
+	<delete id="deleteProductGroupLinkByGroupId" parameterType="java.lang.Integer">
+		 delete  from product_group_link  where groupId=#{groupId,jdbcType=NUMERIC}
+	</delete>
+	<!-- 根据产品组ID查询产品组 -->
+	<select id="queryProductGroupByGroupID" parameterType="java.lang.Integer" resultMap="baseResultMap">
+		select * from  product_group where id=#{id,jdbcType=NUMERIC}
+	</select>
+	
+	<!-- 根据省份查询产品组列表 -->
+	<select id="queryProductGroupListByProvince" parameterMap="baseParameterMap" resultMap="baseResultMap">
+		SELECT id,name,productsMark,provinceSpell,postName,groupProductJsonBytes,groupNoJsonBytes,phone_number_str
+		
+		FROM product_group
+		WHERE 1 = 1
+		<if test=" id !='' and id != null">
+			AND id = #{id}
+		</if>
+		<if test=" name !='' and name != null">
+			AND name = #{name}
+		</if>
+		<if test=" productsMark !='' and productsMark != null">
+			AND productsMark = #{productsMark}
+		</if>
+		<if test=" provinceSpell !='' and provinceSpell != null">
+			AND provinceSpell = #{provinceSpell}
+		</if>
+		
+		<if test=" postName !='' and postName != null">
+			AND postName = #{postName}
+		</if>
+		ORDER BY id DESC
+		</select>
+		
+		<delete id="deleteProductGroupLinkByID" parameterType="java.lang.Integer">
+		 DELETE  FROM PRODUCT_GROUP_LINK  WHERE groupId=#{groupId}
+		</delete>
+</mapper>

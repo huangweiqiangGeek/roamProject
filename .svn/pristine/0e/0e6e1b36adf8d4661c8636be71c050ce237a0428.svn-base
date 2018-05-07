@@ -1,0 +1,290 @@
+function searchMethod(){
+	var proID =$('#proID').val();
+	var uCName =$('#uCName').val();
+	var proType=$('#proType').val()
+	var uCUserID=$('#uCUserID').val();
+	var uCNumber=$('#uCNumber').val();
+	//var uCStauts=$('#uCStauts').combobox('getValue'); 
+	//var isPass=$('#isPass').combobox('getValue'); 
+	var uCStauts=$('#uCStauts').val() 
+	var isPass=$('#isPass').val()
+	var productId=$('#productId').val();
+	var params ={proID:proID,uCName:uCName,uCUserID:uCUserID,uCNumber:uCNumber,uCStauts:uCStauts,isPass:isPass,proType:proType,productId:productId};
+	$("#dg").datagrid({
+		url:'useCase/listPage',
+		queryParams:params,
+	});
+}
+function addMethod(){
+	showWin("useCase/addInit","新增任务用例",800,450);
+}
+function removeMethod(user_id){
+	$.messager.confirm('谨慎操作提示', '确认删除任务用例?', function(r){
+		if (r){
+			ajaxRequest("useCase/delete", {id:user_id});
+		}
+	});
+}
+/**
+ * 多选删除
+ * @returns {Boolean}
+ */
+function removeAll(){
+	var ids='';
+	$("input[name='id']").each(function(i,o){
+		if($(o).is(':checked')){
+			ids+=$(o).val()+',';
+		}
+	})
+	if(/\,$/.test(ids)){
+		ids=ids.substring(0,ids.length-1);
+	}
+	if(isNull(ids)){
+		$.messager.alert('温馨提示','请选择需要删除的记录','',function(){
+		});
+		return false;
+	}
+	$.messager.confirm('谨慎操作提示', '确认删除任务用例?', function(r){
+		if (r){
+			ajaxRequest("useCase/deleteAll", {ids:ids});
+		}
+	});
+}
+
+/**
+ * 批量执行用例
+ * @returns {Boolean}
+ */
+function executeCaseAll(){
+	var ids='';
+	$("input[name='id']").each(function(i,o){
+		if($(o).is(':checked')){
+			ids+=$(o).val()+',';
+		}
+	})
+	if(/\,$/.test(ids)){
+		ids=ids.substring(0,ids.length-1);
+	}
+	if(isNull(ids)){
+		$.messager.alert('温馨提示','请选择需要执行的记录','',function(){
+		});
+		return false;
+	}
+	$.messager.confirm('谨慎操作提示', '确认执行所选用例', function(r){
+		if (r){
+			$('#loading').css('display','')
+			var params =ids;
+			$.ajax({
+				type:"POST",
+				url:"useCase/executeCases?id="+params,
+				success:function(data){
+					if(data.type==-1){
+						$.messager.alert('温馨提示',data.msg,'',function(){
+							$('#loading').css('display','none')
+							return false
+						});
+					}
+						var succ=data.successRate;
+						var fair = data.failureRate;
+						var cannot = data.cannot;
+						var status = data.status;
+						if(status==1){
+							var h="本次批量执行用例成功，用例共计通过"+succ+"条"
+							$.messager.alert('温馨提示',h,'',function(){
+								$("#dg").datagrid("reload");
+								$('#loading').css('display','none')
+							});
+						}else if(status==2){
+							var h="本次批量执行用例失败，用例通过"+succ+"条，用例失败"+fair+"条，未完成执行用例"+cannot+"条";
+							$.messager.alert('温馨提示',h,'',function(){
+								$("#dg").datagrid("reload");
+								$('#loading').css('display','none')
+							});
+						}
+				},
+				error:function(){
+					$.messager.alert('温馨提示','批量执行用例不成功',function(){
+						$('#loading').css('display','none')
+						return false
+					});
+				}
+			});
+		}
+	});
+}
+
+/**
+ * 批量回归用例
+ * @returns {Boolean}
+ */
+function regressCaseAll(){
+	var ids='';
+	$("input[name='id']").each(function(i,o){
+		if($(o).is(':checked')){
+			ids+=$(o).val()+',';
+		}
+	})
+	if(/\,$/.test(ids)){
+		ids=ids.substring(0,ids.length-1);
+	}
+	if(isNull(ids)){
+		$.messager.alert('温馨提示','请选择需要回归的用例记录','',function(){
+		});
+		return false;
+	}
+	$.messager.confirm('谨慎操作提示', '确认回归所选的用例?', function(r){
+		if (r){
+			var params ={id:ids};
+			$.ajax({
+				type:"POST",
+				url:"useCase/regrefssionAll",
+				dataType:"json",
+				data:params,
+				success:function(data){
+					if(data.type==1){
+						$.messager.alert('温馨提示','操作成功','',function(){
+							$("#dg").datagrid("reload");
+						});
+					}else{
+						$.messager.alert('温馨提示',''+data.msg+'','',function(){
+						});
+					}
+				}	
+			});
+		}
+	});
+}
+
+
+function ajaxRequestSuccessBackInvokeMethod(data) {
+	//$.messager.alert('操作提示','人员删除成功!');
+	$("#dg").datagrid("reload");
+}
+
+function editMethod(user_id){
+	showWin("useCase/updateInit?id="+user_id,"修改预设结果模版",750,450);
+}
+//每行添加的各项操作
+function formatOperate(value,rowDatas,rowIndex){
+	var str='<a class="btn handleBtn" title="执行" onclick="executeCase('+rowDatas.id+')">执行</a>&nbsp;&nbsp;';
+	if(rowDatas.passName=="执行通过"||rowDatas.passName=="执行不通过"||rowDatas.executeNum>0){
+		str+='<a class="btn handleBtn" onclick="showResult('+rowDatas.id+')">执行结果</a>&nbsp;&nbsp;'
+		str+='<a class="btn handleBtn" title="执行轨迹" href="resultRecord/listInit?uCID='+rowDatas.id+'&proID='+rowDatas.proID+'&resultType=2" >执行轨迹</a>&nbsp;&nbsp;';
+	}
+	if(rowDatas.passName=="执行未完成"){
+		str+='<a class="btn handleBtn" title="查看执行错误" href="useCase/toFailurelog?id='+rowDatas.id+'" >异常记录</a>&nbsp;&nbsp;';
+	}
+	str+='<a class="btn handleBtn" title="编辑"  href="useCase/updateInit?id='+rowDatas.id+'">编辑</a>&nbsp;&nbsp;';
+	str+='<a class="btn handleBtn" title="同步"  href="javascript:synchro('+rowDatas.id+')">同步</a>&nbsp;&nbsp;';
+	str+='<a class="btn handleBtn" title="删除" href="javascript:removeMethod('+rowDatas.id+')">删除</a>&nbsp;&nbsp;';
+	return str;
+}
+function synchro(id){
+	$.messager.confirm('谨慎操作提示', '确认同步用例数据?（同步数据后，所有用例的话单数据均会更新为该模板修改后的最新数据）', function(r){
+		if (r){
+			$.ajax({
+				type:"POST",
+				url:"useCase/updateUseCaseTemplate",
+				data:"id="+id,
+				success:function(data){
+					var msg;
+					if(data.success==true){
+						msg="数据同步失败"
+					}else if(data.success==false){msg="数据同步成功"}
+				}
+			})
+		}
+	})
+}
+ function showResult(id){
+	 showWin("resultRecord/lastRecord?id="+id,"用例执行结果详情",750,450);
+ }
+
+function executeCase(id){
+	 var params ={id:id};
+	 if(params!=""){
+		 $('#loading').css('display','')
+	 }
+	 $.ajax({
+			type:"POST",
+			url:"useCase/executeCase",
+			dataType:"json",
+			data:params,
+			success:function(data){
+				if(data==null){
+					$.messager.alert('温馨提示','任务执行出错','',function(){
+						$('#loading').css('display','none')
+						$("#dg").datagrid("reload");
+					});
+				}else{
+					if(data.type==0){
+						$.messager.alert('温馨提示',''+data.msg+'','',function(){
+							$('#loading').css('display','none')
+							$("#dg").datagrid("reload");
+						});s
+					}else{
+						$.messager.alert('温馨提示',''+data.msg+'','',function(){
+							$('#loading').css('display','none');
+							$("#dg").datagrid("reload");
+						});
+					}
+				}
+			},
+	 		error:function(){
+	 			$.messager.alert('温馨提示','任务执行出错','',function(){
+					$('#loading').css('display','none')
+					$("#dg").datagrid("reload");
+				});
+	 			return false;
+	 		}
+		});
+}
+
+function copyUsecase(){
+	var ids='';
+	$("input[name='id']").each(function(i,o){
+		if($(o).is(':checked')){
+			ids+=$(o).val()+',';
+		}
+	})
+	if(/\,$/.test(ids)){
+		ids=ids.substring(0,ids.length-1);
+	}
+	if(isNull(ids)){
+		$.messager.alert('温馨提示','请选择需要复制的用例','',function(){
+		});
+		return false;
+	}
+	$.messager.confirm('谨慎操作提示', '确认执行所选用例', function(r){
+		if (r){
+			var params =ids;
+			$.ajax({
+				type:"POST",
+				url:"useCase/copyCases?id="+params,
+				success:function(data){
+					$.messager.alert('温馨提示',data.msg,'',function(){
+						$("#dg").datagrid("reload");
+						$("#dg").datagrid({pageNumber:1})
+						$('#dg').datagrid('clearSelections')
+					});
+				}
+			});
+		}
+	});
+}
+function formatDt(value,rowDatas,rowIndex){
+	if(!isNull(value)){
+		//var d=new Date(value); 
+		return new Date(value).pattern("yyyy-MM-dd HH:mm:ss");
+	}
+	return "";
+}
+
+function setEro(id){
+	 if(id==""||id==null){
+		 $.messager.alert('温馨提示','查看信息出错','',function(){
+			});
+			return false; 
+	 }
+	 showWin("useCase/toFailurelog?id="+id,"执行失败记录日志",750,450);
+}

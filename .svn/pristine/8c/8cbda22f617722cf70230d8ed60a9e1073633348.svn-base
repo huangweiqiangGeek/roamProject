@@ -1,0 +1,26 @@
+function saveMethod(){
+	var ipAddress =trans($('#ipAddress').val());
+	if(isNull(ipAddress)){
+		$.messager.alert('温馨提示','请输入服务器地址');
+		return false;
+	}
+	var hostName =trans($('#hostName').val());
+	if(isNull(hostName)){
+		$.messager.alert('温馨提示','请输入用户名');
+		return false;
+	}
+	var hostPassWord =trans($('#hostPassWord').val());
+	if(isNull(hostPassWord)){
+		$.messager.alert('温馨提示','请输入密码');
+		return false;
+	}
+	var field1 =trans($('#field1').val());
+	if(isNull(field1)){
+		$.messager.alert('温馨提示','请输入脚本路径');
+		return false;
+	}
+	$("#addOrUpateForm").submit();
+}
+function cancelMethod(){
+	window.parent.closeWin(false,"winDiv_1");
+}

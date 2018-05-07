@@ -1,0 +1,90 @@
+.btn{
+	display:inline-block;
+	background:#5F9EA0;
+	text-decoration:none;
+	cursor:pointer;
+	color:#fff;
+	margin:0;
+	text-align:center;
+	vertical-align:bottom;
+	font-size:10px;
+}
+.btn:hover{
+	background:#388E8E;
+}
+.addBtn{
+	width:65px;
+	border-radius:5px 0 0 5px;
+	line-height:22px;
+}
+.inBtn{
+	width:65px;
+	border-radius:0 5px 5px 0;
+	line-height:22px;
+}
+.searchInput{
+	margin:0;
+	border:2px solid #5F9EA0;
+	padding:0 0 0 5px;
+	border-radius:5px 0 0 5px;
+	height:18px;
+	vertical-align:bottom;
+	font-size:10px;
+}
+.searchbutton{
+	width:40px;
+	line-height:22px;
+	border-radius:0 5px 5px 0;
+}
+.searchBox{
+	display:inline-block;
+	width:250px; 
+}
+.headerBtn{
+	width:80px;
+	border-radius:5px;
+	line-height:22px;
+}
+.handleBtn{
+	padding:0 2px;
+	border-radius:3px;
+}
+.sele{
+	border:2px solid #5F9EA0;
+	height:22px;
+	vertical-align:bottom;
+	font-size:10px;
+}
+.savebtn{
+	display:inline-block;
+	background:#71C671;
+	text-decoration:none;
+	cursor:pointer;
+	color:#fff;
+	margin:0;
+	text-align:center;
+	vertical-align:bottom;
+	font-size:10px;
+}
+.savebtn:hover{
+	background:#63AF63;
+}
+.cancelbtn{
+	display:inline-block;
+	background:#FC5454;
+	text-decoration:none;
+	cursor:pointer;
+	color:#fff;
+	margin:0;
+	text-align:center;
+	vertical-align:bottom;
+	font-size:10px;
+}
+.cancelbtn:hover{
+	background:#FE3E3E;
+}
+.commBtn{
+	padding:2px 5px;
+	border-radius:3px;
+}
+

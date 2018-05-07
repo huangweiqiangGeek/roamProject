@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  <mapper namespace="com.guoll.modules.commType.mapper.CommTypeMapper">
+<!-- Parameter Map-->
+<parameterMap id="baseParameterMap" type="com.guoll.modules.commType.bean.CommType"/>
+<!-- Result Map-->
+<resultMap id="baseResultMap" type="com.guoll.modules.commType.bean.CommType"/>
+
+<!--表名 -->
+	<sql id="tableName">
+		<!-- COMM_TYPE -->
+		comm_type
+	</sql>
+	
+	<!--查询字段 -->
+	<sql id="Field">
+      ID,COMMTYPENAME,AFFILIATIONTYPE
+	</sql>
+	
+	<!-- 字段值 -->
+	<sql id="FieldValue">
+		#{commTypeName},#{affiliationType}
+	</sql>
+
+<!-- 查询通用类型记录总数 -->
+<select id="queryCommTypeSum" parameterMap="baseParameterMap" resultType="Integer">
+	SELECT COUNT(ID) FROM <include refid="tableName"></include>  WHERE 1=1
+	<if test="affiliationType !=-1 and affiliationType !=null">
+	 AND AFFILIATIONTYPE=#{affiliationType,jdbcType=NUMERIC}
+	</if>
+</select>
+
+<!-- 查询通用类型列表 -->
+<select id="queryCommTypeList" parameterMap="baseParameterMap" resultMap="baseResultMap">
+	SELECT  <include refid="Field"></include> FROM <include refid="tableName"></include>   WHERE 1=1
+	<if test="affiliationType !=-1 and affiliationType !=null">
+	 AND AFFILIATIONTYPE=#{affiliationType,jdbcType=NUMERIC}
+	</if>
+	<if test=" commTypeName !='' and commTypeName !=null">
+	AND COMMTYPENAME LIKE     CONCAT(CONCAT('%', #{commTypeName,jdbcType=VARCHAR}),'%')
+	</if>
+	ORDER BY ID DESC 
+	limit #{start,jdbcType=NUMERIC},#{rows,jdbcType=NUMERIC}
+</select>
+
+<!-- 查询通用类型所有列表 -->
+<select id="queryCommTypeListAll" parameterMap="baseParameterMap" resultMap="baseResultMap">
+	SELECT  <include refid="Field"></include> FROM <include refid="tableName"></include>   WHERE 1=1
+	<if test="affiliationType !=-1 and affiliationType !=null">
+	 AND AFFILIATIONTYPE=#{affiliationType,jdbcType=NUMERIC}
+	</if>
+	ORDER BY ID ASC 
+</select>
+
+<!-- 查询通用类型所有列表 -->
+<select id="queryCommTypeListByIds" parameterType="String" resultMap="baseResultMap">
+	SELECT  
+	 ID,COMMTYPENAME,AFFILIATIONTYPE
+	FROM 
+	<include refid="tableName"></include>  
+	 WHERE 
+	 AFFILIATIONTYPE IN
+	 <foreach item="item" index="index" collection="array" open="(" separator="," close=")">
+                 #{item}
+	</foreach>
+	ORDER BY ID ASC 
+</select>
+
+
+<!-- 通过标识查询通用类型记录 -->
+<select id="querySysCommTypeById" parameterType="Integer" resultMap="baseResultMap">
+	SELECT <include refid="Field"></include> FROM <include refid="tableName"></include>
+	WHERE 
+	 ID=#{id,jdbcType=NUMERIC}
+</select>
+
+<!-- 新增通用类型 -->
+<insert id="addCommType" parameterMap="baseParameterMap">
+	INSERT INTO <include refid="tableName"></include>
+	(
+	COMMTYPENAME,AFFILIATIONTYPE
+	)
+	VALUES
+	(
+	<include refid="FieldValue"></include>
+	)
+</insert>
+
+<!-- 通过标识修改通用类型 -->
+<update id="updateCommType" parameterMap="baseParameterMap">
+	UPDATE 
+	<include refid="tableName"></include> 
+	SET 
+	COMMTYPENAME=#{commTypeName},
+	AFFILIATIONTYPE=#{affiliationType}
+	 WHERE
+	 ID=#{id}
+</update>
+
+<!-- 通过标识删除 -->
+<delete id="deleteCommType" parameterMap="baseParameterMap">
+	DELETE FROM 
+ <include refid="tableName"></include> 
+	WHERE
+	 ID=#{id}
+</delete>
+
+<!-- 批量删除 -->
+<delete id="deleteCommTypeAll"  parameterType="String">
+	DELETE FROM 
+ <include refid="tableName"></include> 
+	WHERE
+	 ID IN
+	 <foreach item="item" index="index" collection="array" open="(" separator="," close=")">
+                 #{item}
+	</foreach>
+</delete>
+
+</mapper>

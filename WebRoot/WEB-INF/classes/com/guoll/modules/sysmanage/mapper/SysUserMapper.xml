@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.guoll.modules.sysmanage.mapper.SysUserMapper">
+<!--Parameter Map-->
+<parameterMap id="baseParameterMap" type="com.guoll.modules.sysmanage.bean.SysUser"/>
+<!--Result Map-->
+<resultMap id="baseResultMap" type="com.guoll.modules.sysmanage.bean.SysUser"/>
+
+<select id="querySysUserSum" parameterMap="baseParameterMap" resultType="Integer">
+	SELECT COUNT(T.ID) FROM SYS_USER T WHERE T.org_id=#{org_id,jdbcType=NUMERIC}
+	<if test="cn_name!=null and cn_name!=''">AND T.CN_NAME LIKE '%'||#{cn_name,jdbcType=VARCHAR}||'%'</if>
+	<if test="mobile!=null and mobile!=''">AND T.MOBILE LIKE '%'||#{mobile,jdbcType=VARCHAR}||'%'</if>
+	<if test="user_code!=null and user_code!=''">AND T.USER_CODE LIKE '%'||#{user_code,jdbcType=VARCHAR}||'%'</if>
+	<if test="org_name!=null and org_name!=''">
+		AND EXISTS(SELECT ID FROM SYS_ORG SO WHERE SO.ID=T.ID AND SO.NAME LIKE '%'||#{org_name,jdbcType=VARCHAR}||'%')
+	</if>
+	<if test="post_name!=null and post_name!=''">
+		AND EXISTS(SELECT ID FROM SYS_LINK_POST_USER SLPU,SYS_POST SP
+		WHERE SP.ID=SLPU.POST_ID AND SLPU.USER_ID=T.ID AND SP.NAME LIKE '%'||#{post_name,jdbcType=VARCHAR}||'%')
+	</if>
+	<if test="role_name!=null and role_name!=''">
+		AND EXISTS(SELECT ID FROM SYS_LINK_POST_USER SLPU,SYS_LINK_POST_ROLE SLPR,SYS_ROLE SR
+		WHERE SLPU.USER_ID=T.ID AND SLPU.POST_ID=SLPR.POST_ID AND SLPR.ROLE_ID=SR.ID 
+		AND SR.NAME LIKE '%'||#{role_name,jdbcType=VARCHAR}||'%')
+	</if>
+</select>
+<select id="querySysUserList" parameterMap="baseParameterMap" resultMap="baseResultMap">
+	SELECT T.ID,T.ORG_ID,T.USER_CODE,T.USER_PASS,T.CN_NAME,T.EN_NAME,T.IDCARD_NO,T.BIRTH_DATE,T.TELEPHONE,T.MOBILE,T.ADDRESS,T.ZIPCODE,
+	T.NATION,T.BIRTH_PLACE,T.POLITICALLANDSCAPE,T.EMAIL,T.NATIONALITY,T.REMARK,T.UPDATE_USER_ID,T.UPDATE_USER_NAME,T.UPDATE_TIME,
+	(SELECT NAME FROM SYS_ORG SO WHERE SO.ID=T.ORG_ID) ORG_NAME
+	FROM SYS_USER T	WHERE T.org_id=#{org_id,jdbcType=NUMERIC}
+	<if test="cn_name!=null and cn_name!=''">AND T.CN_NAME LIKE '%'||#{cn_name,jdbcType=VARCHAR}||'%'</if>
+	<if test="mobile!=null and mobile!=''">AND T.MOBILE LIKE '%'||#{mobile,jdbcType=VARCHAR}||'%'</if>
+	<if test="user_code!=null and user_code!=''">AND T.USER_CODE LIKE '%'||#{user_code,jdbcType=VARCHAR}||'%'</if>
+	<if test="org_name!=null and org_name!=''">
+		AND EXISTS(SELECT ID FROM SYS_ORG SO WHERE SO.ID=T.ID AND SO.NAME LIKE '%'||#{org_name,jdbcType=VARCHAR}||'%')
+	</if>
+	<if test="post_name!=null and post_name!=''">
+		AND EXISTS(SELECT ID FROM SYS_LINK_POST_USER SLPU,SYS_POST SP
+		WHERE SP.ID=SLPU.POST_ID AND SLPU.USER_ID=T.ID AND SP.NAME LIKE '%'||#{post_name,jdbcType=VARCHAR}||'%')
+	</if>
+	<if test="role_name!=null and role_name!=''">
+		AND EXISTS(SELECT ID FROM SYS_LINK_POST_USER SLPU,SYS_LINK_POST_ROLE SLPR,SYS_ROLE SR
+		WHERE SLPU.USER_ID=T.ID AND SLPU.POST_ID=SLPR.POST_ID AND SLPR.ROLE_ID=SR.ID 
+		AND SR.NAME LIKE '%'||#{role_name,jdbcType=VARCHAR}||'%')
+	</if>
+	ORDER BY UPDATE_TIME DESC 
+	limit #{start,jdbcType=NUMERIC},#{rows,jdbcType=NUMERIC}
+</select>
+<select id="querySysUserById" parameterType="Integer" resultMap="baseResultMap">
+	SELECT T.ID,T.ORG_ID,T.USER_CODE,T.USER_PASS,T.CN_NAME,T.EN_NAME,T.IDCARD_NO,T.BIRTH_DATE,T.TELEPHONE,T.MOBILE,T.ADDRESS,T.ZIPCODE,
+	T.NATION,T.BIRTH_PLACE,T.POLITICALLANDSCAPE,T.EMAIL,T.NATIONALITY,T.REMARK,T.UPDATE_USER_ID,T.UPDATE_USER_NAME,T.UPDATE_TIME 
+	FROM SYS_USER T	WHERE ID=#{id,jdbcType=NUMERIC}
+</select>
+<insert id="addSysUser" parameterMap="baseParameterMap">
+	INSERT INTO SYS_USER(ORG_ID,USER_CODE,USER_PASS,CN_NAME,EN_NAME,IDCARD_NO,BIRTH_DATE,TELEPHONE,MOBILE,ADDRESS,ZIPCODE,
+	NATION,BIRTH_PLACE,POLITICALLANDSCAPE,EMAIL,NATIONALITY,REMARK,UPDATE_USER_ID,UPDATE_USER_NAME,UPDATE_TIME)
+	VALUES(#{org_id,jdbcType=NUMERIC},#{user_code,jdbcType=VARCHAR},#{user_pass,jdbcType=VARCHAR},#{cn_name,jdbcType=VARCHAR},
+	#{en_name,jdbcType=VARCHAR},#{idcard_no,jdbcType=VARCHAR},#{birth_date,jdbcType=DATE},#{telephone,jdbcType=VARCHAR},
+	#{mobile,jdbcType=VARCHAR},#{address,jdbcType=VARCHAR},#{zipcode,jdbcType=VARCHAR},#{nation,jdbcType=VARCHAR},
+	#{birth_place,jdbcType=VARCHAR},#{politicallandscape,jdbcType=VARCHAR},#{email,jdbcType=VARCHAR},#{nationality,jdbcType=VARCHAR},
+	#{remark,jdbcType=VARCHAR},#{update_user_id,jdbcType=NUMERIC},#{update_user_name,jdbcType=VARCHAR},#{update_time,jdbcType=TIMESTAMP})
+</insert>
+<update id="updateSysUser" parameterMap="baseParameterMap">
+	UPDATE SYS_USER SET 
+	USER_CODE=#{user_code,jdbcType=VARCHAR},USER_PASS=#{user_pass,jdbcType=VARCHAR},CN_NAME=#{cn_name,jdbcType=VARCHAR},
+	EN_NAME=#{en_name,jdbcType=VARCHAR},IDCARD_NO=#{idcard_no,jdbcType=VARCHAR},BIRTH_DATE=#{birth_date,jdbcType=DATE},
+	TELEPHONE=#{telephone,jdbcType=VARCHAR},MOBILE=#{mobile,jdbcType=VARCHAR},ADDRESS=#{address,jdbcType=DATE},
+	ZIPCODE=#{zipcode,jdbcType=VARCHAR},NATION=#{nation,jdbcType=VARCHAR},BIRTH_PLACE=#{birth_place,jdbcType=DATE},
+	POLITICALLANDSCAPE=#{politicallandscape,jdbcType=VARCHAR},EMAIL=#{email,jdbcType=VARCHAR},NATIONALITY=#{nationality,jdbcType=DATE},
+	REMARK=#{remark,jdbcType=VARCHAR},UPDATE_USER_ID=#{update_user_id,jdbcType=NUMERIC},
+	UPDATE_USER_NAME=#{update_user_name,jdbcType=VARCHAR},UPDATE_TIME=#{update_time,jdbcType=TIMESTAMP} WHERE ID=#{id,jdbcType=NUMERIC}
+</update>
+<delete id="deleteSysUser" parameterMap="baseParameterMap">
+	DELETE FROM SYS_USER WHERE ID=#{id,jdbcType=NUMERIC}
+</delete>
+<delete id="deleteLinkSysUserPost" parameterMap="baseParameterMap">
+	DELETE LPU FROM SYS_LINK_POST_USER LPU WHERE LPU.USER_ID=#{id,jdbcType=NUMERIC}
+</delete>
+<select id="querySysPostUserIncludeSum" parameterMap="baseParameterMap" resultType="Integer">
+	SELECT COUNT(T.ID) FROM SYS_USER T LEFT JOIN SYS_LINK_POST_USER PU ON PU.USER_ID=T.ID
+	WHERE PU.POST_ID=#{post_id,jdbcType=NUMERIC}
+	<if test="cn_name!=null and cn_name!=''">AND T.CN_NAME LIKE '%'||#{cn_name,jdbcType=VARCHAR}||'%'</if>
+	<if test="user_code!=null and user_code!=''">AND T.USER_CODE LIKE '%'||#{user_code,jdbcType=VARCHAR}||'%'</if>
+</select>
+<select id="querySysPostUserIncludeList" parameterMap="baseParameterMap" resultMap="baseResultMap">
+	SELECT T.ID,T.USER_CODE,T.USER_PASS,T.CN_NAME,T.EN_NAME,T.IDCARD_NO,T.BIRTH_DATE,T.TELEPHONE,T.MOBILE,T.ADDRESS,T.ZIPCODE,
+	T.NATION,T.BIRTH_PLACE,T.POLITICALLANDSCAPE,T.EMAIL,T.NATIONALITY,T.REMARK,T.UPDATE_USER_ID,T.UPDATE_USER_NAME,T.UPDATE_TIME
+	FROM SYS_USER T LEFT JOIN SYS_LINK_POST_USER PU ON PU.USER_ID=T.ID  WHERE
+	PU.POST_ID=#{post_id,jdbcType=NUMERIC}
+	<if test="cn_name!=null and cn_name!=''">AND T.CN_NAME LIKE '%'||#{cn_name,jdbcType=VARCHAR}||'%'</if>
+	<if test="user_code!=null and user_code!=''">AND T.USER_CODE LIKE '%'||#{user_code,jdbcType=VARCHAR}||'%'</if>
+	ORDER BY UPDATE_TIME DESC
+</select>
+
+<select id="querySysPostUserUncludeSum" parameterMap="baseParameterMap" resultType="Integer">
+	SELECT COUNT(T.ID) FROM SYS_USER T WHERE 
+	EXISTS(SELECT ID FROM SYS_POST T1 WHERE T1.ORG_ID=T.ORG_ID AND T1.ID=#{post_id,jdbcType=NUMERIC})
+	AND	NOT	EXISTS(SELECT USER_ID FROM SYS_LINK_POST_USER PU WHERE PU.USER_ID=T.ID AND PU.POST_ID=#{post_id,jdbcType=NUMERIC})
+	<if test="cn_name!=null and cn_name!=''">AND T.CN_NAME LIKE '%'||#{cn_name,jdbcType=VARCHAR}||'%'</if>
+	<if test="user_code!=null and user_code!=''">AND T.USER_CODE LIKE '%'||#{user_code,jdbcType=VARCHAR}||'%'</if>
+</select>
+<select id="querySysPostUserUncludeList" parameterMap="baseParameterMap" resultMap="baseResultMap">
+	SELECT T.ID,T.USER_CODE,T.USER_PASS,T.CN_NAME,T.EN_NAME,T.IDCARD_NO,T.BIRTH_DATE,T.TELEPHONE,T.MOBILE,T.ADDRESS,T.ZIPCODE,
+	T.NATION,T.BIRTH_PLACE,T.POLITICALLANDSCAPE,T.EMAIL,T.NATIONALITY,T.REMARK,T.UPDATE_USER_ID,T.UPDATE_USER_NAME,T.UPDATE_TIME 
+	FROM SYS_USER T WHERE EXISTS(SELECT ID FROM SYS_POST T1 WHERE T1.ORG_ID=T.ORG_ID AND T1.ID=#{post_id,jdbcType=NUMERIC})
+	AND NOT EXISTS(SELECT USER_ID FROM SYS_LINK_POST_USER PU WHERE PU.USER_ID=T.ID AND PU.POST_ID=#{post_id,jdbcType=NUMERIC})
+	<if test="cn_name!=null and cn_name!=''">AND T.CN_NAME LIKE '%'||#{cn_name,jdbcType=VARCHAR}||'%'</if>
+	<if test="user_code!=null and user_code!=''">AND T.USER_CODE LIKE '%'||#{user_code,jdbcType=VARCHAR}||'%'</if>
+	ORDER BY T.UPDATE_TIME DESC
+</select>
+<select id="queryLogin" parameterMap="baseParameterMap" resultMap="baseResultMap">
+	SELECT T.ID,T.ORG_ID,T.USER_CODE,T.USER_PASS,T.CN_NAME,T.EN_NAME,T.IDCARD_NO,T.BIRTH_DATE,T.TELEPHONE,T.MOBILE,T.ADDRESS,T.ZIPCODE,
+	T.NATION,T.BIRTH_PLACE,T.POLITICALLANDSCAPE,T.EMAIL,T.NATIONALITY,
+	SO.NAME AS ORG_NAME,SO.CODE AS ORG_CODE,SO.CONTACTER_MOBILE AS ORG_CONTACTER_MOBILE,SO.CONTACTER_NAME AS ORG_CONTACTER_NAME
+	FROM SYS_USER T LEFT JOIN SYS_ORG SO ON T.ORG_ID=SO.ID
+	WHERE USER_CODE=#{user_code,jdbcType=VARCHAR} AND USER_PASS=#{user_pass,jdbcType=VARCHAR}
+</select>
+
+<update id="updatePassWord" parameterMap="baseParameterMap">
+	UPDATE SYS_USER SET 
+	USER_PASS=#{new_user_pass,jdbcType=VARCHAR} WHERE ID=#{id,jdbcType=NUMERIC}
+</update>
+
+<select id="queryUserToOrgId" parameterMap="baseParameterMap" resultMap="baseResultMap">
+	SELECT T.ID,T.ORG_ID,T.USER_CODE,T.USER_PASS,T.CN_NAME,T.EN_NAME,T.IDCARD_NO,T.BIRTH_DATE,T.TELEPHONE,T.MOBILE,T.ADDRESS,T.ZIPCODE,
+	T.NATION,T.BIRTH_PLACE,T.POLITICALLANDSCAPE,T.EMAIL,T.NATIONALITY,T.REMARK,T.UPDATE_USER_ID,T.UPDATE_USER_NAME,T.UPDATE_TIME
+	FROM SYS_USER T
+	WHERE T.USER_CODE=#{user_code,jdbcType=VARCHAR}  <if test="org_id!=null and org_id!=''">AND T.ORG_ID=#{org_id,jdbcType=NUMERIC}</if>
+</select>
+
+<select id="getOverviewid" parameterType="Integer" resultType="java.lang.Integer">
+		SELECT f_auto_increment(#{autokey}) FROM DUAL
+</select>
+</mapper>

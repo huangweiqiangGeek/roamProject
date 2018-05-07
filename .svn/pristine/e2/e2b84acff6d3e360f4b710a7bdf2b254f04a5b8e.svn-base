@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.guoll.modules.product_customer.mapper.CustomerMapper">
+	<!-- Parameter Map -->
+	<parameterMap id="baseParameterMap" type="com.guoll.modules.product_customer.bean.Customer" />
+	<!-- Result Map -->
+	<resultMap id="baseResultMap" type="com.guoll.modules.product_customer.bean.Customer" />
+	
+	<insert id="addNewProduct" parameterMap="baseParameterMap">
+		INSERT INTO customer(customerName,uCUserID,productsMark,provinceSpell,postName)
+		VALUES(#{customerName},#{uCUserID},#{productsMark},#{provinceSpell},#{postName})
+	</insert>
+	
+	<delete id="deleteCustomerById" parameterMap="baseParameterMap">
+		DELETE FROM customer WHERE  id = #{id};
+	</delete>
+
+	<update id="updateCustomer" parameterMap="baseParameterMap">
+		UPDATE customer 
+		SET 
+		customerName = #{customerName},
+		productsMark = #{productsMark},
+		uCUserID = #{uCUserID} 
+		WHERE id = #{id}
+	</update>
+	
+	<select id="queryCustomerListByModel" parameterMap="baseParameterMap" resultMap="baseResultMap" >
+		SELECT id,customerName,uCUserID,productsMark,provinceSpell,postName
+		FROM customer
+		WHERE 1=1
+		<if test=" id !='' and id != null">
+			AND id = #{id}
+		</if>
+		<if test=" customerName !='' and customerName != null">
+			AND customerName = #{customerName}
+		</if>
+		<if test=" uCUserID !='' and uCUserID != null">
+			AND uCUserID = #{uCUserID}
+		</if>
+		<if test=" productsMark !='' and productsMark != null">
+			AND productsMark = #{productsMark}
+		</if>
+		<if test=" provinceSpell !='' and provinceSpell != null">
+			AND provinceSpell = #{provinceSpell}
+		</if>
+		<if test=" postName !='' and postName != null">
+			AND postName = #{postName}
+		</if>
+		ORDER BY id DESC
+		LIMIT
+		#{start,jdbcType=NUMERIC},#{rows,jdbcType=NUMERIC}
+	</select>
+	<select id = "queryCountOfCustomer" parameterMap="baseParameterMap" resultType="int">
+		SELECT COUNT(id) FROM customer WHERE 1 = 1 
+		<if test=" id !='' and id != null">
+			AND id = #{id}
+		</if>
+		<if test=" customerName !='' and customerName != null">
+			AND customerName = #{customerName}
+		</if>
+		<if test=" uCUserID !='' and uCUserID != null">
+			AND uCUserID = #{uCUserID}
+		</if>
+		<if test=" productsMark !='' and productsMark != null">
+			AND productsMark = #{productsMark}
+		</if>
+		<if test=" provinceSpell !='' and provinceSpell != null">
+			AND provinceSpell = #{provinceSpell}
+		</if>
+		<if test=" postName !='' and postName != null">
+			AND postName = #{postName}
+		</if>
+	</select>
+</mapper>

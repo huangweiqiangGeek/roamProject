@@ -1,0 +1,291 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.guoll.modules.project.mapper.ProjectMapper">
+	<!-- Parameter Map -->
+	<parameterMap id="baseParameterMap" type="com.guoll.modules.project.bean.Project" />
+	<parameterMap id="baseParameterMap1" type="com.guoll.modules.sysmanage.bean.SysUser" />
+	<!-- Result Map -->
+	<resultMap id="baseResultMap" type="com.guoll.modules.project.bean.Project" />
+
+	<!--表名 -->
+	<sql id="tableName">
+		project
+	</sql>
+
+	<!--查询字段 -->
+	<sql id="Field">
+		id,proType,proName,proNumber,proExplain,proStatus,proProvince,proProvinceID,useCaseCount,
+		createTime,editTime,proRemark,hadExe,successRate,homeProjectId
+	</sql>
+
+	<!-- 字段值 -->
+	<sql id="FieldValue">
+		#{proType},
+		#{proNumber},
+		#{proName},
+		#{proExplain},
+		#{proStatus},
+		#{proProvince},
+		#{proProvinceID},
+		#{useCaseCount},
+		CURRENT_TIMESTAMP(),
+		#{proRemark},
+		#{hadExe},
+		#{successRate},
+		#{homeProjectId}
+	</sql>
+
+	<!-- 查询项目记录总数 -->
+	<select id="queryProjectSum" parameterMap="baseParameterMap"
+		resultType="Integer">
+		SELECT COUNT(ID) FROM
+		<include refid="tableName"></include>
+		WHERE 1=1
+		<if test="proType !=-1 and proType !=null and proType !=0">
+			AND proType=#{proType,jdbcType=INTEGER}
+		</if>
+		<if test="proProvince !=null and proProvince !='' ">
+			AND proProvince=#{proProvince}
+		</if>
+		<if test="proStatus !=-1 and proStatus !=null">
+			AND proStatus=#{proStatus,jdbcType=INTEGER}
+		</if>
+		<if test=" proName !='' and proName !=null">
+		AND proName LIKE  CONCAT(CONCAT('%', #{proName,jdbcType=VARCHAR}),'%')
+		</if>
+		<if test=" proNumber !='' and proNumber !=null">
+		AND proNumber LIKE  CONCAT(CONCAT('%', #{proNumber,jdbcType=VARCHAR}),'%')
+		</if>
+		<if test="homeProjectId !=null">
+		AND homeProjectId = #{homeProjectId}
+		</if>
+	</select>
+
+	<!-- 查询项目列表 -->
+	<select id="queryProjectList" parameterMap="baseParameterMap"
+		resultMap="baseResultMap">
+		SELECT
+		project.id,proType,proName,proNumber,proExplain,proStatus,proProvince,proProvinceID,
+		(SELECT COUNT(use_case.id) FROM use_case where
+		use_case.proID=project.id) as useCaseCount,
+		createTime,editTime,proRemark,comm_type.commTypeName as
+		statusName,hadExe,successRate,homeProjectId
+		FROM project LEFT JOIN
+		comm_type
+		ON
+		project.proStatus=comm_type.id
+		WHERE 1=1
+		<if test="id !=-1 and id !=null and id !=0">
+			AND project.id=#{id,jdbcType=INTEGER}
+		</if>
+		<if test="proType !=-1 and proType !=null and proType !=0">
+			AND proType=#{proType,jdbcType=INTEGER}
+		</if>
+		<if test="proProvince !=null and proProvince !='' ">
+			AND proProvince=#{proProvince}
+		</if>
+		<if test="proStatus !=-1 and proStatus !=null">
+			AND proStatus=#{proStatus,jdbcType=INTEGER}
+		</if>
+		<if test=" proName !='' and proName !=null">
+			AND proName LIKE CONCAT(CONCAT('%', #{proName,jdbcType=VARCHAR}),'%')
+		</if>
+		<if test=" proNumber !='' and proNumber !=null">
+			AND proNumber LIKE CONCAT(CONCAT('%',
+			#{proNumber,jdbcType=VARCHAR}),'%')
+		</if>
+		<if test="homeProjectId !=null">
+			AND homeProjectId = #{homeProjectId}
+		</if>
+		ORDER BY createTime DESC
+		limit
+		#{start,jdbcType=NUMERIC},#{rows,jdbcType=NUMERIC}
+	</select>
+
+	<!-- 查询项目所有列表 -->
+	<select id="queryProjectListAll" parameterMap="baseParameterMap"
+		resultMap="baseResultMap">
+		SELECT 
+		project.id,proType,proName,proNumber,proExplain,proStatus,proProvince,proProvinceID,useCaseCount,
+		createTime,editTime,proRemark,comm_type.commTypeName as statusName ,hadExe,successRate,homeProjectId
+		FROM project LEFT JOIN
+		comm_type 
+		ON
+		project.proStatus=comm_type.id
+		WHERE 1=1
+		<if test="proType !=-1 and proType !=null and proType !=0">
+			AND proType=#{proType,jdbcType=INTEGER}
+		</if>
+		<if test="proProvince !=null and proProvince !='' ">
+			AND proProvince=#{proProvince}
+		</if>
+		<if test="proStatus !=-1 and proStatus !=null">
+			AND proStatus=#{proStatus,jdbcType=INTEGER}
+		</if>
+		<if test=" proName !='' and proName !=null">
+		AND proName LIKE  CONCAT(CONCAT('%', #{proName,jdbcType=VARCHAR}),'%')
+		</if>
+		<if test=" proNumber !='' and proNumber !=null">
+		AND proNumber LIKE  CONCAT(CONCAT('%', #{proNumber,jdbcType=VARCHAR}),'%')
+		</if>
+		<if test="homeProjectId !=null">
+		AND homeProjectId = #{homeProjectId}
+		</if>
+		ORDER BY createTime DESC
+	</select>
+
+	<!-- 根据项目名查询项目所有列表 -->
+	<select id="queryProjectByNames" parameterMap="baseParameterMap"
+		resultMap="baseResultMap">
+		SELECT 
+		project.id,proType,proName,proNumber,proExplain,proStatus,proProvince,proProvinceID,useCaseCount,createTime,
+		editTime,proRemark,comm_type.commTypeName as statusName ,hadExe,successRate,homeProjectId
+		FROM project  LEFT JOIN comm_type ON project.proStatus=comm_type.id 
+		WHERE 1=1
+		
+		<if test=" proName != '' and proName != null">
+		AND proName=#{proName}
+		</if>
+		<if test=" proProvince != null and  proProvince != '' ">
+		<!-- AND proProvince LIKE  CONCAT(CONCAT('%', #{proProvince,jdbcType=VARCHAR}),'%') -->
+		AND proProvince=#{proProvince}
+		</if>
+		<if test="homeProjectId !=null">
+		AND homeProjectId = #{homeProjectId}
+		</if>
+		order  by  createTime  DESC
+	</select>
+
+
+	<!-- 通过标识查询项目记录 -->
+	<select id="queryProjectById" parameterType="Integer"
+		resultMap="baseResultMap">
+		SELECT
+		<include refid="Field"></include>
+		FROM
+		<include refid="tableName"></include>
+		WHERE
+		ID=#{id,jdbcType=INTEGER}
+	</select>
+	
+	<!-- 通过标识查询当前项目归属省份中的回归项目结果记录 -->
+	<select id="queryProjectByLastId"  parameterType="java.util.Map" resultMap="baseResultMap">
+		SELECT
+		<include refid="Field"></include>
+		FROM
+		<include refid="tableName"></include>
+		WHERE
+		1=1
+		<if test="proType !=-1 and proType !=null">
+			AND proType=#{proType,jdbcType=INTEGER}
+		</if>
+		<if test="proProvince !=null and proProvince !='' ">
+			AND proProvince=#{proProvince}
+		</if>
+		ORDER BY ID DESC
+		limit 0,1
+	</select>
+
+	<!-- 新增项目 -->
+	<insert id="addProject" parameterMap="baseParameterMap">
+		INSERT INTO
+		<include refid="tableName"></include>
+		(
+		proType,
+		proNumber,
+		proName,
+		proExplain,
+		proStatus,
+		proProvince,
+		proProvinceID,
+		useCaseCount,
+		createTime,
+		proRemark,
+		hadExe,
+		successRate,
+		homeProjectId
+		)
+		VALUES
+		(
+		<include refid="FieldValue"></include>
+		)
+	</insert>
+	
+	<!-- 通过标识修改项目 -->
+	<update id="updateProject"  parameterMap="baseParameterMap">
+		UPDATE
+		<include refid="tableName"></include>
+		SET
+		proName=#{proName},
+		proExplain=#{proExplain},
+		proStatus=#{proStatus},
+		proRemark=#{proRemark},
+		editTime=CURRENT_TIMESTAMP(),
+		hadExe=#{hadExe},
+		successRate=#{successRate},
+		homeProjectId=#{homeProjectId}
+		WHERE
+		ID=#{id}
+	</update>
+	
+	<!-- 通过标识修改项目状态 -->
+	<update id="updateProjectByStatus"  parameterMap="baseParameterMap">
+		UPDATE
+		<include refid="tableName"></include>
+		SET
+		proStatus=#{proStatus}
+		WHERE
+		ID=#{id}
+	</update>
+	
+	<!-- 通过标识修改项目用例总数-->
+	<update id="updateProjectByCount"  parameterMap="baseParameterMap">
+		UPDATE
+		<include refid="tableName"></include>
+		SET
+		useCaseCount=#{useCaseCount}
+		WHERE
+		ID=#{id}
+	</update>
+
+	<!-- 通过标识删除 -->
+	<delete id="deleteProject" parameterMap="baseParameterMap">
+		DELETE FROM
+		<include refid="tableName"></include>
+		WHERE
+		ID=#{id}
+	</delete>
+
+	<!-- 批量删除 -->
+	<delete id="deleteProjectAll" parameterType="String">
+		DELETE FROM
+		<include refid="tableName"></include>
+		WHERE
+		ID IN
+		<foreach item="item" index="index" collection="array" open="("
+			separator="," close=")">
+			#{item}
+		</foreach>
+	</delete>
+
+	<!--初始化任务下拉选  -->
+	<select id="queryTaskNameListByProvince" parameterMap="baseParameterMap"
+		resultMap="baseResultMap">
+		select proName,id from project where proProvinceID=#{proProvinceID,jdbcType=VARCHAR}
+		</select>
+		
+		<!--查询普通操作人员的任务统计  -->
+<select  id="queryPuTongProject"   parameterMap="baseParameterMap1"   resultMap="baseResultMap">
+   SELECT
+	c.*
+FROM
+	sys_user a
+INNER JOIN sys_link_post_user b ON a.ID = b.USER_ID
+INNER JOIN project c ON b.POST_ID = c.postPuTongId
+WHERE
+	a.id =#{id,jdbcType=NUMERIC}
+AND a.ORG_ID =#{org_id,jdbcType=NUMERIC}
+		</select>
+</mapper>

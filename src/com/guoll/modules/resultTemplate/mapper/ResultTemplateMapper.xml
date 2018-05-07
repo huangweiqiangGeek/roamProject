@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.guoll.modules.resultTemplate.mapper.ResultTemplateMapper">
+	<!-- Parameter Map -->
+	<parameterMap id="baseParameterMap"
+		type="com.guoll.modules.resultTemplate.bean.ResultTemplate" />
+	<!-- Result Map -->
+	<resultMap id="baseResultMap"
+		type="com.guoll.modules.resultTemplate.bean.ResultTemplate" />
+
+	<!--表名 -->
+	<sql id="tableName">
+		RESULT_TEMPLATE
+	</sql>
+
+	<!--查询字段 -->
+	<sql id="Field">
+		ID,TEMPLATETYPE,TEMPLATENAME,PROVINCEID,PROVINCENAME,TEMPLATESTATUS,TEMPLATEATTRIBUTE,TEMPLATEREMARK,CREATETIME,EDITTIME,templateKind
+	</sql>
+
+	<!-- 字段值 -->
+	<sql id="FieldValue">
+		#{templateType},
+		#{templateName},
+		#{provinceID},
+		#{provinceName},
+		#{templateStatus},
+		#{templateAttribute},
+		#{templateRemark},
+		now(),
+		#{templateKind}
+	</sql>
+
+	<!-- 查询预设结果模版记录总数 -->
+	<select id="queryResultTemplateSum" parameterMap="baseParameterMap"
+		resultType="Integer">
+		SELECT COUNT(ID) FROM
+		<include refid="tableName"></include>
+		WHERE 1=1
+		<if test="provinceName !=null and provinceName !='' ">
+			AND provinceName=#{provinceName}
+		</if>
+		<if test="templateType !=-1 and templateType !=null and templateType !=0 ">
+			AND TEMPLATETYPE=#{templateType,jdbcType=NUMERIC}
+		</if>
+		<if
+			test="templateStatus !=-1 and templateStatus !=null and templateStatus !=0 ">
+			AND TEMPLATESTATUS=#{templateStatus,jdbcType=NUMERIC}
+		</if>
+		<if test=" templateName !='' and templateName !=null">
+			AND TEMPLATENAME LIKE CONCAT(CONCAT('%',
+			#{templateName,jdbcType=VARCHAR}),'%')
+		</if>
+	</select>
+
+	<!-- 查询预设结果模版列表 -->
+	<select id="queryResultTemplateList" parameterMap="baseParameterMap"
+		resultMap="baseResultMap">
+		SELECT
+		result_template.ID as
+		ID,TEMPLATETYPE,TEMPLATENAME,PROVINCEID,PROVINCENAME,TEMPLATESTATUS,TEMPLATEATTRIBUTE,TEMPLATEREMARK,CREATETIME,EDITTIME,comm_type.commTypeName
+		as statusName,T.commTypeName as typeName
+		from result_template
+		LEFT JOIN
+		comm_type
+		on
+		result_template.templateStatus=comm_type.id
+		LEFT JOIN
+		comm_type as T
+		ON
+		result_template.templateType=T.id
+		WHERE 1=1
+		<if test="provinceName !=null and provinceName !='' ">
+			AND provinceName=#{provinceName}
+		</if>
+		<if test="templateType !=-1 and templateType !=null and templateType !=0 ">
+			AND TEMPLATETYPE=#{templateType,jdbcType=NUMERIC}
+		</if>
+		<if
+			test="templateStatus !=-1 and templateStatus !=null and templateStatus !=0 ">
+			AND TEMPLATESTATUS=#{templateStatus,jdbcType=NUMERIC}
+		</if>
+		<if test=" templateName !='' and templateName !=null">
+			AND TEMPLATENAME LIKE CONCAT(CONCAT('%',
+			#{templateName,jdbcType=VARCHAR}),'%')
+		</if>
+		ORDER BY CREATETIME DESC
+		limit #{start,jdbcType=NUMERIC},#{rows,jdbcType=NUMERIC}
+	</select>
+
+	<!-- 查询预设结果模版所有列表 -->
+	<select id="queryResultTemplateListAll" parameterMap="baseParameterMap"
+		resultMap="baseResultMap">
+		SELECT
+		<include refid="Field"></include>
+		FROM
+		<include refid="tableName"></include>
+		WHERE 1=1
+		<if test="templateType !=-1 and templateType !=null">
+			AND TEMPLATETYPE=#{templateType,jdbcType=NUMERIC}
+		</if>
+		<if test="provinceName !=null and provinceName !='' ">
+			AND provinceName=#{provinceName}
+		</if>
+			<if test="templateKind !=null and templateKind !='' ">
+			AND templateKind=#{templateKind}
+		</if>
+		<if test="templateName !=null and templateName !='' ">
+			AND templateName=#{templateName,jdbcType=VARCHAR}
+		</if>
+		ORDER BY ID DESC
+	</select>
+
+	<!-- 通过标识查询预设结果模版记录 -->
+	<select id="querySysResultTemplateById" parameterType="Integer"
+		resultMap="baseResultMap">
+		SELECT
+		<include refid="Field"></include>
+		FROM
+		<include refid="tableName"></include>
+		WHERE ID=#{id,jdbcType=NUMERIC}
+	</select>
+
+	<!-- 新增预设结果模版 -->
+	<insert id="addResultTemplate" parameterMap="baseParameterMap">
+		INSERT INTO
+		<include refid="tableName"></include>
+		(
+		TEMPLATETYPE,TEMPLATENAME,PROVINCEID,PROVINCENAME,TEMPLATESTATUS,TEMPLATEATTRIBUTE,TEMPLATEREMARK,CREATETIME,templateKind
+		)
+		VALUES
+		(
+		<include refid="FieldValue"></include>
+		)
+	</insert>
+
+	<!-- 通过标识修改预设结果模版 -->
+	<update id="updateResultTemplate" parameterMap="baseParameterMap">
+		UPDATE
+		<include refid="tableName"></include>
+		SET
+		TEMPLATETYPE=#{templateType},
+		TEMPLATENAME=#{templateName},
+		TEMPLATESTATUS=#{templateStatus},
+		TEMPLATEATTRIBUTE=#{templateAttribute},
+		TEMPLATEREMARK=#{templateRemark},
+		templateKind=#{templateKind},
+		EDITTIME=now()
+		WHERE
+		ID=#{id}
+	</update>
+	
+	 <!--当点击添加选择模板时, 绑定详话模板 -->
+ <select   id="queryResultTemplete"   parameterMap="baseParameterMap"  resultMap="baseResultMap"   >
+        select  templateName,templateAttribute,templateRemark
+        from  <include refid="tableName"></include>
+        where 
+        templateKind=#{templateKind}
+        and 
+        provinceName=#{provinceName}
+ </select>
+	
+
+	<!-- 通过标识删除 -->
+	<delete id="deleteResultTemplate" parameterMap="baseParameterMap">
+		DELETE FROM
+		<include refid="tableName"></include>
+		WHERE
+		ID=#{id}
+	</delete>
+
+	<!-- 批量删除 -->
+	<delete id="deleteResultTemplateAll" parameterType="String">
+		DELETE FROM
+		<include refid="tableName"></include>
+		WHERE
+		ID IN
+		<foreach item="item" index="index" collection="array" open="("
+			separator="," close=")">
+			#{item}
+		</foreach>
+	</delete>
+
+</mapper>

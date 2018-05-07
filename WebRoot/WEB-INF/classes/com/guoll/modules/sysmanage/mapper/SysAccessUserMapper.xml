@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.guoll.modules.sysmanage.mapper.SysAccessUserMapper">
+<!-- Parameter Map-->
+<parameterMap id="baseParameterMap" type="com.guoll.modules.sysmanage.bean.SysAccessUser"/>
+<!-- Result Map-->
+<resultMap id="baseResultMap" type="com.guoll.modules.sysmanage.bean.SysAccessUser"/>
+
+<select id="querySysAccessUserSum" parameterMap="baseParameterMap" resultType="Integer">
+	SELECT COUNT(T.USER_ID) FROM SYS_ACCESS_USER T,SYS_USER U WHERE T.USER_ID=U.ID AND T.ACCESS_FLAG=1
+	<if test="user_code!=null and user_code!=''">AND U.USER_CODE LIKE '%'||#{user_code,jdbcType=VARCHAR}||'%'</if>
+	<if test="user_name!=null and user_name!=''">AND U.CN_NAME LIKE '%'||#{user_name,jdbcType=VARCHAR}||'%'</if>
+	<if test="ip!=null and ip!=''">AND T.IP LIKE '%'||#{ip,jdbcType=VARCHAR}||'%'</if>
+	<if test="stime!=null and stime!=''">AND T.ACCESS_TIME &gt; to_date(#{stime,jdbcType=VARCHAR},'YYYY-MM-DD')</if>
+	<if test="etime!=null and etime!=''">AND T.ACCESS_TIME &lt; to_date(#{etime,jdbcType=VARCHAR},'YYYY-MM-DD')+1</if>
+</select>
+<select id="querySysAccessUserList" parameterMap="baseParameterMap" resultMap="baseResultMap">
+	SELECT T.IP,T.ACCESS_TIME,T.USER_ID,U.USER_CODE,U.CN_NAME USER_NAME,U.MOBILE,U.TELEPHONE
+	FROM SYS_ACCESS_USER T,SYS_USER U WHERE T.USER_ID=U.ID AND T.ACCESS_FLAG=1
+	<if test="user_code!=null and user_code!=''">AND U.USER_CODE LIKE '%'||#{user_code,jdbcType=VARCHAR}||'%'</if>
+	<if test="user_name!=null and user_name!=''">AND U.CN_NAME LIKE '%'||#{user_name,jdbcType=VARCHAR}||'%'</if>
+	<if test="ip!=null and ip!=''">AND T.IP LIKE '%'||#{ip,jdbcType=VARCHAR}||'%'</if>
+	<if test="stime!=null and stime!=''">AND T.ACCESS_TIME &gt; to_date(#{stime,jdbcType=VARCHAR},'YYYY-MM-DD')</if>
+	<if test="etime!=null and etime!=''">AND T.ACCESS_TIME &lt; to_date(#{etime,jdbcType=VARCHAR},'YYYY-MM-DD')+1</if>
+	ORDER BY ACCESS_TIME DESC
+</select>
+<delete id="quitSysAccessUser" parameterMap="baseParameterMap">
+	UPDATE SYS_ACCESS_USER SET ACCESS_FLAG=3 WHERE USER_ID=#{user_id,jdbcType=NUMERIC}
+</delete>
+<delete id="layOutSysAccessUser" parameterMap="baseParameterMap">
+	UPDATE SYS_ACCESS_USER SET ACCESS_FLAG=2 WHERE USER_ID=#{user_id,jdbcType=NUMERIC} AND ACCESS_FLAG=1
+</delete>
+<insert id="addSysAccessUser" parameterMap="baseParameterMap">
+	INSERT INTO SYS_ACCESS_USER(ID,USER_ID,IP,ACCESS_TIME,ACCESS_FLAG)VALUES
+	(SEQ_SYS_ACCESS_USER.NEXTVAL,#{user_id,jdbcType=NUMERIC},#{ip,jdbcType=VARCHAR},#{access_time,jdbcType=VARCHAR},1)
+</insert>
+</mapper>

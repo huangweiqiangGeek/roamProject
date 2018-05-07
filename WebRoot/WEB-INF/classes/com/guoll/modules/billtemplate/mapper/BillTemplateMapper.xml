@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.guoll.modules.billtemplate.mapper.BillTemplateMapper">
+<!-- Parameter Map-->
+<parameterMap id="baseParameterMap" type="com.guoll.modules.billtemplate.bean.BillTemplate"/>
+<!-- Result Map-->
+<resultMap id="baseResultMap" type="com.guoll.modules.billtemplate.bean.BillTemplate"/>
+
+<!--表名 -->
+	<sql id="tableName">
+		<!-- BILL_TEMPLATE  -->
+		bill_template
+	</sql>
+	
+	<!--查询字段 -->
+	<sql id="Field">
+      ID,TEMPLATENAME,PROVINCEID,PROVINCENAME,TEMPLATESTATUS,TEMPLATEATTRIBUTE,TEMPLATEREMARK,CREATETIME,
+      EDITTIME,templateType,updateTrace
+	</sql>
+	
+	<!-- 字段值 -->
+	<sql id="FieldValue">
+		#{templateName},#{provinceID},#{provinceName},#{templateStatus},#{templateAttribute,jdbcType=BLOB},
+		#{templateRemark},#{createTime},#{templateType},#{updateTrace}
+	</sql>
+
+<!-- 查询话单模版记录总数 -->
+<select id="queryBillTemplateSum" parameterMap="baseParameterMap" resultType="Integer">
+	SELECT COUNT(ID) FROM <include refid="tableName"></include>  WHERE 1=1
+	<if test="provinceName !=null and provinceName !='' ">
+			AND provinceName=#{provinceName}
+		</if>
+	<if test="templateStatus !=-1 and templateStatus !=0  and templateStatus !=null">
+	 AND TEMPLATESTATUS=#{templateStatus,jdbcType=NUMERIC}
+	</if>
+	<if test=" templateName !='' and templateName !=null">
+	AND TEMPLATENAME LIKE  CONCAT(CONCAT('%', #{templateName,jdbcType=VARCHAR}),'%')
+	</if>
+</select>
+
+<!-- 查询话单模版列表 -->
+<select id="queryBillTemplateList" parameterMap="baseParameterMap" resultMap="baseResultMap">
+		SELECT  
+		  bill_template.id as id,templateName,provinceID,provinceName,templateStatus,templateAttribute,
+		  templateRemark,createTime,editTime,comm_type.commTypeName as commTypeName,templateType,updateTrace
+		FROM bill_template LEFT JOIN
+	     comm_type
+	    ON 
+	 bill_template.templateStatus=comm_type.id
+    WHERE 1=1
+	<if test="provinceName !=null and provinceName !='' ">
+			AND provinceName=#{provinceName}
+		</if>
+	<if test="templateStatus !=-1 and templateStatus !=0   and templateStatus !=null">
+	 AND TEMPLATESTATUS=#{templateStatus,jdbcType=NUMERIC}
+	</if>
+	<if test=" templateName !='' and templateName !=null">
+	AND TEMPLATENAME LIKE  CONCAT(CONCAT('%', #{templateName,jdbcType=VARCHAR}),'%')
+	</if>
+	<if test=" templateType !='' and templateType !=null">
+	AND templateType LIKE  CONCAT(CONCAT('%', #{templateType,jdbcType=int}),'%')
+	</if>
+	ORDER BY templateType  
+	limit #{start,jdbcType=NUMERIC},#{rows,jdbcType=NUMERIC}
+</select>
+
+
+
+<!-- 根据模板名查询话单模版列表 -->
+<select id="queryBillTemplateListByName" parameterMap="baseParameterMap" resultMap="baseResultMap">
+		SELECT  
+		  bill_template.id as id,templateName,provinceID,provinceName,templateStatus,templateAttribute,
+		  templateRemark,createTime,editTime,comm_type.commTypeName as commTypeName,templateType,updateTrace
+		FROM bill_template LEFT JOIN
+	     comm_type
+	    ON 
+	 bill_template.templateStatus=comm_type.id
+    WHERE 1=1
+	<if test="provinceName !=null and provinceName !='' ">
+			AND provinceName=#{provinceName}
+		</if>
+	<if test=" templateName !='' and templateName !=null">
+		AND templateName=#{templateName}
+	</if>
+	
+	ORDER BY templateType  
+	limit #{start,jdbcType=NUMERIC},#{rows,jdbcType=NUMERIC}
+</select>
+
+
+<!-- 通过标识查询话单模版记录 -->
+<select id="querySysBillTemplateById" parameterType="Integer" resultMap="baseResultMap">
+	SELECT <include refid="Field"></include> FROM <include refid="tableName"></include>
+	WHERE  ID=#{id,jdbcType=NUMERIC}
+</select>
+
+<!-- 新增话单模版 -->
+<insert id="addBillTemplate" parameterMap="baseParameterMap">
+	INSERT INTO <include refid="tableName"></include>
+	(
+	TEMPLATENAME,PROVINCEID,PROVINCENAME,TEMPLATESTATUS,TEMPLATEATTRIBUTE,TEMPLATEREMARK,CREATETIME,templateType,updateTrace
+	)
+	VALUES
+	(
+	<include refid="FieldValue"></include>
+	)
+</insert>
+
+<!-- 通过标识修改话单模版 -->
+<update id="updateBillTemplate" parameterMap="baseParameterMap">
+	UPDATE 
+	<include refid="tableName"></include> 
+	<set>
+	<if test="templateName !=null  and templateName !='' ">
+	TEMPLATENAME=#{templateName},
+	</if>
+	<if test="templateStatus !=null  and templateStatus !='' ">
+	TEMPLATESTATUS=#{templateStatus},
+	</if>
+	<if test="templateAttribute !=null  and templateAttribute !='' ">
+	TEMPLATEATTRIBUTE=#{templateAttribute},
+	</if>
+	<if test="templateRemark !=null  and templateRemark !='' ">
+	TEMPLATEREMARK=#{templateRemark},
+	</if>
+	<if test="editTime !=null  and editTime !='' ">
+	EDITTIME=#{editTime},
+	</if>
+	<if test="templateType !=null  and templateType !='' ">
+	templateType=#{templateType},
+	</if>
+	<if test="updateTrace !=null  and updateTrace !='' ">
+	updateTrace=#{updateTrace},
+	</if>
+	<if test="provinceName !=null  and provinceName !='' ">
+	provinceName=#{provinceName},
+	</if>
+	</set>
+	 WHERE
+	 ID=#{id}
+</update>
+
+
+
+<!-- 通过标识删除 -->
+<delete id="deleteBillTemplate" parameterMap="baseParameterMap">
+	DELETE FROM 
+ <include refid="tableName"></include> 
+	WHERE
+	 ID=#{id}
+</delete>
+
+<!-- 批量删除 -->
+<delete id="deleteBillTemplateAll"  parameterType="String">
+	DELETE FROM 
+ <include refid="tableName"></include> 
+	WHERE
+	 ID IN
+	 <foreach item="item" index="index" collection="array" open="(" separator="," close=")">
+                 #{item}
+	</foreach>
+</delete>
+
+</mapper>
