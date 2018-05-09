@@ -302,12 +302,8 @@ WHERE
 		on 
 		use_case.proID=c.id
 		where 1=1
-		<if test="proID !=-1 and proID !=null">
-			AND proID=#{proID,jdbcType=INTEGER}
-		</if>
-		<if test=" uCName !='' and uCName !=null">
+			AND uCNumber=#{uCNumber,jdbcType=INTEGER}
 			AND uCName =#{uCName,jdbcType=VARCHAR}
-		</if>
 		ORDER BY use_case.createTime DESC
 	</select>
 	

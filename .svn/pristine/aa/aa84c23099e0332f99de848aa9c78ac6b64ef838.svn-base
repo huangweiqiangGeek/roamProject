@@ -131,7 +131,7 @@ function initUCaseBaseMe(jsonstr){
 		$("#aNext").removeClass('disableColor').attr("onclick","forNext2()"); 
 		$('#sProAway').removeClass('disableSelect').removeAttr("disabled");
 		$('#Source').val(jsonstr.haveSource);
-		 $("#explorer").html('<tr><th>产品名称</th> <th>初始值</th><th>资源类型</th><th>操作</th></tr><tr class="trHMs selVal" id="0"><td><select id="txtProIdInit" class="combo-text validatebox-text" name="txtProIdInit" style="width:120px;"></select></td><td><input type="type" id="txtProInitVal" name="txtProInitVal" value="" style="width: 160px"></td><td><select name="setAssg" class="sel"><option value="0" selected>本月套餐</option><option value="1">上月结转</option><option value="2">套内与结转</option></select></td><td><span class="add1 delete"><a onclick="removeHM(0)"><i></i>删除</a></span></td></tr>');
+		 $("#explorer").html('<tr><th>产品ID</th> <th>初始值</th><th>资源类型</th><th>操作</th></tr><tr class="trHMs selVal" id="0"><td><select id="txtProIdInit" class="combo-text validatebox-text" name="txtProIdInit" style="width:120px;"></select></td><td><input type="type" id="txtProInitVal" name="txtProInitVal" value="" style="width: 160px"></td><td><select name="setAssg" class="sel"><option value="0" selected>本月套餐</option><option value="1">上月结转</option><option value="2">套内与结转</option></select></td><td><span class="add1 delete"><a onclick="removeHM(0)"><i></i>删除</a></span></td></tr>');
 	}else{
 		$('#haveSource').combobox('select','没有免费资源');
 		$('.addSource').addClass('disableColor').removeAttr('href');
@@ -214,7 +214,7 @@ function initUCaseResource(jsonstr){
 				 var proName=$(o).attr('proName'),type=$(o).attr('type'),val =$(o).attr('val'),status=$(o).attr('status'),txtProCarrVal;
 					 if(i==0){
 						 if(status==1){
-					     var h='<tr><th>产品名称</th><th>初始值</th><th>资源类型</th><th>操作</th></tr>';
+					     var h='<tr><th>产品ID</th><th>初始值</th><th>资源类型</th><th>操作</th></tr>';
 						 h+='<tr class="trHMs selVal" id="'+i+'"><td><select id="txtProIdInit"  name="txtProIdInit"  class="combo-text validatebox-text checkVal"  style="width:120px;" value='+this.proName+'></select>';//this.proName
 						 h+='</td><td><input type="number" id="txtProInitVal" name="txtProInitVal" value='+this.val+' class="txtVal" style="width: 160px"></td>';
 						 $('#txtProIdInit').val(proName);
@@ -451,7 +451,7 @@ $(document).ready(function(){
 				$(".addSource").removeClass('disableColor').attr("href","javascript:addProduct()"); 
 				$('#sProAway').removeClass('disableSelect').removeAttr("disabled");
 				$("#aNext").removeClass('disableColor').attr("onclick","forNext2()");
-				$("#explorer").html('<tr><th>产品名称</th> <th>初始值</th><th>资源类型</th><th>操作</th></tr>');
+				$("#explorer").html('<tr><th>产品ID</th> <th>初始值</th><th>资源类型</th><th>操作</th></tr>');
 				addProduct();
 				//$("#explorer").html('<tr class="trHMs selVal" id='+trHMmax+'><td><select id="txtProIdInit'+trHMmax+'" name="txtProIdInit" class="combo-text validatebox-text" style="width:120px;"></select></td><td><input type="type" id="txtProInitVal" name="txtProInitVal" value="" style="width: 160px"></td><td><select name="setAssg" class="sel"><option value="0" selected>本月套餐</option><option value="1">上月结转</option><option value="2">套内与结转</option></select></td><td><span class="add1 delete"><a onclick="removeHM('+trHMmax+')"><i></i>删除</a></span></td></tr>');
 			}else{
@@ -583,7 +583,7 @@ function saveMethod(){
 		var pronArr = [];
 		var sel = document.getElementsByClassName("sel");
 		for(var i = 0; i<sel.length;i++){
-			var params = {proName :"",val:"",proAway:proAways,type:"",status:1,productName:""};
+			var params = {proName :"",val:"",proAway:proAways,type:"",status:1};
 			resourceJson.pro.push(params);
 		}
 		 $(".selVal>td>span .combo-value").each(function(index){
@@ -595,9 +595,6 @@ function saveMethod(){
 			  });
 		 $("select[name='setAssg'] option:selected").each(function(index){
 			 resourceJson.pro[index].type = parseInt($(this).val())
-		 })
-		 $(".selVal").each(function(index,o){
-			 resourceJson.pro[index].productName = $(o).find(".combo-text").combobox("getText");
 		 })
 		 var a = pron;  
 	     var b = pronArr;  
@@ -958,6 +955,7 @@ function checkUCExpect(){
 	var f = true;
 	var json ='{"uCExpect":[';
 	$("#stepThree tr[class='uCExpect']").each(function(i,o){	
+		console.log("ooooo",o)
 		var v = trans($(o).find('input[type="number"]').val());//本月预期值
 		var name = trans($(o).find('td').eq(0).html());
 		var type = trans($(o).find('td').eq(2).html());
@@ -1006,6 +1004,7 @@ function checkUCExpect(){
 		json=json.substring(0,json.length-1);
 	}
 	json +=']}';
+	console.log("json",json);
 	$("#expectJson").val(json);
 	
 	return true;
@@ -1477,6 +1476,8 @@ function loadExpect(){
 		json+='[';
 		var dex=0;
 		$('#explorer .trHMs').each(function(i,o){
+			console.log("11111",o);
+			console.log($(o).find(".combo-text").combobox("getValue"));
 			var s=$($(o).find("select[name='setAssg']")).val();/* $("select[name='setAssg'] option:selected").val()*/
 			var p=$('#uCUserID').val();
 			if(s==0){

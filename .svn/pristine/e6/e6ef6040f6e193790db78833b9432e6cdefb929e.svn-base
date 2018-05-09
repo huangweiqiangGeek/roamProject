@@ -78,8 +78,6 @@ function executeCaseAll(){
 				type:"POST",
 				url:"useCase/executeCases?id="+params,
 				success:function(data){
-					console.log("123123");
-					$('#dg').datagrid('clearSelections'); 
 					if(data.type==-1){
 						$.messager.alert('温馨提示',data.msg,'',function(){
 							$('#loading').css('display','none')

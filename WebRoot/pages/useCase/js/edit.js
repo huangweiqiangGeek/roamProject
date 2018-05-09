@@ -8,7 +8,7 @@ function searchPrd(){
 
 /*初始化树*/
 function onLoadSuccess(){
-	console.log("20180502版本");
+	console.log("20180509版本");
 	var task_id=$("#proID").val();
 	tree = $('#tt').tree({
 		 url:'userCaseTreeController/queryUsercaseTreeList?task_id='+task_id, 
@@ -46,6 +46,24 @@ function onLoadSuccess(){
 };
 //下拉选事件
 $(function(){
+//	$.ajax({
+//		url: 'userCaseTreeController/listPage',
+//		dataType: 'json',
+//		data:{
+//				task_group_id: 111,
+//				uCName: "",
+//				billType: 2,
+//				page: 2,
+//			    rows: 14
+//			    },
+//		async: false,
+//		success: function (res) { 
+//			  console.log("res",res);
+//		} 
+//	});
+	
+	
+	
 	$("#productCombobox").combobox({ 
 		onSelect: function (record) {
 			var cpIds=$("#cpIds").val();
@@ -179,7 +197,6 @@ function onclickDatagrid(row,index){
 }
 /*单击用例名初始化用例基础信息*/
 function initUCaseBaseMe(jsonstr){
-	console.log("jsonstr",jsonstr);
 	$("#ticket").html('');
 	$('#uCName').val(jsonstr.uCName);
 	$('#uCNumber').val(jsonstr.uCNumber);
@@ -191,7 +208,7 @@ function initUCaseBaseMe(jsonstr){
 		$("#aNext").removeClass('disableColor').attr("onclick","forNext2()"); 
 		$('#sProAway').removeClass('disableSelect').removeAttr("disabled");
 		$('#Source').val(jsonstr.haveSource);
-		 $("#explorer").html('<tr><th>产品ID</th> <th>初始值</th><th>资源类型</th><th>操作</th></tr><tr class="trHMs selVal" id="0"><td><select id="txtProIdInit" class="combo-text validatebox-text checkVal" name="txtProIdInit" style="width:120px;"></select></td><td><input type="number" id="txtProInitVal" name="txtProInitVal" value="" class="txtVal" style="width: 160px"></td><td><select name="setAssg" class="sel"><option value="0" selected>本月套餐</option><option value="1">上月结转</option><option value="2">套内与结转</option></select></td><td><span class="add1 delete"><a onclick="removeHM(0)"><i></i>删除</a></span></td></tr>');
+		 $("#explorer").html('<tr><th>产品名称</th> <th>初始值</th><th>资源类型</th><th>操作</th></tr><tr class="trHMs selVal" id="0"><td><select id="txtProIdInit" class="combo-text validatebox-text checkVal" name="txtProIdInit" style="width:120px;"></select></td><td><input type="number" id="txtProInitVal" name="txtProInitVal" value="" class="txtVal" style="width: 160px"></td><td><select name="setAssg" class="sel"><option value="0" selected>本月套餐</option><option value="1">上月结转</option><option value="2">套内与结转</option></select></td><td><span class="add1 delete"><a onclick="removeHM(0)"><i></i>删除</a></span></td></tr>');
 	}else{
 		$('#haveSource').combobox('select','没有免费资源');
 		$('.addSource').addClass('disableColor').removeAttr('href');
@@ -272,7 +289,7 @@ function initUCaseResource(jsonstr){
 			 $(dataJson).each(function(i,o){
 				 var proName=$(o).attr('proName'),type=$(o).attr('type'),val =$(o).attr('val'),status=$(o).attr('status'),txtProCarrVal;
 					 if(i==0){
-						 var h='<tr><th>产品ID</th><th>初始值</th><th>资源类型</th><th>操作</th></tr>';
+						 var h='<tr><th>产品名称</th><th>初始值</th><th>资源类型</th><th>操作</th></tr>';
 						 if(status==1){
 						 h+='<tr class="trHMs selVal" id="'+i+'"><td><select id="txtProIdInit"  name="txtProIdInit"  class="combo-text validatebox-text checkVal"  style="width:120px;" value='+this.proName+'></select>';//this.proName
 						h+='</td><td><input type="number" id="txtProInitVal" name="txtProInitVal" value='+this.val+' class="txtVal" style="width: 160px"></td>';
@@ -396,7 +413,7 @@ function initCpId(id){
 			$(id).combobox({  
 				data: jsonstr,  
 				valueField: 'name',  
-				textField: 'name',  
+				textField: 'id',  
 				onLoadSuccess: function () { //加载完成后,设置选中第一项  
 					var val = $(this).combobox('getData'); 
 				}
@@ -509,7 +526,7 @@ $(document).ready(function(){
 				$(".addSource").removeClass('disableColor').attr("href","javascript:addProduct()"); 
 				$('#sProAway').removeClass('disableSelect').removeAttr("disabled");
 				$("#aNext").removeClass('disableColor').attr("onclick","forNext2()"); 
-				$("#explorer").html('<tr><th>产品ID</th> <th>初始值</th><th>资源类型</th><th>操作</th></tr>');
+				$("#explorer").html('<tr><th>产品名称</th> <th>初始值</th><th>资源类型</th><th>操作</th></tr>');
 				addProduct();
 				//$("#explorer").html('<tr><th>产品ID</th> <th>初始值</th><th>资源类型</th><th>操作</th></tr><tr class="trHMs selVal" id="2"><td><select id="txtProIdInit" class="combo-text validatebox-text checkVal" name="txtProIdInit" style="width:120px;" ></select></td><td><input type="number" id="txtProInitVal" class="txtVal" name="txtProInitVal" value="" style="width: 160px"></td><td><select name="setAssg" class="sel"><option value="0" selected>本月套餐</option><option value="1">上月结转</option><option value="2">套内与结转</option></select></td><td><span class="add1 delete"><a onclick="removeHM(2)"><i></i>删除</a></span></td></tr>');
 			}else{
@@ -1493,10 +1510,10 @@ function loadExpect(){
 			
 			if(s==2){//选择第三类型，既有本月套内 又有上月结转 
 				json+=',"txtProCarrVal":"'+$(o).find(".combo-text").combobox("getText")+'"';//json追加上月结转数据初始值
-				h+='<tr class="uCExpect"><td>'+$(o).find(".combo-text").combobox("getText")+'</td><td>'+p+'</td><td>'+t+
+				h+='<tr class="uCExpect"><td>'+$(o).find(".combo-text").combobox("getValue")+'</td><td>'+p+'</td><td>'+t+
 				'</td><td>'+$(o).find('input[name="txtProInitVal"]').val()+u+'</td><td><input type="number" min="0"></td></tr>';
 			}else{
-				h+='<tr class="uCExpect"><td>'+$(o).find(".combo-text").combobox("getText")+'</td><td>'+p+'</td><td>'+t+
+				h+='<tr class="uCExpect"><td>'+$(o).find(".combo-text").combobox("getValue")+'</td><td>'+p+'</td><td>'+t+
 				'</td><td>'+$(o).find('input[name="txtProInitVal"]').val()+u+'</td><td><input type="number" min="0"></td></tr>';
 			}
 			
@@ -2022,6 +2039,10 @@ function saveMethod(){
 			  });
 		 $("select[name='setAssg'] option:selected").each(function(index){
 			 resourceJson.pro[index].type = parseInt($(this).val())
+		 })
+		 $(".selVal").each(function(index,o){
+			 resourceJson.pro[index].productName = $(o).find(".combo-text").combobox("getText");
+			 console.log($(o).find(".combo-text").combobox("getText"));
 		 })
 		 var a = pron;  
 	     var b = pronArr;  

@@ -89,9 +89,9 @@ function projectExecuteCase(id){
 	});
 }
 //批量执行任务
-function executeCaseAll(){
+function removeAll(){
 	var ids='';
-	$("input[name='pId']").each(function(i,o){
+	$("input[name='id']").each(function(i,o){
 		if($(o).is(':checked')){
 			ids+=$(o).val()+',';
 		}
@@ -100,51 +100,28 @@ function executeCaseAll(){
 		ids=ids.substring(0,ids.length-1);
 	}
 	if(isNull(ids)){
-		$.messager.alert('温馨提示','请选择需要执行的记录','',function(){
+		$.messager.alert('温馨提示','请选择需要执行用例记录','',function(){
 		});
 		return false;
 	}
-	$.messager.confirm('谨慎操作提示', '确认执行所选用例', function(r){
+	$.messager.confirm('谨慎操作提示', '确认执行所选的用例?', function(r){
 		if (r){
-			$('#loading').css('display','')
-			var params =ids;
+			var params ={id:ids};
 			$.ajax({
 				type:"POST",
-				url:"useCase/executeCasesBill?id="+params,
+				url:"regressionUseCase/executeCase",
+				dataType:"json",
+				data:params,
 				success:function(data){
-					console.log("123123");
-					$('#dg').datagrid('clearSelections'); 
-					if(data.type==-1){
-						$.messager.alert('温馨提示',data.msg,'',function(){
-							$('#loading').css('display','none')
-							return false
+					if(data.type==1){
+						$.messager.alert('温馨提示','执行成功','',function(){
+							$("#dg").datagrid("reload");
+						});
+					}else{
+						$.messager.alert('温馨提示',''+data.msg+'','',function(){
 						});
 					}
-						var succ=data.successRate;
-						var fair = data.failureRate;
-						var cannot = data.cannot;
-						var status = data.status;
-						if(status==1){
-							var h="本次批量执行用例成功，用例共计通过"+succ+"条"
-							$.messager.alert('温馨提示',h,'',function(){
-								$("#dg").datagrid("reload");
-								$('#loading').css('display','none')
-							});
-						}else if(status==2){
-							var h="本次批量执行用例失败，用例通过"+succ+"条，用例失败"+fair+"条，未完成执行用例"+cannot+"条";
-							$.messager.alert('温馨提示',h,'',function(){
-								$("#dg").datagrid("reload");
-								$('#loading').css('display','none')
-							});
-						}
-				},
-				error:function(){
-					$.messager.alert('温馨提示','批量执行用例不成功',function(){
-						console.log("123123");
-						$('#loading').css('display','none')
-						return false
-					});
-				}
+				}	
 			});
 		}
 	});

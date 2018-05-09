@@ -89,13 +89,13 @@
 			<thead>
 				<tr>
 					<th  data-options="field:'id',width:'40',checkbox:true">全选</th>
-					<th field=productId width="150">产品名称</th>
+					<th field=uCName width="180">产品名称</th>
 					<th field=uCUserID width="100">用户号码</th>
-					<th field=uCName width="150">用例名称</th>
+					<th field=uCName width="200">用例名称</th>
 					<th align="center" field="statusName" width="70">用例状态</th>
 					<th align="center" field="passName" width="80">执行状态</th>
 					<th align="center" field="executeNum" width="60">执行次数</th>
-				    <th align="center" data-options="field:'proID',width:'375',formatter:formatOperate">操作</th>
+				    <th align="center" data-options="field:'proID',width:'300',formatter:formatOperate">操作</th>
 				</tr>
 			</thead>
 		</table>

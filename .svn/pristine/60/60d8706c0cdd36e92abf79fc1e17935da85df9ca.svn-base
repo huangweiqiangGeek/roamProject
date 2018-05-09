@@ -110,7 +110,7 @@ function executeCaseAll(){
 			var params =ids;
 			$.ajax({
 				type:"POST",
-				url:"useCase/executeCasesBill?id="+params,
+				url:"useCase/executeCases?id="+params,
 				success:function(data){
 					console.log("123123");
 					$('#dg').datagrid('clearSelections'); 
@@ -140,7 +140,6 @@ function executeCaseAll(){
 				},
 				error:function(){
 					$.messager.alert('温馨提示','批量执行用例不成功',function(){
-						console.log("123123");
 						$('#loading').css('display','none')
 						return false
 					});

@@ -583,7 +583,7 @@ function saveMethod(){
 		var pronArr = [];
 		var sel = document.getElementsByClassName("sel");
 		for(var i = 0; i<sel.length;i++){
-			var params = {proName :"",val:"",proAway:proAways,type:"",status:1,productName:""};
+			var params = {proName :"",val:"",proAway:proAways,type:"",status:1};
 			resourceJson.pro.push(params);
 		}
 		 $(".selVal>td>span .combo-value").each(function(index){
@@ -595,9 +595,6 @@ function saveMethod(){
 			  });
 		 $("select[name='setAssg'] option:selected").each(function(index){
 			 resourceJson.pro[index].type = parseInt($(this).val())
-		 })
-		 $(".selVal").each(function(index,o){
-			 resourceJson.pro[index].productName = $(o).find(".combo-text").combobox("getText");
 		 })
 		 var a = pron;  
 	     var b = pronArr;  

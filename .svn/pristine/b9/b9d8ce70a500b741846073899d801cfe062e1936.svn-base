@@ -1,13 +1,14 @@
 /***
  * 初始化左边的树形数据
 ***/
-var trHMmax=0 , flag1=0 , flag2=0; var proAways = 1; var pron = [];
-//function searchPrd(){
-//	onClickTree();
-//}
+var trHMmax=0  , flag1=0 , flag2=0; var trHMnum=0; var proAways = 1; var pron = [];
+function searchPrd(){
+	onClickTree();
+}
 
 /*初始化树*/
 function onLoadSuccess(){
+	console.log("20180508版本");
 	var task_id=$("#proID").val();
 	tree = $('#tt').tree({
 		 url:'userCaseTreeController/queryUsercaseTreeList?task_id='+task_id, 
@@ -18,28 +19,88 @@ function onLoadSuccess(){
 		 onClick:onClickTree,
 		 animate:true,
 		 onLoadSuccess:function (){
+			 //var tgi=$("#tt .tree-node").attr("node-id");
 			 var tgi=$("#task_group_id").val();
 			 if ( tgi!= null && tgi!= "" && flag1==0) {  
-				var selectNode = $("#tt").tree('find', tgi); 
-				selectNode.attributes.billType=$('#billType').val();
-				var nodes=$('#tt').tree('getChildren',selectNode.target);//获取子节点
-				var n = 0;
-				for(var i=0; i<nodes.length ; i++){
-					if($('#billType').val()==nodes[i].attributes.billType){
-						n = i;
-						$("#tt").tree("select", nodes[i].target); 
+				var selectNode = $("#tt").tree('find', tgi);
+				if(selectNode!=null){
+					selectNode.attributes.billType=$('#billType').val();
+					var nodes=$('#tt').tree('getChildren',selectNode.target);//获取子节点
+					var n = 0;
+					for(var i=0; i<nodes.length ; i++){
+						if($('#billType').val()==nodes[i].attributes.billType){
+							n = i;
+							$("#tt").tree("select", nodes[i].target); 
+						}
 					}
+					if(nodes[n]){
+						onClickTree(nodes[n]);
+					}else{
+						onClickTree(selectNode);
+					}
+					flag1++;
 				}
-				if(nodes[n]){
-					onClickTree(nodes[n]);
-				}else{
-					onClickTree(selectNode);
-				}
-				flag1++;
 			}
 		 }
 	});
 };
+//下拉选事件
+$(function(){
+	$("#productCombobox").combobox({ 
+		onSelect: function (record) {
+			var cpIds=$("#cpIds").val();
+			if(cpIds.length==0){
+				$("#cpIds").val(record.type_id);
+			}else{
+				cpIds+=","+record.type_id;
+				$("#cpIds").val(cpIds);
+			}
+		}, 
+		onUnselect:function(record){
+			var cpIds=$("#cpIds").val().split(",");
+			var type_id=record.type_id;
+			for(var i=0 ; i<cpIds.length-1; i++){
+				if(cpIds[i]==type_id) {
+					cpIds.splice(i,1);  
+		             i--;  
+				}
+			}
+			$("#cpIds").val(cpIds);
+		}
+	})  
+});
+function initProductCombobox(){
+	var task_id=$("#proID").val();
+	$.ajax({
+		url: 'userCaseTreeController/queryUsercaseTreeList?task_id='+task_id,
+		dataType: 'json',  
+		async: false,
+		mode: 'remote',
+		success: function (jsonstr) { 
+			var json=[];
+			for(var i=0 ; i<jsonstr.length; i++){
+				if(jsonstr[i].phone_number_str!=undefined){
+					json.push({  
+						'type_id': jsonstr[i].id,  
+						'type_name': jsonstr[i].productsMark,
+					});
+				}
+			}
+			json.unshift({  
+				'type_id': ' ',  
+				'type_name': ' ',
+			});//向json数组开头添加自定义数据 
+			$('#productCombobox').combobox({  
+				data: json,  
+				valueField: 'type_id',  
+				textField: 'type_name',  
+				onLoadSuccess: function () { //加载完成后,设置选中第一项  
+					var val = $(this).combobox('getData');
+				}
+			});  
+		} 
+	});
+}
 
 function onClickTree(treeNode){
 	var task_group_id=treeNode.id;
@@ -51,7 +112,7 @@ function onClickTree(treeNode){
 	var uCName=$('#projectName').val();
 	var params ={task_group_id:task_group_id,uCName:uCName,billType:billType};
 	$("#dg").datagrid({
-		url:"userCaseTreeController/listPage",
+		url:'userCaseTreeController/listPage',
 		toolbar:'#tb',
 		rownumbers:true,
 		idField:'id',
@@ -65,8 +126,9 @@ function onClickTree(treeNode){
 		    {field:'uCName',title:'用例名称',width:249},
 		]],
 		onLoadSuccess:function (){
+			//var usercase_id=$("input[name='id']").val();
 			var usercase_id=$("#id").val();
-			if ( usercase_id!= null && usercase_id!= "" && flag2==0) {  
+			if ( usercase_id!= null && usercase_id!= "" && flag2==0) { 
 				var row=$("#dg").datagrid("getRowIndex",usercase_id);
 				if(row!=-1){
 					var index=$("#dg").datagrid("getRows")[row];
@@ -90,8 +152,6 @@ function onclickDatagrid(row,index){
 			async: false,
 			success: function (result) {
 				var jsonstr=result.data;
-				$("input[name='id']").val(jsonstr.id);
-				$("#executeNum").val(jsonstr.executeNum);
 				$("#task_group_id").val(jsonstr.task_group_id);
 				$('#Source').val(jsonstr.haveSource);
 				$('#templateType').val(jsonstr.templateType);
@@ -119,7 +179,6 @@ function onclickDatagrid(row,index){
 }
 /*单击用例名初始化用例基础信息*/
 function initUCaseBaseMe(jsonstr){
-	$("#productId").val(jsonstr.productId);
 	$("#ticket").html('');
 	$('#uCName').val(jsonstr.uCName);
 	$('#uCNumber').val(jsonstr.uCNumber);
@@ -131,7 +190,7 @@ function initUCaseBaseMe(jsonstr){
 		$("#aNext").removeClass('disableColor').attr("onclick","forNext2()"); 
 		$('#sProAway').removeClass('disableSelect').removeAttr("disabled");
 		$('#Source').val(jsonstr.haveSource);
-		 $("#explorer").html('<tr><th>产品名称</th> <th>初始值</th><th>资源类型</th><th>操作</th></tr><tr class="trHMs selVal" id="0"><td><select id="txtProIdInit" class="combo-text validatebox-text" name="txtProIdInit" style="width:120px;"></select></td><td><input type="type" id="txtProInitVal" name="txtProInitVal" value="" style="width: 160px"></td><td><select name="setAssg" class="sel"><option value="0" selected>本月套餐</option><option value="1">上月结转</option><option value="2">套内与结转</option></select></td><td><span class="add1 delete"><a onclick="removeHM(0)"><i></i>删除</a></span></td></tr>');
+		 $("#explorer").html('<tr><th>产品名称</th> <th>初始值</th><th>资源类型</th><th>操作</th></tr><tr class="trHMs selVal" id="0"><td><select id="txtProIdInit" class="combo-text validatebox-text checkVal" name="txtProIdInit" style="width:120px;"></select></td><td><input type="number" id="txtProInitVal" name="txtProInitVal" value="" class="txtVal" style="width: 160px"></td><td><select name="setAssg" class="sel"><option value="0" selected>本月套餐</option><option value="1">上月结转</option><option value="2">套内与结转</option></select></td><td><span class="add1 delete"><a onclick="removeHM(0)"><i></i>删除</a></span></td></tr>');
 	}else{
 		$('#haveSource').combobox('select','没有免费资源');
 		$('.addSource').addClass('disableColor').removeAttr('href');
@@ -148,7 +207,6 @@ function initUCaseBaseMe(jsonstr){
 	var ticketHtml;
 	
 	$.each(ticketJson.stepOnes, function(idx,o){
-		
 		var choiceAway=o.choiceaway;//选择方式
 		var fieldName = o.name;//字段名
 		var hide = o.hide;//  新增项  是否隐藏
@@ -164,11 +222,11 @@ function initUCaseBaseMe(jsonstr){
 			};
 			if(choiceAway==12){
 				 h+='<select name="sTime" id="sTime" choiceAway="'+choiceAway+'" range="'+range+'" scriptUrl="'+scripturl+'" onchange="setSTime(this)" style="width: 120px;height: 24px;">'
-					 h+='<option value="-1">--时间选取方式--</option>';
+				 h+='<option value="-1">--时间选取方式--</option>';
 				 h+='<option value="1">填写</option>';
 				 h+='<option value="2">选择</option>';	
-			     h+='</select>';
-			     h+=' <span id="spBillTime"></span>';
+				 h+='</select>';
+				 h+=' <span id="spBillTime"></span>';
 				 //增加按钮 进行各项操作
 			 }else if(choiceAway==09){//对填写框进行占位符设置，为默认值
 				 h+='<input type="text" id="" value="'+defaults+'" choiceAway="'+choiceAway+'" range="'+range+'" scriptUrl="'+scripturl+
@@ -197,44 +255,45 @@ function initUCaseResource(jsonstr){
 		return;
 	}else{
 		var resourceJson=JSON.parse(jsonstr.resourceJson);
-		for(var i in resourceJson.pro){
-			if(resourceJson.pro[i].status==undefined){
-				resourceJson.pro[i].status = 1;
-			}
-		}
 		var dataJson = resourceJson.pro;//初始化免费资源初始化内容（"pro":[{"proAway":"1","proName":"流量","type":"上月结转","val":"123"},{"proName":"流量","type":"上月结转","val":"123"}]）
 		var proAway = resourceJson.proAway;//初始化免费资源初始化方式（"proAway":"1"）
 		var proName = dataJson[0].proName;
 		var val = dataJson[0].val;
 	    $("#sProAway").val(proAway);
 	    var templateType=jsonstr.billType;
+	    for(var i in resourceJson.pro){
+			if(resourceJson.pro[i].status==undefined){
+				resourceJson.pro[i].status = 1;
+			}
+		}
 		if(proAway==1){
 			 //初始化方式为手动填写
 			 $(dataJson).each(function(i,o){
 				 var proName=$(o).attr('proName'),type=$(o).attr('type'),val =$(o).attr('val'),status=$(o).attr('status'),txtProCarrVal;
 					 if(i==0){
+						 var h='<tr><th>产品名称</th><th>初始值</th><th>资源类型</th><th>操作</th></tr>';
 						 if(status==1){
-					     var h='<tr><th>产品名称</th><th>初始值</th><th>资源类型</th><th>操作</th></tr>';
 						 h+='<tr class="trHMs selVal" id="'+i+'"><td><select id="txtProIdInit"  name="txtProIdInit"  class="combo-text validatebox-text checkVal"  style="width:120px;" value='+this.proName+'></select>';//this.proName
-						 h+='</td><td><input type="number" id="txtProInitVal" name="txtProInitVal" value='+this.val+' class="txtVal" style="width: 160px"></td>';
+						h+='</td><td><input type="number" id="txtProInitVal" name="txtProInitVal" value='+this.val+' class="txtVal" style="width: 160px"></td>';
 						 $('#txtProIdInit').val(proName);
 						 $('#txtProInitVal').val(val);
 						 $('#setAssg').val(type);
-							 if(type==2){
-									h+='<td class="newTD"><select name="setAssg" class="sel"><option value="0">本月套餐</option><option value="1">上月结转</option><option value="2" selected>套内与结转</option></select></td>';
-									h+='<td><span class="add1 delete"><a onclick="removeHM('+i+')"><i></i>删除</a></span></td>'
-								}else if(type==1){
-									h+='<td class="newTD"><select name="setAssg" class="sel"><option value="0">本月套餐</option><option value="1" selected>上月结转</option><option value="2">套内与结转</option></select></td>';
-									h+='<td><span class="add1 delete"><a onclick="removeHM('+i+')"><i></i>删除</a></span></td>'
-								}else if(type==0){
-									h+='<td class="newTD"><select name="setAssg" class="sel"><option value="0" selected>本月套餐</option><option value="1">上月结转</option><option value="2">套内与结转</option></select></td>';
-									h+='<td><span class="add1 delete"><a onclick="removeHM('+i+')"><i></i>删除</a></span></td>'
+						 if(type==2){
+								h+='<td class="newTD"><select name="setAssg" class="sel"><option value="0">本月套餐</option><option value="1">上月结转</option><option value="2" selected>套内与结转</option></select></td>';
+								h+='<td><span class="add1 delete"><a onclick="removeHM('+i+')"><i></i>删除</a></span></td>'
+							}else if(type==1){
+								h+='<td class="newTD"><select name="setAssg" class="sel"><option value="0">本月套餐</option><option value="1" selected>上月结转</option><option value="2">套内与结转</option></select></td>';
+								h+='<td><span class="add1 delete"><a onclick="removeHM('+i+')"><i></i>删除</a></span></td>'
+							}else if(type==0){
+								h+='<td class="newTD"><select name="setAssg" class="sel"><option value="0" selected>本月套餐</option><option value="1">上月结转</option><option value="2">套内与结转</option></select></td>';
+								h+='<td><span class="add1 delete"><a onclick="removeHM('+i+')"><i></i>删除</a></span></td>'
 								}
 								h+='</tr>';
 								$('#explorer').append(h)
-								initCpId("#txtProIdInit");
-								$("#txtProIdInit").combobox('select',proName);	
+								 initCpId("#txtProIdInit");
+								 $("#txtProIdInit").combobox('select',proName);
 						 }
+								
 					 }else if(i>=1){
 						 trHMmax++;
 						 var h='';
@@ -257,9 +316,9 @@ function initUCaseResource(jsonstr){
 								$('#explorer').append(h);
 								initCpId("#txtProIdInit"+i);
 								$("#txtProIdInit"+i).combobox('select',proName);
-						 }
 								
 					 }
+					}
 					 
 					 
 			 })
@@ -322,24 +381,23 @@ function initCpId(id){
 		url: "productGroupController/initProductsSelectByGroupid?group_id="+group_id+"&billType="+billType,
 		dataType: 'json',  
 		async: false,
-		mode: 'remote',
 		success: function (jsonstr) {
-			pron = [];
-			for(var i in jsonstr){
-				pron.push(jsonstr[i].name)
+			if(jsonstr==null){
+				jsonstr = [];
 			}
-			/*if(jsonstr){
-				jsonstr.unshift({  
-					'id': ' ',  
-					'name': ' ',
-				});//向json数组开头添加自定义数据 
-			}*/
+			for(var i in jsonstr){
+				pron.push(jsonstr[i].name);
+			}
+			/*jsonstr.unshift({  
+				'id': ' ',  
+				'name': ' ',
+			});*///向json数组开头添加自定义数据 
 			$(id).combobox({  
 				data: jsonstr,  
 				valueField: 'name',  
 				textField: 'id',  
 				onLoadSuccess: function () { //加载完成后,设置选中第一项  
-					var val = $(this).combobox('getData');  
+					var val = $(this).combobox('getData'); 
 				}
 			});  
 		} 
@@ -374,7 +432,6 @@ function initUCaseExpect(jsonstr){
 /*单击用例名展示详单预期结果*/
 function initUCaseExpDetail(jsonstr){
 var expDetailJson=JSON.parse(jsonstr.expDetailJson).expDetailJson;
-$("#resultName").val(jsonstr.resultName);
 /*$("#expDetail").html('');*/
 $("#tbResultTemplate").html('');
 var expDetailHtml;
@@ -450,10 +507,10 @@ $(document).ready(function(){
 				$('#Source').val('1');
 				$(".addSource").removeClass('disableColor').attr("href","javascript:addProduct()"); 
 				$('#sProAway').removeClass('disableSelect').removeAttr("disabled");
-				$("#aNext").removeClass('disableColor').attr("onclick","forNext2()");
+				$("#aNext").removeClass('disableColor').attr("onclick","forNext2()"); 
 				$("#explorer").html('<tr><th>产品名称</th> <th>初始值</th><th>资源类型</th><th>操作</th></tr>');
 				addProduct();
-				//$("#explorer").html('<tr class="trHMs selVal" id='+trHMmax+'><td><select id="txtProIdInit'+trHMmax+'" name="txtProIdInit" class="combo-text validatebox-text" style="width:120px;"></select></td><td><input type="type" id="txtProInitVal" name="txtProInitVal" value="" style="width: 160px"></td><td><select name="setAssg" class="sel"><option value="0" selected>本月套餐</option><option value="1">上月结转</option><option value="2">套内与结转</option></select></td><td><span class="add1 delete"><a onclick="removeHM('+trHMmax+')"><i></i>删除</a></span></td></tr>');
+				//$("#explorer").html('<tr><th>产品ID</th> <th>初始值</th><th>资源类型</th><th>操作</th></tr><tr class="trHMs selVal" id="2"><td><select id="txtProIdInit" class="combo-text validatebox-text checkVal" name="txtProIdInit" style="width:120px;" ></select></td><td><input type="number" id="txtProInitVal" class="txtVal" name="txtProInitVal" value="" style="width: 160px"></td><td><select name="setAssg" class="sel"><option value="0" selected>本月套餐</option><option value="1">上月结转</option><option value="2">套内与结转</option></select></td><td><span class="add1 delete"><a onclick="removeHM(2)"><i></i>删除</a></span></td></tr>');
 			}else{
 				$('#Source').val('-1');
 			}
@@ -470,35 +527,25 @@ function initCpbCodeSelect(){
 	$.ajax({
 		url: "project/queryTaskNameListByProvince",
 		dataType: 'json',  
-		async: false,
-		mode: 'remote',
+		async: true,
 		success: function (jsonstr) {  
-			jsonstr.unshift({  
-				'id': '',  
-				'proName': '　'  
-			});//向json数组开头添加自定义数据
 			$('#task').combobox({  
 				data: jsonstr,  
 				valueField: 'id',  
-				textField: 'proName',
-				onSelect: function(rec){ 
-					$("#proID").val(rec.id);
-					onLoadSuccess(); 
-		        },
+				textField: 'proName', 
 				onLoadSuccess: function () { //加载完成后,设置选中第一项  
 					var val = $(this).combobox('getData'); 
+					var task_id = $("#proID").val();
 					$.each(val, function(p1, p2) {
-					     this;       //这里的this指向每次遍历中Object的当前属性值
-					     for (var item in this) {  
-								if (item == 'id') { 
-									$('#task').combobox('select',this[item]);
-								}  
-							} 
+						if(p2.id==task_id){
+							$('#task').combobox('select',p2.proName);  
+							$('#task').combobox('disable'); 
+						}
 					});
+					
 				}
 			});  
-		} 
-	});
+		} });
 }
 function showCumulant(){
 	if($("#cbAccumulate:checked").val()=="on"){
@@ -520,10 +567,6 @@ function addMethod(){
 }
 
 function addUseCase(){
-	$("#productId").val('');
-	$("input[name='id']").val('');
-	$("#executeNum").val('');
-	$('#templateType').val('');
 	$("#ticket").html('');
 	$('#uCName').val('');
 	$('#id').val('');
@@ -537,7 +580,7 @@ function addUseCase(){
 	$("#stepThree").html('');
 	$("#explorer").html('');//spbillName
 	$("#spbillName").val('');
-	//$("#sProAway").combobox('select','手动填写');
+	$("#sProAway").combobox('select','手动填写');
 	$("#uCName").focus();
 	
 	 
@@ -551,67 +594,12 @@ function editMethod(role_id){
 
 function addProductLis(){
 	var task_id=$("#proID").val();
+	var  useCase_id=$("#id").val();
 	//初始化右边的表单
-	showWin("userCaseTreeController/taskGroupView?task_id="+task_id,"新增任务下的产品组",800,450);
+	showWin("userCaseTreeController/taskGroupView?task_id="+task_id+"&useCase_id="+useCase_id,"新增任务下的产品组",800,450);
 	 $("#tb").css("display","none");
 }
 
-
-function saveMethod(){
-	if(!checkSubject()){
-		return false;
-	}//用例信息验证
-	if(!checkStepOne()){
-		return false;
-	}//验证话单信息
-	if(!checkStepTwo()){
-		return false;
-	}//初始化免费资源
-	if(!checkUCExpect()){
-		return false;
-	}
-	if(!checkUCExpAmount()){
-		return false;
-	}
-	if(!checkUCExpDetail()){
-		return false;
-	}
-	if($("#resourceJson").val()){
-		var resourceJson = JSON.parse($("#resourceJson").val());
-		resourceJson.proAway = parseInt(resourceJson.proAway);
-		resourceJson.pro = [];
-		var pronArr = [];
-		var sel = document.getElementsByClassName("sel");
-		for(var i = 0; i<sel.length;i++){
-			var params = {proName :"",val:"",proAway:proAways,type:"",status:1,productName:""};
-			resourceJson.pro.push(params);
-		}
-		 $(".selVal>td>span .combo-value").each(function(index){
-			 resourceJson.pro[index].proName =$(this).val();
-			 pronArr.push($(this).val());
-			  });
-		 $("input[name='txtProInitVal']").each(function(index){
-			 resourceJson.pro[index].val = parseInt($(this).val());
-			  });
-		 $("select[name='setAssg'] option:selected").each(function(index){
-			 resourceJson.pro[index].type = parseInt($(this).val())
-		 })
-		 $(".selVal").each(function(index,o){
-			 resourceJson.pro[index].productName = $(o).find(".combo-text").combobox("getText");
-		 })
-		 var a = pron;  
-	     var b = pronArr;  
-	     var tmp = a.concat(b);  
-	     var o = {};  
-	     for (var i = 0; i < tmp.length; i ++) (tmp[i] in o) ? o[tmp[i]] ++ : o[tmp[i]] = 1;  
-	     for (x in o) if (o[x] == 1) resourceJson.pro.push({proName:x,val:0,proAway:proAways,type:0,status:0});  
-		 if($("#productId").val()==""){
-			 $("#productId").val(resourceJson.pro[0].proName);
-		 }
-		 $("#resourceJson").val(JSON.stringify(resourceJson));
-	}
-	$("#addOrUpateForm").submit();
-}
 
 /**
  * 下一步验证，
@@ -751,9 +739,10 @@ function checkStepOne(){
 		var hides = $(o).attr('hide');//  新增项  是否隐藏
 		var defaults = $(o).attr('default');//  新增项 默认值
 		var explain =$(o).attr('explain');
+		var ss = $(o).attr('sTime');
 		var scripturl =$(o).attr('scripturl');
 		var range =$(o).attr('range');
-		if(choiceaway==12){
+		if(choiceaway=="12"){
 			var sTime =$(o).find("select[name='sTime']").val();
 			if(sTime!=undefined){
 				if(isNull(sTime) || sTime==-1){
@@ -785,8 +774,8 @@ function checkStepOne(){
 					json+=',';
 				}
 			}
-						
-		}else{
+		}
+		else{
 			var fn = $(o).find("input[name='fieldName']").val();
 			if(hides=="是"){
 				var fn = $(o).find("input[name='fieldName']").val()
@@ -880,6 +869,7 @@ function checkStepTwo(){
 			 return false;
 		}
 	}
+	//初始化免费资源
 	var item = $('#sProAway').val();
 	if(item==1){
 		var flg=false;
@@ -957,7 +947,7 @@ function checkStepTwo(){
 function checkUCExpect(){	
 	var f = true;
 	var json ='{"uCExpect":[';
-	$("#stepThree tr[class='uCExpect']").each(function(i,o){	
+	$("#stepThree tr[class='uCExpect']").each(function(i,o){
 		var v = trans($(o).find('input[type="number"]').val());//本月预期值
 		var name = trans($(o).find('td').eq(0).html());
 		var type = trans($(o).find('td').eq(2).html());
@@ -979,7 +969,8 @@ function checkUCExpect(){
 			var initVal = trans($(o).find('td').eq(3).html());//初始值
 			initVal=parseFloat(initVal);
 		}
-		if(isNull(v) || !v){
+		
+		if(isNull(v)){
 			f=false;
 			return false;
 		}
@@ -1007,7 +998,6 @@ function checkUCExpect(){
 	}
 	json +=']}';
 	$("#expectJson").val(json);
-	
 	return true;
 }
 
@@ -1262,6 +1252,7 @@ function loadTemplates(){
 		}
 	})
 }
+
 /**
  * 加载选择模版
  */
@@ -1270,7 +1261,16 @@ function configResultTemplate(){
 	$("#tbResultTemplate").html('');
 	$("#expDetail").html('');
 	$("#expectedResultTemp").text($("#resultName").val())
-	$("#spResultName").html("已选择预设结果模版："+$("#resultName").val()).show();
+	var templateType=$("#templateType").val();
+	if(templateType=='1'){
+		
+		$("#spResultName").html("已选择预设结果模版："+"语音详单").show();
+	}
+	if(templateType=='2'){
+		
+		$("#spResultName").html("已选择预设结果模版："+"流量详单").show();
+	}
+	
 	$("#spResultName").css("display","none");
 	var json = JSON.parse($("#resultAttrJson").val());
 	var data = json.templateAttribute;
@@ -1364,7 +1364,7 @@ function addProduct(){
 	var h;
 	var ind=$('#sProAway').val();
 	if(ind==1){
-		h+='<tr class="trHMs selVal" id='+trHMmax+'><td><select id="txtProIdInit'+trHMmax+'" name="txtProIdInit" class="combo-text validatebox-text" style="width:120px;"></select></td><td><input type="type" id="txtProInitVal" name="txtProInitVal" value="" style="width: 160px"></td><td><select name="setAssg" class="sel"><option value="0" selected>本月套餐</option><option value="1">上月结转</option><option value="2">套内与结转</option></select></td><td><span class="add1 delete"><a onclick="removeHM('+trHMmax+')"><i></i>删除</a></span></td></tr>';
+		h+='<tr class="trHMs selVal" id='+trHMmax+'><td><select id="txtProIdInit'+trHMmax+'" name="txtProIdInit" class="combo-text validatebox-text checkVal" style="width:120px;"></select></td><td><input type="number" id="txtProInitVal'+trHMmax+'" name="txtProInitVal" value="" class="txtVal" style="width: 160px"></td><td><select name="setAssg" class="sel"><option value="0" selected>本月套餐</option><option value="1">上月结转</option><option value="2">套内与结转</option></select></td><td><span class="add1 delete"><a onclick="removeHM('+trHMmax+')"><i></i>删除</a></span></td></tr>';
 		$('#explorer').append(h);
 	}else if(ind==2){
 		$.messager.alert('温馨提示','已无更多产品','',function(){});
@@ -1418,7 +1418,7 @@ function loadExpAmount(){
 		var h='<thead><tr>';
 		h+='<th width="180" style="text-align: left;">累积量</th>';
 		h+='<th width="180" style="text-align: left;">初始值</th>';
-		h+='<th width="180" style="text-align: left;">预期值</th>';
+		h+='<th width="180" style="text-align: left;"></th>';
 		h+='</tr></thead>';
 	    h+='<tr class="uCExpAmount"><td width="180" style="text-align: left;">'+$("#totalAccumulate").attr('data')+'</td>';
 		h+='<td width="180" style="text-align: left;">'+$("#totalAccumulate").val()+'</td>';
@@ -1462,15 +1462,15 @@ function loadExpect(){
 	if(lateType==1){
 		u = "分钟";
 	}else if(lateType==2||lateType==4){
-		u ="M";
+		u ="M"
 	}else if(lateType==3){
-		u ="条";
+		u ="条"
 	}else if(lateType==0){
-		u = "";
+		u =""
 	}
 	//拼接初始化资源填写内容JSON
 	var json ='{"proAway":"'+sProAway+'","pro":';//{"pro":[{"proAway":"1","proName":"流量","type":"上月结转","val":"123"},{"proName":"流量","type":"上月结转","val":"123"}]}
-	var h='<thead><tr><th  width="180" class="head" style="text-align: center;">产品ID</th><th  width="180" style="text-align: center;">号码</th><th  width="180" style="text-align: center;">资源类型</th>';
+	var h='<thead><tr><th  width="180" style="text-align: center;" class="head">产品</th><th  width="180" style="text-align: center;">号码</th><th  width="180" style="text-align: center;">资源类型</th>';
 	//拼接为HTML
 	h+='<th  width="180" style="text-align: left;">初始值</th><th  width="180" style="text-align: left;">预期值</th></tr></thead>'
 		if(sProAway==1){
@@ -1559,7 +1559,7 @@ function updateInit(){
 	accumulateJsonInit();// 修改时初始化累积量赋值，累积量非必填因此可能为空需要做验证
 	resourceJsonInit();//修改时加载 初始化免费资源赋值
 	expDetailJsonInit();//修改时加载详单预期结果赋值
-	//expectJsonInit();//修改时加载免费资源预期结果
+	expectJsonInit();//修改时加载免费资源预期结果
 	
 }
 
@@ -1666,7 +1666,7 @@ function resourceJsonInit(){
 					 trHMmax++;
 					 var h='';
 					 h+='<tr class="trHMs selVal" id="'+i+'">';
-						h+='<td><select id="txtProIdInit'+i+'" name="txtProIdInit" class="combo-text validatebox-text" style="width:120px;"></select>'//proName
+						h+='<td><select id="txtProIdInit'+i+'" name="txtProIdInit" class="combo-text validatebox-text checkVal" style="width:120px;"></select>'//proName
 						h+='</td><td style="text-align: right">初始值：</td>'
 						h+='<td><input type="number" min="0" id="txtProInitVal" name="txtProInitVal"class="easyui-validatebox" style="width: 160px" maxlength="100" value="'+val+'"/>'
 
@@ -1684,7 +1684,7 @@ function resourceJsonInit(){
 								h+='<td><a class="easyui-linkbutton 1-btn" onclick="removeHM('+i+')">删除</a></td>'
 							}
 							h+='</tr>'
-							$('#explorer tbody').append(h)
+							$('#explorer tbody').append(h);
 				 }
 				 
 		 })
@@ -1814,7 +1814,7 @@ function billTemplateInit(){
 			 hide+'" explain="'+explain+'" default="'+defaults+'"><th>'+explain+'：</th><td colspan="6">';
 			 if(choiceAway==12){
 				 var sTime= v.sTime;
-				 h+='<select name="sTime" id="sTime" choiceAway="'+choiceAway+'"  onchange="setSTime(this)" style="width: 120px;height: 24px;">'
+				 h+='<select name="sTime" value="'+sTime+'" id="sTime" choiceAway="'+choiceAway+'"  onchange="setSTime(this)" style="width: 120px;height: 24px;">'
 					 h+='<option value="-1">--时间选取方式--</option>';
 					 if(val==1){
 						 h+='<option value="1" selected>填写</option>'; 
@@ -1840,7 +1840,7 @@ function billTemplateInit(){
 		 hide+'" explain="'+explain+'" default="'+defaults+'"><th><font color="red">*</font>'+explain+'：</th><td colspan="6">';
 		 if(choiceAway==12){
 			 var sTime= v.sTime;
-			 h+='<select name="sTime" id="sTime" choiceAway="'+choiceAway+'"  onchange="setSTime(this)" style="width: 120px;height: 24px;">'
+			 h+='<select name="sTime" id="sTime" value="'+sTime+'" choiceAway="'+choiceAway+'"  onchange="setSTime(this)" style="width: 120px;height: 24px;">'
 				 h+='<option value="-1">--时间选取方式--</option>';
 				 if(val==1){
 					 h+='<option value="1" selected>填写</option>';
@@ -1918,6 +1918,7 @@ function copyMethod(){
 		return false;
 	}
 	$.messager.confirm('谨慎操作提示', '确认执行所选用例', function(r){
+		
 		if (r){			
 			$('#win').window('open');
 			$("#ylIds").val(ids);
@@ -1945,6 +1946,15 @@ function sureCopy(){
 	}
 }
 
+/*function closeWin(){
+	$('#win').window('close');
+	$("#tt").tree("reload");
+	$("#cpIds").val('');
+	$("#dg").datagrid("reload");
+	$("#dg").datagrid({pageNumber:1});
+	$('#dg').datagrid('clearSelections');
+}*/
+
 function ajaxRequestSuccessBackInvokeMethod(data) {
 	//$.messager.alert('操作提示','人员删除成功!');
 	$("#dg").datagrid("reload");
@@ -1961,70 +1971,64 @@ function delProductLis(){
 		$.messager.alert('温馨提示','请选择需要删除的记录','',function(){
 		});
 		return false;
+	}else{
+		$.messager.confirm('谨慎操作提示', '确认删除产品组?', function(r){
+			if (r){
+				ajaxRequest("userCaseTreeController/deleteProductGroupToTask", {id:id}); 
+				$('#tt').tree("reload");
+			}
+		});
 	}
-	$.messager.confirm('谨慎操作提示', '确认删除产品组?', function(r){
-		if (r){
-			ajaxRequest("userCaseTreeController/deleteProductGroupToTask", {id:id});
-			location.reload();
-			$('#tt').tree("reload"); 
-		}
-	});
 }
-
-//下拉选事件
-$(function(){
-	$("#productCombobox").combobox({ 
-		onSelect: function (record) {
-			var cpIds=$("#cpIds").val();
-			if(cpIds.length==0){
-				$("#cpIds").val(record.type_id);
-			}else{
-				cpIds+=","+record.type_id;
-				$("#cpIds").val(cpIds);
-			}
-		}, 
-		onUnselect:function(record){
-			var cpIds=$("#cpIds").val().split(",");
-			var type_id=record.type_id;
-			for(var i=0 ; i<cpIds.length-1; i++){
-				if(cpIds[i]==type_id) {
-					cpIds.splice(i,1);  
-		             i--;  
-				}
-			}
-			$("#cpIds").val(cpIds);
+function saveMethod(){
+	var billType=$('#billType').val();
+	var group_id=$('#group_id').val();
+	var id=$("#id").val();
+	if(!checkSubject()){
+		return false;
+	}//用例信息验证
+	if(!checkStepOne()){
+		return false;
+	}//验证话单信息
+	if(!checkStepTwo()){
+		return false;
+	}//初始化免费资源
+	if(!checkUCExpect()){
+		return false;
+	}
+	if(!checkUCExpAmount()){
+		return false;
+	}
+	if(!checkUCExpDetail()){
+		return false;
+	}
+	if($("#resourceJson").val()){
+		var resourceJson = JSON.parse($("#resourceJson").val());
+		resourceJson.proAway = parseInt(resourceJson.proAway);
+		resourceJson.pro = [];
+		var pronArr = [];
+		var sel = document.getElementsByClassName("sel");
+		for(var i = 0; i<sel.length;i++){
+			var params = {proName :"",val:"",proAway:proAways,type:"",status:1};
+			resourceJson.pro.push(params);
 		}
-	})  
-});
-function initProductCombobox(){
-	var task_id=$("#proID").val();
-	$.ajax({
-		url: 'userCaseTreeController/queryUsercaseTreeList?task_id='+task_id,
-		dataType: 'json',  
-		async: false,
-		mode: 'remote',
-		success: function (jsonstr) { 
-			var json=[];
-			for(var i=0 ; i<jsonstr.length; i++){
-				if(jsonstr[i].phone_number_str!=undefined){
-					json.push({  
-						'type_id': jsonstr[i].id,  
-						'type_name': jsonstr[i].productsMark,
-					});
-				}
-			}
-			json.unshift({  
-				'type_id': ' ',  
-				'type_name': ' ',
-			});//向json数组开头添加自定义数据 
-			$('#productCombobox').combobox({  
-				data: json,  
-				valueField: 'type_id',  
-				textField: 'type_name',  
-				onLoadSuccess: function () { //加载完成后,设置选中第一项  
-					var val = $(this).combobox('getData');  
-				}
-			});  
-		} 
-	});
+		 $(".selVal>td>span .combo-value").each(function(index){
+			 resourceJson.pro[index].proName =$(this).val();
+			 pronArr.push($(this).val());
+			  });
+		 $("input[name='txtProInitVal']").each(function(index){
+			 resourceJson.pro[index].val = parseInt($(this).val());
+			  });
+		 $("select[name='setAssg'] option:selected").each(function(index){
+			 resourceJson.pro[index].type = parseInt($(this).val())
+		 })
+		 var a = pron;  
+	     var b = pronArr;  
+	     var tmp = a.concat(b);  
+	     var o = {};  
+	     for (var i = 0; i < tmp.length; i ++) (tmp[i] in o) ? o[tmp[i]] ++ : o[tmp[i]] = 1;  
+	     for (x in o) if (o[x] == 1) resourceJson.pro.push({proName:x,val:0,proAway:proAways,type:0,status:0});
+		 $("#resourceJson").val(JSON.stringify(resourceJson));
+	}
+	$("#addOrUpateForm").submit();
 }

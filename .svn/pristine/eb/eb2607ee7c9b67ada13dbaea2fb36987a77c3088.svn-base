@@ -140,7 +140,6 @@ function executeCaseAll(){
 				},
 				error:function(){
 					$.messager.alert('温馨提示','批量执行用例不成功',function(){
-						console.log("123123");
 						$('#loading').css('display','none')
 						return false
 					});

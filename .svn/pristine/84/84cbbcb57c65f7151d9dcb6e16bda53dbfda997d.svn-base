@@ -87,9 +87,6 @@ function filedReset(){
 	</td>
 </tr>
 </table>
-<div id="loading" style="display:none;background:#fff url('images/image/load.jpg') no-repeat;background-position: center;width:100%;height:450px;position:absolute;top:0;">
-	<p style="position:absolute;top:80px;left:45%;font-size:1.4em;">用例执行中. . . </p>
-</div>
 <div id="vessel" title="进度条" style="display:none;width:100%;height:1200px;background:#fff;position:absolute;top:0;left:0">
 <div id="progress" title="进度条val" class="easyui-progressbar" style="width:600px;margin-top:180px;position:absolute;left:280px"></div>
 </div>

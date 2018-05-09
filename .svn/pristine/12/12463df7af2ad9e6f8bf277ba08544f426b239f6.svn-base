@@ -821,7 +821,6 @@ public class UseCaseController extends BaseController {
 					fileName);
 			return map;
 		}
-		
 		// 2 拆分获取id列表
 		String[] split = id.split(",");
 		ArrayList<Integer> ids = new ArrayList<Integer>();
@@ -908,126 +907,6 @@ public class UseCaseController extends BaseController {
 		map.put("cannot", cannot);// 批量执行执行未完成的用例个数
 		return map;
 	}
-	
-	
-	/*
-	 * 批量任务导入
-	 */
-	@RequestMapping(value = "/executeCasesBill")
-	@ResponseBody
-	public Map<String, Object> executeCasesBill(HttpServletRequest request, String id) throws Exception {
-		// 1准备执行工具
-		Map<String, Object> map = new HashMap<String, Object>();
-		Operations operation = Operations.usecaseExecute;
-		SysUser sysUser = getSessionUser(request);
-		String fileName = DateUtil.getSdfTimes3();
-		UseCaseExecutorController useCaseExecutor = new UseCaseExecutorController(sysUser, operation, logUtils,
-				fileName, null);
-		logUtils.writeLog(useCaseExecutor.realPath, sysUser, "用例执行,请求执行开始,检测请求信息", operation.name(), fileName);
-		if (Convert.isEmpty(id)) {
-			map.put("type", "-1");
-			map.put("msg", "网络繁忙！请稍后再试！");
-			logUtils.writeLog(useCaseExecutor.realPath, sysUser, "用例执行,请求执行开始,检测请求信息,请求中没有指定用例id", operation.name(),
-					fileName);
-			return map;
-		}
-		
-		// 2 拆分获取id列表
-		String[] split = id.split(",");
-		ArrayList<Integer> ids = new ArrayList<Integer>();
-		// 3 遍历每一个id进行执行
-		Integer successRate = 0;
-		Integer failureRate = 0;
-		Integer cannot = 0;
-		for (String anId : split) {
-			try {
-				UseCase  useCase=new  UseCase();
-				useCase.setProID(Integer.parseInt(anId));
-				List<UseCase>  list=useCaseService.queryUseCaseListAll(useCase);
-				for(int i=0;i<list.size();i++){
-					
-					if (!list.get(i).getId().equals("")&&list.get(i).getId() !=null) { 
-						UseCase queryUseCaseById = useCaseService.queryUseCaseById(list.get(i).getId());
-						try {
-							if (queryUseCaseById == null) {
-								continue;
-							}
-							queryUseCaseById.setAbbreviation(sysUser.getSysProvince().getAbbreviation());
-							useCaseExecutor.execute(queryUseCaseById, taskProductGroupService, productGroupDetailsService);
-							/*************************************/
-							// Thread.sleep (2000);
-							// int uCItemNumber = queryUseCaseById.getExecuteNum();
-							// queryUseCaseById.setExecuteNum(uCItemNumber+1);
-							// boolean resultFlg[] = { true };//
-							// 用以统计是否通过，使用数组因为是对象，所以可以做到传参是是传址，该数组将只有一个元素
-							// int a=(int) (Math.random()*10);
-							// if(a>=7){
-							// resultFlg[0]=false;
-							// }
-							// byte[] resultDetail =
-							// queryUseCaseById.getuCExpDetail();
-							// byte[]
-							// resultResource=queryUseCaseById.getuCResource();
-							// byte[]
-							// resultTotal=queryUseCaseById.getuCAccumulate();
-							// ResultRecord record = new ResultRecord();
-							//
-							// record.setResultType(1);// 结果类型 1.项目执行结果
-							// 2.用例执行,执行用例结果
-							// record.setProID(queryUseCaseById.getProID());// 项目标识
-							// record.setuCID(queryUseCaseById.getId());
-							// record.setuCItemNumber(uCItemNumber+1);
-							// record.setProExecuteBatch(-1);
-							// record.setResultDetail(resultDetail);
-							// record.setResultResource(resultResource);
-							// record.setResultTotal(resultTotal);
-							// if (resultFlg[0]) {
-							// queryUseCaseById.setIsPass(18);// isPass（是否通过 17.待执行
-							// 18.是 19.否）
-							// record.setIsPass(0);// isPass 是否通过 0.是 1.否
-							// } else {
-							// queryUseCaseById.setIsPass(19);
-							// record.setIsPass(1);
-							// }
-							// record.setProductId(queryUseCaseById.getProductId());
-							// record.setuCUserID(queryUseCaseById.getuCUserID());
-							// record.setResultType(1);// 结果类型 1.项目执行结果 2.用例执行结果
-							// resultRecordService.saveResultRecord(record,
-							// queryUseCaseById);// 保存执行结果
-
-							/**************************************/
-						} catch (Exception e) {
-						}
-
-						UseCase queryUseCaseById2 = useCaseService.queryUseCaseById(list.get(i).getId());
-						if (queryUseCaseById2.getIsPass() != null & queryUseCaseById2.getIsPass() == 18) {
-							successRate++;
-						} else if (queryUseCaseById2.getIsPass() != null & queryUseCaseById2.getIsPass() == 19) {
-							failureRate++;
-						} else if (queryUseCaseById2.getIsPass() != null & queryUseCaseById2.getIsPass() == 21) {
-							cannot++;
-						}
-					} else {
-						continue;
-					}
-				}
-				
-			} catch (Exception e) {
-			}
-		}
-		if (failureRate > 0 || cannot > 0) {
-			map.put("status", 2);// 批量执行执行通过的用例个数
-		} else {
-			map.put("status", 1);// 批量执行执行通过的用例个数
-		}
-		map.put("successRate", successRate);// 批量执行执行通过的用例个数
-		map.put("failureRate", failureRate);// 批量执行执行未通过的用例个数
-		map.put("cannot", cannot);// 批量执行执行未完成的用例个数
-		return map;
-	}
-	
-	
-	
 
 	/**
 	 * 执行当前用例
