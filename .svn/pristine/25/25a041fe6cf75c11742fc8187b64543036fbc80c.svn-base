@@ -4,9 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -16,7 +14,6 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import org.apache.poi.hssf.usermodel.HSSFCell;
 import org.apache.poi.hssf.usermodel.HSSFRow;
@@ -185,6 +182,7 @@ public class UseCaseController extends BaseController {
 		}
 		return null;
 	}
+
 	/**
 	 * 查询项目用例列表
 	 * 
@@ -317,50 +315,7 @@ public class UseCaseController extends BaseController {
 			throw new RuntimeException(e.getMessage());
 		}
 	}
-	
-	/*
-	 * 
-	 * 用例备注页面
-	 */
-	
-	@RequestMapping("/useCaseRemark")
-	public String useCaseRemark(Integer id, HttpServletRequest request) {
-		UseCase u=new  UseCase();
-		try {
-			if (id != null && !"".equals(id)) {
-				 u = useCaseService.queryUseCaseById(id);
-			}
-			request.setAttribute("data", u);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		
-	return  "useCase/remarks";
-	}
-	
-	/*
-	 * 用例备注保存
-	 */
-	@RequestMapping("/useCaseRemarkSave")
-	@ResponseBody
-	public Map useCaseRemarkSave(UseCase c, HttpServletRequest request) {
-		Map  map=new HashMap();
-		
-		try {
-			if (c.getId() != null && !"".equals(c.getId())) {
-				useCaseService.updateUseCaseByRemark(c);
-				map.put("data","1");//1.成功 ,0.失败
-			}
-		
-		} catch (Exception e) {
-			e.printStackTrace();
-			map.put("data","0");//1.成功 ,0.失败
-		}
-		
-	return  map;
-	}
-	
-	
+
 	/**
 	 * 新增项目用例初始化
 	 * 
@@ -1281,7 +1236,7 @@ public class UseCaseController extends BaseController {
 	 */
 	public String resultDetail(UseCase useCase, Map<String, Map<String, String>> map, boolean[] resultFlg,
 			HttpServletRequest request) throws Exception {
-		String resultDetail = new String(useCase.getuCExpDetail(), "GBK");// 获取用的免费资源预期
+		String resultDetail = new String(useCase.getuCExpDetail(), "utf-8");// 获取用的免费资源预期
 		JSONObject expDetailJson = JSONObject.fromObject(resultDetail);
 		JSONArray expDetailJsonArray = expDetailJson.getJSONArray("expDetailJson");
 		logUtils.writeLog(request, getSessionUser(request), "用例执行,比较详单预期与计算结果,预期:" + expDetailJson);
@@ -2012,7 +1967,7 @@ public class UseCaseController extends BaseController {
                    pgd.setBusiness_type(Integer.toString(rTemplate.getTemplateKind()));
                    List<ProductGroupDetails> pgd1= productGroupDetailsService.queryProductGroupDetails(pgd);
                   
-                   String groupProductJson = new String(pgd1.get(0).getProducts_json(),"GBK");
+                   String groupProductJson = new String(pgd1.get(0).getProducts_json(),"utf-8");
        			     JSONObject json=new  JSONObject();
        			  json=JSONObject.fromObject(groupProductJson);
        			  JSONArray parr = (JSONArray) json.get("table"+rTemplate.getTemplateKind());
@@ -2298,62 +2253,4 @@ public class UseCaseController extends BaseController {
 		int a = (int) (Math.random() * 10);
 		System.out.println(a);
 	}
-	
-	
-	/*
-	 * 用例执行结果导出功能
-	 * 
-	 */
-//	@RequestMapping("/downloadUseCaseDetail")
-//	@ResponseBody
-//	public Map<String, Object> downloadProvinceStatistic2Project(HttpServletRequest request,HttpServletResponse response,String proIds) throws Exception{
-//		 Map<String, Object> pageData = new HashMap<>();
-//		//下载相关代码：
-//		try {
-//			//后台业务层生成文件，返回文件的全路径文件名
-////			ArrayList<String> arrayList = getProvinceSpellList(request, provinceSpell);
-//			String fileName = statisticsService.getProvinceStatistic2Project(arrayList, getExelPath(request));
-//			//得到要下载的文件
-//			File localFile = new File(fileName);
-//			//截取文件名
-//			String realname = fileName.substring(fileName.lastIndexOf(File.separator)+1);
-//			// 设置响应头，控制浏览器下载该文件  
-//			response.setHeader("content-disposition", "attachment;filename=" + URLEncoder.encode(realname, "UTF-8"));  
-//			// 读取要下载的文件，保存到文件输入流  
-//			FileInputStream in = new FileInputStream(localFile);
-//			// 创建输出流  
-//			OutputStream out = response.getOutputStream(); 
-//			// 创建缓冲区  
-//			byte buffer[] = new byte[1024];
-//			// 循环将输入流中的内容读取到缓冲区当中  
-//			int len = 0; 
-//			while ((len = in.read(buffer)) > 0) {  
-//				// 输出缓冲区的内容到浏览器，实现文件下载  
-//				out.write(buffer, 0, len);  
-//			}  
-//			// 关闭文件输入流  
-//			in.close();  
-//			// 关闭输出流  
-//			out.close(); 
-//			pageData.put("sucess", true);
-//		} catch (Exception e) {
-//			pageData.put("sucess", false);
-//			e.printStackTrace();
-//		}
-//		return pageData;
-//	}	
-	
-	/**
-	 * 获取Excel文件存放目录
-	 * @param request
-	 * @return
-	 */
-	private String getExelPath(HttpServletRequest request) {
-		String realPath = request.getSession().getServletContext().getRealPath("/");// 返回的是:E:\tomcat7\webapps\roamProject\
-		String realPath2 = realPath.substring(0, realPath.indexOf("webapps") - 1);// 返回的是:E:\tomcat7
-		String path = realPath2 + File.separator + "Excels" + File.separator + DateUtil.getDay() + File.separator
-				+ getSessionUser(request).getUser_code() + File.separator; // 设定文件保存的目录
-		return path;
-	}
-	
 }

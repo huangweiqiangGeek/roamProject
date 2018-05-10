@@ -445,16 +445,6 @@ WHERE
 		ID=#{id}
 	</update>
 
-  	<!-- 通过标识修改用例执行次数 -->
-	<update id="updateUseCaseByRemark"   parameterMap="baseParameterMap">
-		UPDATE
-		<include refid="tableName"></include>
-		SET
-		uCRemark=#{uCRemark}
-		WHERE
-		ID=#{id}
-	</update>
-
 	<!-- 通过标识修改用例状态 -->
 	<update id="updateUseCaseByStatus" parameterMap="baseParameterMap">
 		UPDATE

@@ -144,6 +144,62 @@
 		#{start,jdbcType=NUMERIC},#{rows,jdbcType=NUMERIC}
 	</select>
 
+
+
+	<!-- 查询用例列表 -->
+	<select id="queryUseCaseList1" parameterMap="baseParameterMap"
+		resultMap="baseResultMap">
+		SELECT 
+		use_case.id as id,proID,uCUserID,uCName,uCNumber,uCScene,uCTicket,uCAccumulate,uCResource,uCExpect,uCExpAmount,uCExpDetail,
+		isPass,executeNum,uCStauts,use_case.createTime as createTime,use_case.editTime as editTime,uCRemark,billName,resultName,comm_type.commTypeName
+		as statusName,p.commTypeName as passName,c.proType ,billType ,productId ,exceptionMessageByte,
+		exceptionStep,exceptionCauseByte,exceptionTrace,resultType,billStartTime,haveSource,billId FROM use_case
+		LEFT JOIN
+		comm_type
+		ON
+		use_case.uCStauts=comm_type.id
+		LEFT JOIN
+		comm_type as p
+		ON
+		use_case.isPass=p.id
+		LEFT JOIN project as c
+		on 
+		use_case.proID=c.id
+		where 1=1
+		<if test="proType !=-1 and proType !=null">
+			AND proType=#{proType,jdbcType=INTEGER}
+		</if>
+		<if test="proID !=-1 and proID !=null">
+			AND proID=#{proID,jdbcType=INTEGER}
+		</if>
+		<if test="uCUserID !='' and uCUserID !=null">
+			AND uCUserID=#{uCUserID,jdbcType=INTEGER}
+		</if>
+		<if test="uCStauts !=-1 and uCStauts !=null">
+			AND uCStauts=#{uCStauts,jdbcType=INTEGER}
+		</if>
+		<if test="isPass !=-1 and isPass !=null">
+			AND isPass=#{isPass,jdbcType=INTEGER}
+		</if>
+		<if test=" uCName !='' and uCName !=null">
+			AND uCName LIKE CONCAT(CONCAT('%', #{uCName,jdbcType=VARCHAR}),'%')
+		</if>
+		<if test=" uCNumber !='' and uCNumber !=null">
+			AND uCNumber LIKE CONCAT(CONCAT('%', #{uCNumber,jdbcType=VARCHAR}),'%')
+		</if>
+		<if test=" productId !=null and productId !=''">
+			AND productId=#{productId}
+		</if>
+		<if test=" task_group_id !=null and task_group_id !=''">
+			AND task_group_id=#{task_group_id}
+		</if>
+		<if test="billType !=-1 and billType !=null">
+			AND billType=#{billType}
+		</if>
+		ORDER BY createTime DESC
+	
+	</select>
+	
 	<!-- 查询用例所有列表 -->
 	<select id="queryUseCaseListAll" parameterMap="baseParameterMap"
 		resultMap="baseResultMap">
@@ -385,6 +441,16 @@ WHERE
 		billId=#{billId},
 		task_group_id=#{task_group_id},
 		copy_mark=#{copy_mark}
+		WHERE
+		ID=#{id}
+	</update>
+
+  	<!-- 通过标识修改用例执行次数 -->
+	<update id="updateUseCaseByRemark"   parameterMap="baseParameterMap">
+		UPDATE
+		<include refid="tableName"></include>
+		SET
+		uCRemark=#{uCRemark}
 		WHERE
 		ID=#{id}
 	</update>

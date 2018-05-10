@@ -1,0 +1,12 @@
+$(function(){
+	//获取用例id
+	var url = window.location.href.split("?");
+	var id = url[1].split("=")[1];
+	$("#useCase_id").val(id);
+})
+//保存、修改问题描述
+function saveMethod(){
+	console.log($("#useCase_id"));
+	window.parent.closeWin(true,"win_div_1");
+	$("#remarks").submit();
+}

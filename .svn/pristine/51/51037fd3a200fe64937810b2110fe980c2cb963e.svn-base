@@ -32,12 +32,7 @@ public interface UseCaseMapper {
 	 */
 	public List<UseCase> queryUseCaseList1(UseCase c);
 	
-	/*
-	 * 
-	 * 更新用例或保存用例
-	 */
 	
-	public void updateUseCaseByRemark(UseCase c);
 	/**
 	 * 查询用例所有列表
 	 * @return

@@ -8,7 +8,7 @@
 <html>
 <head>
 <base href="<%=basePath%>">
-<title>省用户统计管理</title>
+<title>admin重定向省统计</title>
 <link rel="stylesheet" type="text/css" href="framework/css/allStyle.css">
 <link rel="stylesheet" type="text/css" href="framework/jquery-easyui-1.3.2/themes/default/easyui.css">
 <link rel="stylesheet" type="text/css" href="framework/jquery-easyui-1.3.2/themes/icon.css">
@@ -20,7 +20,7 @@
 <script src="framework/echarts/echarts.js"></script>
 <link rel="stylesheet" type="text/css" href="framework/css/common.css">
 <script type="text/javascript" src="framework/js/common.js"></script>
-<script type="text/javascript" src="pages/statistics/js/super.js"></script>
+<script type="text/javascript" src="pages/statistics/js/province.js"></script>
 <style>
 	#pTestPassRate{
 		width:60%;
@@ -79,16 +79,16 @@
 	<div style="width:96%;overflow:auto;padding:0 20px 0 20px;">
 		<a class="btn handleBtn1" onClick="lookList()" style="margin-bottom:5px;">查看全部</a>
 		<a class="btn handleBtn1" onClick="downLoad()" style="margin-bottom:5px;">导出数据</a>
-		<table id="dg" class="easyui-datagrid" title="" data-options="url:'statisticsController/getAdminProvinceStatisticProject',toolbar:'#tb',rownumbers:true,singleSelect:true,idField:'id',autoRowHeight:false,pagination:true,pageSize:10">
+		<table id="dg" class="easyui-datagrid" title="" data-options="url:'statisticsController/getProvinceStatistic2Project',toolbar:'#tb',rownumbers:true,singleSelect:true,idField:'id',autoRowHeight:false,pagination:true,pageSize:10">
 			<thead>
 				<tr>
-					<th align="center" field="provinceName" width="290">省名称</th>
-					<th align="center" field="provinceUseCaseCount" width="105">用例总数</th>
-					<th align="center" field="provinceUseCasePassCount" width="105">通过用例</th>
-					<th align="center" field="provinceUseCaseFailedCount" width="105">不通过用例</th>
-					<th align="center" field="provinceUseCaseNodoCount" width="105">未测试用例</th>
-					<th align="center" field="provinceUseCaseDisableCount" width="105">未完成用例</th>
-					<th align="center" field="provinceUseCasePassRate" width="105">通过率</th>
+					<th align="center" field="projectName" width="290">任务名</th>
+					<th align="center" field="projectUseCaseCount" width="105">用例总数</th>
+					<th align="center" field="projectUseCasePassCount" width="105">通过用例</th>
+					<th align="center" field="projectUseCaseFailedCount" width="105">不通过用例</th>
+					<th align="center" field="projectUseCaseNodoCount" width="105">未测试用例</th>
+					<th align="center" field="projectUseCaseDisableCount" width="105">未完成用例</th>
+					<th align="center" field="projectUseCasePassRate" width="105">通过率</th>
 					<th align="center" data-options="field:'projectId',width:'100',formatter:formatOperate">操作</th>					
 				</tr>
 			</thead>

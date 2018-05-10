@@ -254,8 +254,5 @@ public class UseCaseService {
        public   UseCase  queryUseCaseHave(UseCase  c){
     	   return  mapper.queryUseCaseHave(c);
        }
-    
-       public void     updateUseCaseByRemark(UseCase  c){
-    	   mapper.   updateUseCaseByRemark(c);
-       }
+        
 }

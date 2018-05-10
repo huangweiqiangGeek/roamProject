@@ -18,7 +18,7 @@
 <script type="text/javascript" src="framework/jquery-easyui-1.3.2/locale/easyui-lang-zh_CN.js"></script>
 <script type="text/javascript" src="framework/jquery-easyui-1.3.2/plugins/jquery.tree.loader.js"></script>
 <script type="text/javascript" src="framework/js/common.js"></script>
-<script type="text/javascript" src="pages/useCase/js/remarks.js"></script>
+<script type="text/javascript" src="pages/productGroup/js/list.js"></script>
 <style type="text/css">
 	#aSave{
 		margin:0 30px;
@@ -26,23 +26,16 @@
 	.datagrid-cell-group{
 		text-align:left;
 	}
-	.remarks{
-		font-size:20px;
-	}
 </style>
 </head>
 <body marginheight="0" marginwidth="0" style="overflow: auto">
-<form action="useCase/useCaseRemarkSave" method="post" id="remarks">
-	<input type="hidden" name="id"  id="useCase_id" />
-	<textarea class="remarks" rows="10" cols="37" name="uCRemark">${data.uCRemark}</textarea>
+<input type="hidden" name="proID" id="proID" value="${task_id}" />
+<input type="hidden" name="useCase_id"  id="useCase_id"   value="${useCase_id}" />
+<form action="" method="post" id="remarks">
+	<textarea rows="20" cols="20" name="uCRemark"></textarea>
 </form>
 <div align="center" style="padding: 5px;">
 	<a id="aSave" onclick="saveMethod()" class="savebtn headerBtn" >保存</a>
 </div>
 </body>
-<script type="text/javascript">
-	$(function(){
-		
-	})
-</script>
 </html>

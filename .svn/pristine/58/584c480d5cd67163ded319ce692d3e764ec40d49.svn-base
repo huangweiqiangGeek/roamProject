@@ -147,27 +147,8 @@ public class StatisticsController extends BaseController{
 	}
 	
 	
-	/*
-	 * 
-	 * admin超级管理员查看全部图
-	 */
 	
-	@RequestMapping("/adminTaskList")
-	public String  adminTaskList(HttpServletRequest request){
-		request.setAttribute("provinceSpell", getSessionUser(request).getSysProvince().getProvinceSpell());
-		SysUser user = getSessionUser(request);
-			return "statistics/adminTaskList";
-	}
 	
-	/*
-	 * 
-	 * admin超级管理员查看当前省份的任务用例图
-	 */
-	@RequestMapping("/adminOfProvinceStatistic")
-	public String adminOfProvinceStatistic(HttpServletRequest request,String provinceSpell){
-		request.setAttribute("provinceSpell",provinceSpell);
-			return "statistics/provinceStatistic";
-	}
 	//关于省管理员统计分页
 	// 1. 省统计 以任务维度
 	
