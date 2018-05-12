@@ -181,12 +181,12 @@ function exportAll(){
 			form.submit();
 			console.log(params);
 			$.post(urlStr1,function(data){
-				//console.log(data)
-				//if(data.success=="true"){
+				console.log(data)
+				if(data.success=="true"){
 					$.messager.confirm('下载提示', '文件下载成功！', function(){});
-				/*}else{
+				}else{
 					$.messager.confirm('下载提示', '文件下载失败！', function(){})
-				}*/
+				}
 			})
 /*			$.ajax({
 				type:"POST",

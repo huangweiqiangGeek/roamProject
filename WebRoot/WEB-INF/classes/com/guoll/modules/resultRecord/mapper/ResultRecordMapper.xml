@@ -331,4 +331,23 @@
 				AND result_record.proExecuteBatch=#{resultRecord.proExecuteBatch,jdbcType=INTEGER}
 			</if>
 	</select>
+	
+	<!-- 查询当前该用例最新的执行结果 -->
+<select   id="queryResultOfUseCase"  parameterType="Integer"    resultMap="baseResultMap" >
+SELECT
+	b.*
+FROM
+	result_record b
+WHERE
+	b.uCID =#{uCID}
+AND b.executeTime = (
+	SELECT
+		Max(t.executeTime)
+	FROM
+		result_record t
+	WHERE
+		t.uCID =#{uCID}
+)
+	</select>
+	
 </mapper>

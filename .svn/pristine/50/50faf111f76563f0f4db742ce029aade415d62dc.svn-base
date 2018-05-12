@@ -180,15 +180,7 @@ function exportAll(){
 			$(document.body).append(form);
 			form.submit();
 			console.log(params);
-			$.post(urlStr1,function(data){
-				//console.log(data)
-				//if(data.success=="true"){
-					$.messager.confirm('下载提示', '文件下载成功！', function(){});
-				/*}else{
-					$.messager.confirm('下载提示', '文件下载失败！', function(){})
-				}*/
-			})
-/*			$.ajax({
+			$.ajax({
 				type:"POST",
 				url:urlStr1,
 				success:function(data){
@@ -199,7 +191,7 @@ function exportAll(){
 						return false
 					});
 				}
-			});*/
+			});
 		}
 	});
 }

@@ -160,7 +160,7 @@ public class ProductGroupController extends BaseController{
 		          String value = jsStr.getString(key);
 		          pgd.setGroup_id(productGroup.getId());
 		          pgd.setBusiness_type(key);
-		          pgd.setProducts_json(value.getBytes("utf-8"));
+		          pgd.setProducts_json(value.getBytes("GBK"));
 		          pgd.setBusiness_type_name(getBusinessTypeName(key));
 		          list.add(pgd);
 		   }

@@ -178,15 +178,15 @@ function exportAll(){
 			input.attr('value',"任务统计执行统计表");
 			form.append(input);
 			$(document.body).append(form);
-			form.submit();
+			//form.submit();
 			console.log(params);
 			$.post(urlStr1,function(data){
-				//console.log(data)
-				//if(data.success=="true"){
+				console.log(data)
+				if(data.success=="true"){
 					$.messager.confirm('下载提示', '文件下载成功！', function(){});
-				/*}else{
+				}else{
 					$.messager.confirm('下载提示', '文件下载失败！', function(){})
-				}*/
+				}
 			})
 /*			$.ajax({
 				type:"POST",

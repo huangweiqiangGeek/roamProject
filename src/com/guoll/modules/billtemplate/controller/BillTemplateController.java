@@ -651,7 +651,7 @@ public class BillTemplateController extends BaseController {
 	 */
 	@RequestMapping("/listInit")
 	public String listInit(HttpServletRequest request) throws UnsupportedEncodingException {
-		request.setCharacterEncoding("GBK");
+		request.setCharacterEncoding("utf-8");
 		SysUser sysUser = (SysUser) SessionUtils.getAttr(request, SessionUtils.SESSION_USER);
 		List<CommType> commTypes = new ArrayList<CommType>();
 		CommType c = new CommType();
@@ -697,7 +697,7 @@ public class BillTemplateController extends BaseController {
 	 */
 	@RequestMapping("/queryListInit")
 	public String queryListInit(HttpServletRequest request) throws UnsupportedEncodingException {
-		request.setCharacterEncoding("GBK");
+		request.setCharacterEncoding("utf-8");
 		SysUser sysUser = (SysUser) SessionUtils.getAttr(request, SessionUtils.SESSION_USER);
 		request.setAttribute("provinceName", sysUser.getPost_name());
 		return "useCase/bill_list";
@@ -715,7 +715,7 @@ public class BillTemplateController extends BaseController {
 			throws UnsupportedEncodingException {
 		billTemplate.setProvinceName(getProvinceName(request));
 		billTemplate.setPages();// 设置分页信息
-		request.setCharacterEncoding("GBK");
+		request.setCharacterEncoding("utf-8");
 		Map<String, Object> pageData = new HashMap<String, Object>();
 		List<BillTemplate> list = new ArrayList<BillTemplate>();
 		List<BillTemplate> tempList = new ArrayList<BillTemplate>();
@@ -738,7 +738,7 @@ public class BillTemplateController extends BaseController {
 	 */
 	@RequestMapping("/updateInit")
 	public String updateBillTemplate(Integer id, HttpServletRequest request) throws UnsupportedEncodingException {
-		request.setCharacterEncoding("GBK");
+		request.setCharacterEncoding("utf-8");
 		List<CommType> commTypes = new ArrayList<CommType>();
 		CommType c = new CommType();
 		c.setAffiliationType(1);
@@ -766,7 +766,7 @@ public class BillTemplateController extends BaseController {
 	 */
 	@RequestMapping("/addInit")
 	public String addBillTemplate(Integer org_id, HttpServletRequest request) throws UnsupportedEncodingException {
-		request.setCharacterEncoding("GBK");
+		request.setCharacterEncoding("utf-8");
 		SysUser sysUser = (SysUser) SessionUtils.getAttr(request, SessionUtils.SESSION_USER);
 		BillTemplate billTemplate = new BillTemplate();
 		billTemplate.setProvinceName(sysUser.getPost_name());
@@ -792,7 +792,7 @@ public class BillTemplateController extends BaseController {
 	@RequestMapping("/delete")
 	@ResponseBody
 	public void delete(BillTemplate b, HttpServletRequest request) throws UnsupportedEncodingException {
-		request.setCharacterEncoding("GBK");
+		request.setCharacterEncoding("utf-8");
 		billTemplateService.deleteBillTemplate(b);
 	}
 	
@@ -805,7 +805,7 @@ public class BillTemplateController extends BaseController {
 	public  Map<String,Object> deleteList(String ids, HttpServletRequest request) {
 		Map<String,Object>  map=new HashMap();
 		try {
-			request.setCharacterEncoding("GBK");
+			request.setCharacterEncoding("utf-8");
 			if(ids !=null&&!"".equals(ids)){
 				//取id数组,遍历
 				String[]  item=ids.split(",");

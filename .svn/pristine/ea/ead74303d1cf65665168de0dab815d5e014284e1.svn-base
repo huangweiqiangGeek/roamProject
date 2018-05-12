@@ -75,7 +75,7 @@
 	<input type="hidden" name="provinceSpell" id="provinceSpell" value="${provinceSpell}" />
 	<div id="pTestPassRate"></div>
 	<div class="canvas"><canvas id="pTestPassRate1" width="142" height="170"></canvas><div class='canvasTxt'>用例通过数</div></div>
-	<div class="canvas"><div id="pTestPassRate2"></div><div class='canvasTxt'>用例通过率</div></div>
+	<div class="canvas"><canvas id="pTestPassRate2" width="142" height="170"></canvas><div class='canvasTxt'>用例通过率</div></div>
 	<div class="canvas"><canvas id="pTestPassRate3" width="142" height="170"></canvas><div class='canvasTxt'>用例执行数</div></div>
 	<div style="width:96%;overflow:auto;padding:0 20px 0 20px;">
 		<a class="btn handleBtn1" onClick="lookList()" style="margin-bottom:5px;">查看全部</a>

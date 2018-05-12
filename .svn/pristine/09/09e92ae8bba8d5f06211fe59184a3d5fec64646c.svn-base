@@ -169,28 +169,10 @@ function exportAll(){
 	$.messager.confirm('谨慎操作提示', '确认导出所选任务', function(r){
 		if (r){
 			var params =ids;
-			var urlStr1="useCase/downloadUseCaseDetail?proIds="+params;
-			var form = $('<form></form>');
-			form.attr('style', 'display:none');
-			form.attr('method', 'post'); //form提交路径        
-			form.attr('action', urlStr1);
-			var input = $('<input type="text" name="params" id="params" />'); // 可以添加一些参数              
-			input.attr('value',"任务统计执行统计表");
-			form.append(input);
-			$(document.body).append(form);
-			form.submit();
 			console.log(params);
-			$.post(urlStr1,function(data){
-				//console.log(data)
-				//if(data.success=="true"){
-					$.messager.confirm('下载提示', '文件下载成功！', function(){});
-				/*}else{
-					$.messager.confirm('下载提示', '文件下载失败！', function(){})
-				}*/
-			})
-/*			$.ajax({
+			$.ajax({
 				type:"POST",
-				url:urlStr1,
+				url:"useCase/downloadUseCaseDetail?proIds="+params,
 				success:function(data){
 					console.log("成功",data);
 				},
@@ -199,7 +181,7 @@ function exportAll(){
 						return false
 					});
 				}
-			});*/
+			});
 		}
 	});
 }

@@ -184,9 +184,9 @@ function exportAll(){
 				//console.log(data)
 				//if(data.success=="true"){
 					$.messager.confirm('下载提示', '文件下载成功！', function(){});
-				/*}else{
-					$.messager.confirm('下载提示', '文件下载失败！', function(){})
-				}*/
+				//}else{
+				//	$.messager.confirm('下载提示', '文件下载失败！', function(){})
+				//}
 			})
 /*			$.ajax({
 				type:"POST",

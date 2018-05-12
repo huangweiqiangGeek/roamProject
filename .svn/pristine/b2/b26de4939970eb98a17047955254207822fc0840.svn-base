@@ -2304,46 +2304,47 @@ public class UseCaseController extends BaseController {
 	 * 用例执行结果导出功能
 	 * 
 	 */
-@RequestMapping("/downloadUseCaseDetail")
-@ResponseBody
-	public Map<String, Object> downloadProvinceStatistic2Project(HttpServletRequest request,HttpServletResponse response,String proIds) throws Exception{
-		 Map<String, Object> pageData = new HashMap<>();
-		//下载相关代码：
-		try {
-			//后台业务层生成文件，返回文件的全路径文件名
-//			ArrayList<String> arrayList = getProvinceSpellList(request, provinceSpell);
-			String fileName = useCaseService.getUseCaseOfProject(proIds, getExelPath(request));
-			//得到要下载的文件
-			File localFile = new File(fileName);
-			//截取文件名
-			String realname = fileName.substring(fileName.lastIndexOf(File.separator)+1);
-			// 设置响应头，控制浏览器下载该文件  
-			response.setHeader("content-disposition", "attachment;filename=" + URLEncoder.encode(realname, "UTF-8"));  
-			// 读取要下载的文件，保存到文件输入流  
-			FileInputStream in = new FileInputStream(localFile);
-			// 创建输出流  
-			OutputStream out = response.getOutputStream(); 
-			// 创建缓冲区  
-			byte buffer[] = new byte[1024];
-			// 循环将输入流中的内容读取到缓冲区当中  
-			int len = 0; 
-			while ((len = in.read(buffer)) > 0) {  
-				// 输出缓冲区的内容到浏览器，实现文件下载  
-				out.write(buffer, 0, len);  
-			}  
-			// 关闭文件输入流  
-			in.close();  
-			// 关闭输出流  
-			out.close(); 
-			pageData.put("sucess", true);
-		} catch (Exception e) {
-			pageData.put("sucess", false);
-			e.printStackTrace();
-		}
-		return pageData;
-	}	
-
-	/* * 获取Excel文件存放目录
+//	@RequestMapping("/downloadUseCaseDetail")
+//	@ResponseBody
+//	public Map<String, Object> downloadProvinceStatistic2Project(HttpServletRequest request,HttpServletResponse response,String proIds) throws Exception{
+//		 Map<String, Object> pageData = new HashMap<>();
+//		//下载相关代码：
+//		try {
+//			//后台业务层生成文件，返回文件的全路径文件名
+////			ArrayList<String> arrayList = getProvinceSpellList(request, provinceSpell);
+//			String fileName = statisticsService.getProvinceStatistic2Project(arrayList, getExelPath(request));
+//			//得到要下载的文件
+//			File localFile = new File(fileName);
+//			//截取文件名
+//			String realname = fileName.substring(fileName.lastIndexOf(File.separator)+1);
+//			// 设置响应头，控制浏览器下载该文件  
+//			response.setHeader("content-disposition", "attachment;filename=" + URLEncoder.encode(realname, "UTF-8"));  
+//			// 读取要下载的文件，保存到文件输入流  
+//			FileInputStream in = new FileInputStream(localFile);
+//			// 创建输出流  
+//			OutputStream out = response.getOutputStream(); 
+//			// 创建缓冲区  
+//			byte buffer[] = new byte[1024];
+//			// 循环将输入流中的内容读取到缓冲区当中  
+//			int len = 0; 
+//			while ((len = in.read(buffer)) > 0) {  
+//				// 输出缓冲区的内容到浏览器，实现文件下载  
+//				out.write(buffer, 0, len);  
+//			}  
+//			// 关闭文件输入流  
+//			in.close();  
+//			// 关闭输出流  
+//			out.close(); 
+//			pageData.put("sucess", true);
+//		} catch (Exception e) {
+//			pageData.put("sucess", false);
+//			e.printStackTrace();
+//		}
+//		return pageData;
+//	}	
+	
+	/**
+	 * 获取Excel文件存放目录
 	 * @param request
 	 * @return
 	 */

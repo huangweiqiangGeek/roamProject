@@ -58,7 +58,6 @@ function projectExecuteCase(id){
 	$.messager.confirm('谨慎操作提示', '确认当前任务进行执行吗?', function(r){
 		if (r){//true
 			//要求：确认执行后，展现等待效果，异步请求成功后展示执行结果（饼状图任务），执行结果可以从下方data中获取	
-			console.log(r,id);
 			gainNumber(id);
 			var params ={proID:id}
 			$.ajax({
@@ -113,6 +112,7 @@ function executeCaseAll(){
 				type:"POST",
 				url:"useCase/executeCasesBill?id="+params,
 				success:function(data){
+					console.log("123123");
 					$('#dg').datagrid('clearSelections'); 
 					if(data.type==-1){
 						$.messager.alert('温馨提示',data.msg,'',function(){
@@ -139,7 +139,6 @@ function executeCaseAll(){
 						}
 				},
 				error:function(){
-					$('#dg').datagrid('clearSelections'); 
 					$.messager.alert('温馨提示','批量执行用例不成功',function(){
 						console.log("123123");
 						$('#loading').css('display','none')
@@ -151,7 +150,7 @@ function executeCaseAll(){
 	});
 }
 //批量导出
-function exportAll(){
+function executeCaseAll(){
 	var ids='';
 	$("input[name='pId']").each(function(i,o){
 		if($(o).is(':checked')){
@@ -169,37 +168,19 @@ function exportAll(){
 	$.messager.confirm('谨慎操作提示', '确认导出所选任务', function(r){
 		if (r){
 			var params =ids;
-			var urlStr1="useCase/downloadUseCaseDetail?proIds="+params;
-			var form = $('<form></form>');
-			form.attr('style', 'display:none');
-			form.attr('method', 'post'); //form提交路径        
-			form.attr('action', urlStr1);
-			var input = $('<input type="text" name="params" id="params" />'); // 可以添加一些参数              
-			input.attr('value',"任务统计执行统计表");
-			form.append(input);
-			$(document.body).append(form);
-			form.submit();
 			console.log(params);
-			$.post(urlStr1,function(data){
-				//console.log(data)
-				//if(data.success=="true"){
-					$.messager.confirm('下载提示', '文件下载成功！', function(){});
-				/*}else{
-					$.messager.confirm('下载提示', '文件下载失败！', function(){})
-				}*/
-			})
-/*			$.ajax({
+			$.ajax({
 				type:"POST",
-				url:urlStr1,
+				url:"useCase/downloadUseCaseDetail?proIds="+params,
 				success:function(data){
-					console.log("成功",data);
+					console.log("成功");
 				},
 				error:function(){
 					$.messager.alert('温馨提示','批量导出任务不成功',function(){
 						return false
 					});
 				}
-			});*/
+			});
 		}
 	});
 }
@@ -211,10 +192,8 @@ var din;
 var clock
 function gainNumber(id){
 	if(!isNull(id)){
-		console.log(id);
 		$("#vessel").css('display','')
 		din="myInterval("+id+")";
-		console.log(din);
 		clock = setInterval(din,1500);
 	}else{
 		return false
@@ -222,14 +201,12 @@ function gainNumber(id){
 } 
 var xhr;
 function myInterval(id){
-	console.log(111111)
 		xhr=$.ajax({
 			type:"POST",
 			url:"project/projectExecuteCaseStatus",
 			dataType:"json",
 			data:"proID="+id,
 			success:function(data){
-				console.log("进度信息",data);
 				var sum=data.sum;
 				var now=data.now;
 				var stop=data.stop;
@@ -252,7 +229,6 @@ function onloadp(sum,now,stop){
 	var val=(now*10000)/(sum*10000);
 	val =val*100;
 	var num=now+1;
-	console.log(val);
 	$('#progress').progressbar({
 	   value:val,
 	    text:'正在执行第'+num+'条用例，共计'+sum+'条'

@@ -322,28 +322,25 @@ public String getUseCaseOfProject(String  proIds, String path) throws Exception 
 	Cell rw_row0_cszx = rw_row0.createCell(8);
 	rw_row0_cszx.setCellValue("测试执行结果(通过,不通,执行未完成)");
 	
-	Cell rw_row0_remark = rw_row0.createCell(9);
-	rw_row0_remark.setCellValue("用例执行结果备注");
-	
-	Cell rw_row0_mf_csz1 = rw_row0.createCell(10);
+	Cell rw_row0_mf_csz1 = rw_row0.createCell(9);
 	rw_row0_mf_csz1.setCellValue("免费资源1初始值");
 	
-	Cell rw_row0_mf_csz2 = rw_row0.createCell(11);
+	Cell rw_row0_mf_csz2 = rw_row0.createCell(10);
 	rw_row0_mf_csz2.setCellValue("免费资源2初始值");
 	
 	
-	Cell rw_row0_mf_yqz1 = rw_row0.createCell(12);
+	Cell rw_row0_mf_yqz1 = rw_row0.createCell(11);
 	rw_row0_mf_yqz1.setCellValue("免费资源1预期值");
 	
-	Cell rw_row0_mf_yqz2  = rw_row0.createCell(13);
+	Cell rw_row0_mf_yqz2  = rw_row0.createCell(12);
 	rw_row0_mf_yqz2.setCellValue("免费资源2预期值");
 	
 	
-	Cell rw_row0_mf_zxjg1 = rw_row0.createCell(14);
+	Cell rw_row0_mf_zxjg1 = rw_row0.createCell(13);
 	rw_row0_mf_zxjg1.setCellValue("免费资源1执行结果值");
 	
 	
-	Cell rw_row0_mf_zxjg2 = rw_row0.createCell(15);
+	Cell rw_row0_mf_zxjg2 = rw_row0.createCell(14);
 	rw_row0_mf_zxjg2.setCellValue("免费资源2执行结果值");
 	
 	//取详单模板的字段
@@ -357,10 +354,7 @@ public String getUseCaseOfProject(String  proIds, String path) throws Exception 
 			JSONObject  jb=(JSONObject) arr.get(k);
 			   String[] explains= jb.get("explain").toString().split(",");
 			 for(int j=0;j<explains.length;j++){
-				 rw_row0.createCell(16+j).setCellValue(explains[j]+"预期值"); 
-			 }
-			 for(int f=0;f<explains.length;f++){
-				 rw_row0.createCell(16+explains.length+f).setCellValue(explains[f]+"执行结果值") ;
+				 rw_row0.createCell(15+j).setCellValue(explains[j]+"预期值"); 
 			 }
 		//	   jb.get("fieldNames").toString();
 		}
@@ -393,19 +387,15 @@ public String getUseCaseOfProject(String  proIds, String path) throws Exception 
     				   List<Map>  list=new ArrayList<Map>();
     				   for(int j=0;j<uCResource_arr.size();j++){
     					   JSONObject  uCResource_jb=(JSONObject) uCResource_arr.get(j);
-    					   if(uCResource_jb.get("productName")!=null){
-    						   String productName= uCResource_jb.get("productName").toString();
-    	    					  if(productName.equals(uc.getProductId())){
-    	    						  String productid=uCResource_jb.get("proName").toString();
-    	    						  //产品1名称
-    	    						  rw_row.createCell(4).setCellValue(productid);
-    	    					  }
-    					   }else{
-    						   rw_row.createCell(4).setCellValue(uc.getProductId());
-    					   }
-    					
+    					  String productName= uCResource_jb.get("productName").toString();
+    					  
+    					  if(productName.equals(uc.getProductId())){
+    						  String productid=uCResource_jb.get("proName").toString();
+    						  //产品1名称
+    						  rw_row.createCell(3).setCellValue(productid);
+    					  }
     				   }
-    				   rw_row.createCell(3).setCellValue(""); 
+    				   rw_row.createCell(4).setCellValue(""); 
     				   rw_row.createCell(5).setCellValue(""); 
 			}
         
@@ -422,35 +412,26 @@ public String getUseCaseOfProject(String  proIds, String path) throws Exception 
 		    	 JSONObject  uCResource_jb=(JSONObject) uCResource_arr.get(j);
 		    	String status= uCResource_jb.get("status").toString();
 		    	if("1".equals(status)){
-		    		Map  map=new HashMap();
 		    		//产品名称
-		    		if(uCResource_jb.get("proName")!=null){
-			    		map.put(uCResource_jb.get("proName"),uCResource_jb.get("productName"));
-		    		}else{
-		    			map.put(uCResource_jb.get("proName"),"");
-		    		}
+		    		Map  map=new HashMap();
+		    		map.put(uCResource_jb.get("productName"), uCResource_jb.get("proName"));
 		    		list.add(map);
 		    	}
 		     }
 		     //只有一个免费资源
 		     if(list.size()==1){
 		    	 //产品名称
-		    	 
-		    	Object[]  productIds=list.get(0).keySet().toArray();
+		    	Object[] productNames= list.get(0).keySet().toArray();
 		    	 //产品ID
 		    	
-		    	Object[]  productNames=list.get(0).values().toArray();
+		    	Object[]   productIds=list.get(0).values().toArray();
 //		    		Cell rw_row_cn_pn1 = rw_row.createCell(2);
 //					rw_row_cn_pn1.setCellValue("产品名称1");
-		    	if(productNames[0] !=null&& !"".equals(productNames[0])){
-		    		 rw_row.createCell(2).setCellValue(productNames[0].toString());
-		    	}else{
-		    		 rw_row.createCell(2).setCellValue("");
-		    	}
+		    	 rw_row.createCell(2).setCellValue(productNames[0].toString());
 //		    	 Cell rw_row_cn_pid1 = rw_row.createCell(4);
 //					rw_row_cn_pid1.setCellValue("产品ID1");
-		   	 rw_row.createCell(4).setCellValue(productIds[0].toString());
-		    
+		    	 rw_row.createCell(4).setCellValue(productIds[0].toString());
+		    	 
 //		    		Cell rw_row_cn_pn2 = rw_row.createCell(3);
 //					rw_row_cn_pn2.setCellValue("产品名称2");
 		    	 rw_row.createCell(3).setCellValue("");
@@ -464,32 +445,22 @@ public String getUseCaseOfProject(String  proIds, String path) throws Exception 
           if(list.size()==2){
  	    	 //产品名称
         	  
- 		    	Object[] productNames1=list.get(0).values().toArray(); 
+ 		    	Object[] productNames1= list.get(0).keySet().toArray();
  		    	 //产品ID
- 		    	Object[] productIds1=list.get(0).keySet().toArray();
+ 		    	Object[] productIds1=list.get(0).values().toArray();
 // 		    		Cell rw_row_cn_pn1 = rw_row.createCell(2);
 // 					rw_row_cn_pn1.setCellValue("产品名称1");
- 		    	if(productNames1[0] !=null && !"".equals(productNames1[0])){
- 		    		 rw_row.createCell(2).setCellValue(productNames1[0].toString());
- 		    	}else{
- 		    		 rw_row.createCell(2).setCellValue("");
- 		    	}
- 		    
+ 		    	 rw_row.createCell(2).setCellValue(productNames1[0].toString());
 // 		    	 Cell rw_row_cn_pid1 = rw_row.createCell(4);
 // 					rw_row_cn_pid1.setCellValue("产品ID1");
  		    	 rw_row.createCell(4).setCellValue(productIds1[0].toString());
  		    	 
- 		    	Object[] productNames2= list.get(1).values().toArray();
+ 		    	Object[] productNames2= list.get(1).keySet().toArray();
 		    	 //产品ID
-		    	Object[] productIds2=list.get(1).keySet().toArray();
+		    	Object[] productIds2=list.get(1).values().toArray();
 // 		    		Cell rw_row_cn_pn2 = rw_row.createCell(3);
 // 					rw_row_cn_pn2.setCellValue("产品名称2");
-		    	
-		    	if(productNames2[0] !=null && !"".equals(productNames2[0])){
-		    		 rw_row.createCell(3).setCellValue(productNames2[0].toString());
-		    	}else{
-		    		 rw_row.createCell(3).setCellValue("");
-		    	}
+ 		    	 rw_row.createCell(3).setCellValue(productNames2[0].toString());
  		    	
 // 		    	 Cell rw_row_cn_pid2 = rw_row.createCell(5);
 // 					rw_row_cn_pid2.setCellValue("产品ID2");
@@ -530,16 +501,15 @@ public String getUseCaseOfProject(String  proIds, String path) throws Exception 
 				}else  if(uc.getIsPass()==21){
 					rw_row_cszx.setCellValue("执行未完成");
 				}
-				Cell rw_row_remark= rw_row.createCell(9);
-				rw_row_remark.setCellValue(uc.getuCRemark());
+				
 			//没有免费资源时
 	if(uc.getHaveSource()==0){
+				rw_row.createCell(9).setCellValue("");
 				rw_row.createCell(10).setCellValue("");
 				rw_row.createCell(11).setCellValue("");
 				rw_row.createCell(12).setCellValue("");
 				rw_row.createCell(13).setCellValue("");
 				rw_row.createCell(14).setCellValue("");
-				rw_row.createCell(15).setCellValue("");
 			}
 	
 			
@@ -559,13 +529,13 @@ public String getUseCaseOfProject(String  proIds, String path) throws Exception 
 			String  initVal=uCExpect_jb.get("initVal").toString();
 			String  val=uCExpect_jb.get("val").toString();
 			//rw_row_mf_csz1.setCellValue("免费资源1初始值");
-			rw_row.createCell(10+j).setCellValue(initVal);
+			rw_row.createCell(9+j).setCellValue(initVal);
 //			rw_row_mf_yqz1.setCellValue("免费资源1预期值");
-			rw_row.createCell(12+j).setCellValue(val);
+			rw_row.createCell(11+j).setCellValue(val);
 		}
-		rw_row.createCell(11).setCellValue("");
+		rw_row.createCell(10).setCellValue("");
 //		rw_row_mf_yqz1.setCellValue("免费资源1预期值");
-		rw_row.createCell(13).setCellValue("");
+		rw_row.createCell(12).setCellValue("");
 	}
 	
 	//只有两种免费资源时
@@ -575,9 +545,9 @@ public String getUseCaseOfProject(String  proIds, String path) throws Exception 
 			String  initVal=uCExpect_jb.get("initVal").toString();
 			String  val=uCExpect_jb.get("val").toString();
 			//rw_row_mf_csz1.setCellValue("免费资源1初始值");
-			rw_row.createCell(10+j).setCellValue(initVal);
+			rw_row.createCell(9+j).setCellValue(initVal);
 //			rw_row_mf_yqz1.setCellValue("免费资源1预期值");
-			rw_row.createCell(12+j).setCellValue(val);
+			rw_row.createCell(11+j).setCellValue(val);
 		}
 	}
 	
@@ -601,9 +571,9 @@ public String getUseCaseOfProject(String  proIds, String path) throws Exception 
 				for(int j=0;j<resultResource_arr.size();j++){
 					JSONObject resultResource_jb=(JSONObject)resultResource_arr.get(j);
 					String  realityVal=resultResource_jb.get("realityVal").toString();
-					 rw_row.createCell(14+j).setCellValue(realityVal);
+					 rw_row.createCell(13+j).setCellValue(realityVal);
 				}
-				 rw_row.createCell(15).setCellValue("");
+				 rw_row.createCell(14).setCellValue("");
 			}
 			
 			//有两种免费资源时
@@ -612,60 +582,15 @@ public String getUseCaseOfProject(String  proIds, String path) throws Exception 
 					JSONObject resultResource_jb=(JSONObject)resultResource_arr.get(j);
 					String  realityVal=resultResource_jb.get("realityVal").toString();
 					//rw_row_mf_zxjg1.setCellValue("免费资源1执行结果值");
-					 rw_row.createCell(14+j).setCellValue(realityVal);
+					 rw_row.createCell(13+j).setCellValue(realityVal);
 				}
 			}
 	}else{
+		rw_row.createCell(13).setCellValue("");
 		rw_row.createCell(14).setCellValue("");
-		rw_row.createCell(15).setCellValue("");
 	}
 			}
 	
-	
-	//取详单字段的预期值和执行结果值
-		
-		//1.取预期值
-		JSONObject uCExpDetail_js=new  JSONObject();
-		String  uCExpDetail=new String(uc.getuCExpDetail(),"GBK");
-		uCExpDetail_js=JSONObject.fromObject(uCExpDetail);
-			JSONArray  uCExpDetail_arr = (JSONArray) uCExpDetail_js.get("expDetailJson");
-			JSONArray  uCExpDetail_arrt=new  JSONArray();
-		   List list=new ArrayList();
-		   int count=0;    int  index=0;
-		    	for(int d=0;d<uCExpDetail_arr.size();d++){
-		    		JSONObject  uCExpDetail_jb=(JSONObject)uCExpDetail_arr.get(d);
-		    		//取fieldNames
-		    		String  fieldNames=uCExpDetail_jb.get("fieldNames").toString();
-		    		String[]  strr1=fieldNames.replaceAll("\\^",",").split(",");
-		    		count=strr1.length;    index=strr1.length;
-		    		for(int w=0;w<strr1.length;w++){
-		    			String[]  strr2=strr1[w].split("@");
-		    			rw_row.createCell(16+w).setCellValue(strr2[1]);
-		    		}
-		    	}
-		    
-		  //2.取执行结果值  	
-		    if(!"".equals(resultRecord)&&resultRecord !=null){ 
-		    	JSONObject resultDetail_js=new  JSONObject();
-				String  resultDetail=new String(resultRecord.getResultDetail(),"GBK");
-				resultDetail_js=JSONObject.fromObject(resultDetail);
-					JSONArray  resultDetail_arr = (JSONArray) resultDetail_js.get("expDetailJson");
-					JSONArray  resultDetail_arrt=new  JSONArray();
-					for(int g=0;g<resultDetail_arr.size();g++){
-						JSONObject  resultDetail_jb=(JSONObject)resultDetail_arr.get(g);
-						//取拼接的详单字段和值
-						String[]  strr1=resultDetail_jb.get("fieldNames").toString().replaceAll("\\^",",").split(",");
-						for(int s=0;s<strr1.length;s++){
-							String[]  sttr2=strr1[s].split("\\|");
-					rw_row.createCell(16+count+s).setCellValue(sttr2[1]);
-						}
-					}
-		    }else{
-		    	//没有执行用例时置零
-		    	for(int p=0;p<index;p++){
-		    		rw_row.createCell(16+count+p).setCellValue("");
-		    	}
-		    }	
 	
 	
 		

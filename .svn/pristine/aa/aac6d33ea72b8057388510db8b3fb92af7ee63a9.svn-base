@@ -195,12 +195,7 @@ public class StatisticsController extends BaseController{
 		Map<String, Object> map = new HashMap<>();
 		//获取单签用户的省份
 		SysUser sessionUser = getSessionUser(request);
-		if(!"".equals(provinceSpell)&&provinceSpell!=null){
-			
-		}else{
-			provinceSpell=sessionUser.getSysProvince().getProvinceSpell();
-		}
-		
+		provinceSpell=sessionUser.getSysProvince().getProvinceSpell();
 		try {
 			ArrayList<String> arrayList = getProvinceSpellList(request, provinceSpell);
 			List<Map<String, String>> countOfProvience = statisticsService.getProvinceStatistic2Project(arrayList);
@@ -230,11 +225,7 @@ public class StatisticsController extends BaseController{
 		Map<String, Object> map = new HashMap<>();
 		//获取单签用户的省份
 		SysUser sessionUser = getSessionUser(request);
-	if(!"".equals(provinceSpell)&&provinceSpell!=null){
-			
-		}else{
-			provinceSpell=sessionUser.getSysProvince().getProvinceSpell();
-		}
+		provinceSpell=sessionUser.getSysProvince().getProvinceSpell();
 		try {
 			ArrayList<String> arrayList = getProvinceSpellList(request, provinceSpell);
 			List<Map<String, String>> countOfProvience = statisticsService.getProvinceStatistic2Project(arrayList);
@@ -257,11 +248,7 @@ public class StatisticsController extends BaseController{
 		Map<String, Object> map = new HashMap<>();
 		//获取单签用户的省份
 		SysUser sessionUser = getSessionUser(request);
-	if(!"".equals(provinceSpell)&&provinceSpell!=null){
-			
-		}else{
-			provinceSpell=sessionUser.getSysProvince().getProvinceSpell();
-		}
+		provinceSpell=sessionUser.getSysProvince().getProvinceSpell();
 		try {
 			ArrayList<String> arrayList = getProvinceSpellList(request, provinceSpell);
 			List<Map<String, Object>> countOfProvience = statisticsService.getProvinceStatisticProjectCircle(arrayList);
@@ -297,11 +284,7 @@ public class StatisticsController extends BaseController{
 		Map<String,Object> map = new HashMap<>();
 		//获取单签用户的省份
 		SysUser sessionUser = getSessionUser(request);
-	if(!"".equals(provinceSpell)&&provinceSpell!=null){
-			
-		}else{
-			provinceSpell=sessionUser.getSysProvince().getProvinceSpell();
-		}
+		provinceSpell=sessionUser.getSysProvince().getProvinceSpell();
 //		Project  p=new Project();
 //		p.setProProvince(sessionUser.getPost_name());
 		try {

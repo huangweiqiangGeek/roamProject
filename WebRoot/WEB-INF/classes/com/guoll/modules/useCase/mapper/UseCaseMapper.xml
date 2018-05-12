@@ -378,7 +378,24 @@ WHERE
 		</foreach>
 		ORDER BY createTime DESC
 	</select>
-
+	
+	<!--查询所有标记任务下的用例列表  -->
+    	<select id="queryUseCaseListByProIDs" parameterType="String"
+		resultMap="baseResultMap">
+		SELECT 
+		<include refid="Field"></include>
+		 FROM 
+		<include refid="tableName"></include>
+	    WHERE 
+	    proID  IN
+	    <foreach item="item" index="index" collection="array" open="("
+			separator="," close=")">
+			#{item}
+		</foreach>
+		ORDER BY createTime DESC
+	</select>
+	
+	
 	<!-- 通过标识查询用例记录 -->
 	<select id="queryUseCaseById" parameterType="Integer" resultMap="baseResultMap">
 		SELECT
@@ -525,4 +542,22 @@ WHERE
 		SELECT f_auto_increment1(#{autokey}) FROM DUAL
 </select>
 
+<!-- 查询所有的导出用例模版-->
+<select id="queryUseCaseOfTemplates"   parameterType="String" resultMap="baseResultMap">
+SELECT
+	 b.proName AS proName,
+	d.`name` AS productName ,a.*
+FROM
+	use_case a
+INNER JOIN project b ON a.proID = b.id
+INNER JOIN task_product_group c ON a.task_group_id = c.ID
+INNER JOIN product_group d ON c.GROUP_ID = d.id
+WHERE
+	a.proID in
+	 <foreach item="item" index="index" collection="array" open="("
+			separator="," close=")">
+			#{item}
+	</foreach>
+ORDER BY  a.createTime DESC
+</select>
 </mapper>
