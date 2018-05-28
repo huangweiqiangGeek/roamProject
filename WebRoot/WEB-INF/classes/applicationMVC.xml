@@ -19,6 +19,14 @@
 	<mvc:annotation-driven />
 	
 	<mvc:interceptors>
+		<!-- csrf攻击防御 -->  
+    <mvc:interceptor>  
+        <!-- 需拦截的地址 -->  
+        <mvc:mapping path="/**" />  
+        <!-- 需排除拦截的地址 -->  
+        <mvc:exclude-mapping path="/resources/**" />  
+        <bean class="com.guoll.modules.framework.interceptor.CSRFInterceptor" />  
+    </mvc:interceptor> 
 		<bean class="com.guoll.modules.framework.interceptor.AuthInterceptor" />
 		<bean class="com.guoll.modules.framework.interceptor.ExceptionInterceptor" />
 	</mvc:interceptors>

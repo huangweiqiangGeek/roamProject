@@ -1,0 +1,708 @@
+package com.guoll.modules.useCase.service;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import javax.servlet.http.HttpServletRequest;
+
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
+
+import com.alibaba.fastjson.JSON;
+import com.guoll.modules.billtemplate.bean.BillTemplate;
+import com.guoll.modules.billtemplate.mapper.BillTemplateMapper;
+import com.guoll.modules.resultRecord.bean.ResultRecord;
+import com.guoll.modules.resultRecord.mapper.ResultRecordMapper;
+import com.guoll.modules.sysmanage.bean.SysUser;
+import com.guoll.modules.useCase.bean.UseCase;
+import com.guoll.modules.useCase.mapper.UseCaseMapper;
+
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
+import util.DateUtil;
+import util.fields.BillFieldForParseJson;
+import util.fields.BillTemplateAttribute;
+
+/**
+ * 用例
+ * 
+ * @author lukas 414024003@qq.com
+ * @version 1.0
+ */
+@Repository("useCaseService")
+public class UseCaseService {
+
+	@Autowired
+	private UseCaseMapper mapper;
+	@Autowired
+	private BillTemplateMapper billTemplateMapper;
+	@Autowired
+	private  ResultRecordMapper   resultRecordMapper;
+	/**
+	 * 查询用例总数量
+	 * 
+	 * @return
+	 */
+	public Integer queryUseCaseSum(UseCase c) {
+		return mapper.queryUseCaseSum(c);
+	}
+
+	/**
+	 * 查询用例列表
+	 * 
+	 * @return
+	 */
+	public List<UseCase> queryUseCaseList(UseCase c) {
+		return mapper.queryUseCaseList(c);
+	}
+
+	/**
+	 * 查询用例列表
+	 * 
+	 * @return
+	 */
+	public List<UseCase> queryUseCaseList1(UseCase c) {
+		return mapper.queryUseCaseList1(c);
+	}
+
+	/**
+	 * 查询所有用例列表
+	 * 
+	 * @return
+	 */
+	public List<UseCase> queryUseCaseListAll(UseCase c) {
+		return mapper.queryUseCaseListAll(c);
+	}
+
+	/**
+	 * 通过标识集合查询用例记录
+	 * 
+	 * @return
+	 */
+	public List<UseCase> queryUseCaseListByIds(String[] item) {
+		return mapper.queryUseCaseListByIds(item);
+	}
+
+	/**
+	 * 通过标识查询用例记录
+	 * 
+	 * @return
+	 * @throws Exception 
+	 */
+	public UseCase queryUseCaseById(Integer id) throws Exception {
+		return mapper.queryUseCaseById(id);
+	}
+
+	/**
+	 * 保存人员
+	 * 
+	 * @return
+	 * @throws Exception 
+	 */
+	public void saveUseCase(UseCase c) throws Exception {
+		if (c.getId() != null&&!"".equals(c.getId())) {
+			//查询就得用例以保留一些数据
+			UseCase oldCase = queryUseCaseById(c.getId());
+			c.setuCStauts(oldCase.getuCStauts());
+			mapper.updateUseCase(c);
+		} else {
+			c.setExecuteNum(0);
+			//主动生成用例编码
+			Integer ucNumber=mapper.getOverviewid(10);
+			c.setuCNumber(c.getAbbreviation()+"_"+ucNumber);// 用例编号);
+			mapper.addUseCase(c);
+		}
+	}
+
+	/**
+	 * 通过标识修改用例状态
+	 * 
+	 * @return
+	 */
+	public void updateUseCaseByStatus(UseCase c) {
+		mapper.updateUseCaseByStatus(c);
+	}
+
+	/**
+	 * 通过标识修改用例执行次数
+	 * 
+	 * @return
+	 */
+	public void updateUseCaseByCount(UseCase c) {
+		mapper.updateUseCaseByCount(c);
+	}
+
+	/**
+	 * 通过标识修改用例是否执行通过
+	 * 
+	 * @return
+	 */
+	public void updateUseCaseByPass(UseCase c) {
+		mapper.updateUseCaseByPass(c);
+	}
+
+	/**
+	 * 通过单个标识删除
+	 * 
+	 * @return
+	 */
+	public void deleteUseCase(UseCase c) {
+		mapper.deleteUseCase(c);
+	}
+
+	/**
+	 * 通过标识批量删除
+	 * 
+	 * @return
+	 */
+	public void deleteUseCaseAll(String[] item) {
+		mapper.deleteUseCaseAll(item);
+	}
+	
+	/*
+	 * 查询批次通过的用例
+	 */
+    public  Integer  queryLunOfUseCaseSum(UseCase c){
+    	return mapper.queryLunOfUseCaseSum(c);
+    };
+	
+	public void updateUseCaseWithBillTemplate(Integer id) throws Exception{
+		//查询用例和话单模板
+		UseCase useCase = mapper.queryUseCaseById(id);
+		BillTemplate billTemplate = billTemplateMapper.querySysBillTemplateById(useCase.getBillId());
+		mergerBillTemplateAttribute(useCase, billTemplate);
+	}
+	
+	
+	
+	/**
+	 * 同步话单模板和用例字段
+	 * @throws Exception 
+	 */
+	public void mergerBillTemplateAttribute(UseCase useCase,BillTemplate billTemplate) throws Exception{
+		//解析用例的话单字段
+		useCase.setTicketJson(new String(useCase.getuCTicket(), "GBK"));
+		String useCaseAttr = useCase.getTicketJson().substring(useCase.getTicketJson().indexOf("["), useCase.getTicketJson().lastIndexOf("]")+1);
+		List<BillFieldForParseJson> usecaseBillAttribute = JSON.parseArray(useCaseAttr, BillFieldForParseJson.class);
+		//解析更新记录的map的List
+		List<HashMap> mapListOfUpdateJson = JSON.parseArray(new String(billTemplate.getUpdateTrace(),"GBK"),HashMap.class);
+		// 遍历更新记录集合
+		for (int i = 0; i < mapListOfUpdateJson.size(); i++) {
+			Map map = mapListOfUpdateJson.get(i);
+			// 获取更新记录map集合
+			// json格式：[{"batch":"1","value":"[{\"choiceAway\":\"9\",\"default\":\"1-3\",\"explain\":\"1-4-5\",\"fieldName\":\"1\",\"hide\":\"是\",\"range\":\"1-1\",\"scriptUrl\":\"1-2\"}]"}]
+			//获取更新字段记录集合
+			String updateJSon = (String) map.get("value");
+			List<BillTemplateAttribute> updateList = JSON.parseArray(updateJSon, BillTemplateAttribute.class);
+			//遍历更新字段记录集合
+			for (BillTemplateAttribute updateFeld : updateList) {
+				//遍历用例话单字段集合
+				for (BillFieldForParseJson useCaseFeld : usecaseBillAttribute){
+					//对比字段英文名找出对应的
+					if(updateFeld.getFieldName().equals(useCaseFeld.getName())){
+						//更新值
+						useCaseFeld.setVal(updateFeld.getDefault());
+						if (updateFeld.getChoiceAway().equals("12")) {
+							useCaseFeld.setsTime(updateFeld.getDefault());
+						}
+					}
+				}
+			}
+		}
+		//转换成字符串保存
+		String jsonString = JSON.toJSONString(usecaseBillAttribute);
+		jsonString = "{\"stepOnes\":" + jsonString + "}";
+		useCase.setuCTicket(jsonString.getBytes());
+		mapper.updateUseCase(useCase);
+	}
+	
+	/**
+	 * 同步用例和模板
+	 * @param useCaseId
+	 * @throws Exception 
+	 */
+	public void updateUseCaseTemplate(Integer useCaseId) throws Exception {
+		UseCase useCase = mapper.queryUseCaseById(useCaseId);
+		BillTemplate billTemplate = billTemplateMapper.querySysBillTemplateById(useCase.getBillId());
+		mergerBillTemplateAttribute(useCase, billTemplate);
+	}
+	
+	/*
+	 * 通过id给task_group_id 赋值关联
+	 */
+   public  void  updateUseCaseById(UseCase  c){
+	   mapper.updateUseCaseById(c);
+   };
+   
+   /*
+    * 查询刚刚生成usecase的id
+    */
+      
+      public  UseCase  queryUseCase(UseCase  c){
+    	  return  mapper.queryUseCase(c);
+      };
+      
+      /*
+       * 查询任务下产品的用例
+       * 
+       */
+       public  List<UseCase>  projectOfUsecase(Integer  projectId){
+    	   return  mapper.projectOfUsecase(projectId);
+       };
+    
+       /*
+        * 主动生成产品Id
+        */
+      
+       public  Integer  getOverviewid(Integer id){
+         return  mapper.getOverviewid(id);   	   
+       };
+       
+       //编辑用例
+       public void  updateUseCase(UseCase  c){
+    	   mapper.updateUseCase(c);
+       }
+       
+       public   UseCase  queryUseCaseHave(UseCase  c){
+    	   return  mapper.queryUseCaseHave(c);
+       }
+    
+       public void     updateUseCaseByRemark(UseCase  c){
+    	   mapper.   updateUseCaseByRemark(c);
+       }
+      
+
+/**
+ * 精确到项目，获取省用例执行结果统计文件
+ */
+@SuppressWarnings({ "unused", "resource" })
+public String getUseCaseOfProject(String  proIds, String path) throws Exception {
+	//1查询数据
+	String[] pids=proIds.split(",");
+	List<UseCase> useCaseList=mapper.queryUseCaseOfTemplates(pids);
+	
+	//2创建工作空间
+	Workbook workbook = new HSSFWorkbook();
+	//3编写项目统计sheet
+	Sheet rw_sheet = workbook.createSheet("任务统计");
+	//4编写任务统计sheet
+	//4.1编写首行
+	int rowNo = 0;
+	Row rw_row0 = rw_sheet.createRow(rowNo++);
+	
+	Cell rw_row0_pn = rw_row0.createCell(0);
+	rw_row0_pn.setCellValue("任务名称");
+	
+	Cell rw_row0_cn = rw_row0.createCell(1);
+	rw_row0_cn.setCellValue("产品组名称");
+	
+	Cell rw_row0_cn_pn1 = rw_row0.createCell(2);
+	rw_row0_cn_pn1.setCellValue("产品名称1");
+	
+	
+	Cell rw_row0_cn_pn2 = rw_row0.createCell(3);
+	rw_row0_cn_pn2.setCellValue("产品名称2");
+	
+	Cell rw_row0_cn_pid1 = rw_row0.createCell(4);
+	rw_row0_cn_pid1.setCellValue("产品ID1");
+	
+	Cell rw_row0_cn_pid2 = rw_row0.createCell(5);
+	rw_row0_cn_pid2.setCellValue("产品ID2");
+	
+	Cell rw_row0_ph = rw_row0.createCell(6);
+	rw_row0_ph.setCellValue("手机号码");
+	
+	Cell rw_row0_cscq = rw_row0.createCell(7);
+	rw_row0_cscq.setCellValue("测试场景(用例名称)");
+	
+	Cell rw_row0_cszx = rw_row0.createCell(8);
+	rw_row0_cszx.setCellValue("测试执行结果(通过,不通,执行未完成)");
+	
+	Cell rw_row0_remark = rw_row0.createCell(9);
+	rw_row0_remark.setCellValue("用例执行结果备注");
+	
+	Cell rw_row0_mf_csz1 = rw_row0.createCell(10);
+	rw_row0_mf_csz1.setCellValue("免费资源1初始值");
+	
+	Cell rw_row0_mf_csz2 = rw_row0.createCell(11);
+	rw_row0_mf_csz2.setCellValue("免费资源2初始值");
+	
+	
+	Cell rw_row0_mf_yqz1 = rw_row0.createCell(12);
+	rw_row0_mf_yqz1.setCellValue("免费资源1预期值");
+	
+	Cell rw_row0_mf_yqz2  = rw_row0.createCell(13);
+	rw_row0_mf_yqz2.setCellValue("免费资源2预期值");
+	
+	
+	Cell rw_row0_mf_zxjg1 = rw_row0.createCell(14);
+	rw_row0_mf_zxjg1.setCellValue("免费资源1执行结果值");
+	
+	
+	Cell rw_row0_mf_zxjg2 = rw_row0.createCell(15);
+	rw_row0_mf_zxjg2.setCellValue("免费资源2执行结果值");
+	
+	//取详单模板的字段
+	JSONObject js=new  JSONObject();
+	String resultTemplate=new String(useCaseList.get(0).getuCExpDetail(),"GBK");
+	  js=JSONObject.fromObject(resultTemplate);
+		JSONArray arr = (JSONArray) js.get("expDetailJson");
+		JSONArray arrt=new  JSONArray();
+		
+		for(int k=0;k<arr.size();k++){
+			JSONObject  jb=(JSONObject) arr.get(k);
+			   String[] explains= jb.get("explain").toString().split(",");
+			 for(int j=0;j<explains.length;j++){
+				 rw_row0.createCell(16+j).setCellValue(explains[j]+"预期值"); 
+			 }
+			 for(int f=0;f<explains.length;f++){
+				 rw_row0.createCell(16+explains.length+f).setCellValue(explains[f]+"执行结果值") ;
+			 }
+		//	   jb.get("fieldNames").toString();
+		}
+	//4.2遍历countOfProvience.获取每一省份数据
+	for(int i = 0;i < useCaseList.size();i ++ ) {
+		UseCase uc= useCaseList.get(i);
+		
+		ResultRecord  resultRecord=resultRecordMapper.queryResultOfUseCase(uc.getId());
+			// 4.4将项目数据写到表格
+			Row rw_row = rw_sheet.createRow(rowNo++);
+			
+			Cell rw_row_pn = rw_row.createCell(0);
+			rw_row_pn.setCellValue("任务名称");
+			rw_row_pn.setCellValue(uc.getProName());
+			
+			Cell rw_row_cn = rw_row.createCell(1);
+			rw_row_cn.setCellValue("产品组名称");
+			rw_row_cn.setCellValue(uc.getProductName());
+			
+			//没有免费资源时
+        if(uc.getHaveSource()==0){
+        	//创建产品ID
+        	 rw_row.createCell(2).setCellValue(uc.getProductId());
+        	
+        			JSONObject uCResource_js=new  JSONObject();
+    				String  uCResource=new String(uc.getuCResource(),"GBK");
+    				uCResource_js=JSONObject.fromObject(uCResource);
+    					JSONArray  uCResource_arr = (JSONArray) uCResource_js.get("pro");
+    					JSONArray  uCResource_arrt=new  JSONArray();
+    				   List<Map>  list=new ArrayList<Map>();
+    				   for(int j=0;j<uCResource_arr.size();j++){
+    					   JSONObject  uCResource_jb=(JSONObject) uCResource_arr.get(j);
+    					   if(uCResource_jb.get("productName")!=null){
+    						   String productName= uCResource_jb.get("productName").toString();
+    	    					  if(productName.equals(uc.getProductId())){
+    	    						  String productid=uCResource_jb.get("proName").toString();
+    	    						  //产品1名称
+    	    						  rw_row.createCell(4).setCellValue(productid);
+    	    					  }
+    					   }else{
+    						   rw_row.createCell(4).setCellValue(uc.getProductId());
+    					   }
+    					
+    				   }
+    				   rw_row.createCell(3).setCellValue(""); 
+    				   rw_row.createCell(5).setCellValue(""); 
+			}
+        
+			//有免费资源时
+			if(uc.getHaveSource()==1){
+				JSONObject uCResource_js=new  JSONObject();
+				String  uCResource=new String(uc.getuCResource(),"GBK");
+				uCResource_js=JSONObject.fromObject(uCResource);
+					JSONArray  uCResource_arr = (JSONArray) uCResource_js.get("pro");
+					JSONArray  uCResource_arrt=new  JSONArray();
+				   List<Map>  list=new ArrayList<Map>();
+				 
+		     for(int j=0;j<uCResource_arr.size();j++){
+		    	 JSONObject  uCResource_jb=(JSONObject) uCResource_arr.get(j);
+		    	String status= uCResource_jb.get("status").toString();
+		    	if("1".equals(status)){
+		    		Map  map=new HashMap();
+		    		//产品名称
+		    		if(uCResource_jb.get("proName")!=null){
+			    		map.put(uCResource_jb.get("proName"),uCResource_jb.get("productName"));
+		    		}else{
+		    			map.put(uCResource_jb.get("proName"),"");
+		    		}
+		    		list.add(map);
+		    	}
+		     }
+		     //只有一个免费资源
+		     if(list.size()==1){
+		    	 //产品名称
+		    	 
+		    	Object[]  productIds=list.get(0).keySet().toArray();
+		    	 //产品ID
+		    	
+		    	Object[]  productNames=list.get(0).values().toArray();
+//		    		Cell rw_row_cn_pn1 = rw_row.createCell(2);
+//					rw_row_cn_pn1.setCellValue("产品名称1");
+		    	if(productNames[0] !=null&& !"".equals(productNames[0])){
+		    		 rw_row.createCell(2).setCellValue(productNames[0].toString());
+		    	}else{
+		    		 rw_row.createCell(2).setCellValue("");
+		    	}
+//		    	 Cell rw_row_cn_pid1 = rw_row.createCell(4);
+//					rw_row_cn_pid1.setCellValue("产品ID1");
+		   	 rw_row.createCell(4).setCellValue(productIds[0].toString());
+		    
+//		    		Cell rw_row_cn_pn2 = rw_row.createCell(3);
+//					rw_row_cn_pn2.setCellValue("产品名称2");
+		    	 rw_row.createCell(3).setCellValue("");
+		    	
+//		    	 Cell rw_row_cn_pid2 = rw_row.createCell(5);
+//					rw_row_cn_pid2.setCellValue("产品ID2");
+		    	 rw_row.createCell(5).setCellValue("");
+		     }
+		     
+		     //有两个免费资源时
+          if(list.size()==2){
+ 	    	 //产品名称
+        	  
+ 		    	Object[] productNames1=list.get(0).values().toArray(); 
+ 		    	 //产品ID
+ 		    	Object[] productIds1=list.get(0).keySet().toArray();
+// 		    		Cell rw_row_cn_pn1 = rw_row.createCell(2);
+// 					rw_row_cn_pn1.setCellValue("产品名称1");
+ 		    	if(productNames1[0] !=null && !"".equals(productNames1[0])){
+ 		    		 rw_row.createCell(2).setCellValue(productNames1[0].toString());
+ 		    	}else{
+ 		    		 rw_row.createCell(2).setCellValue("");
+ 		    	}
+ 		    
+// 		    	 Cell rw_row_cn_pid1 = rw_row.createCell(4);
+// 					rw_row_cn_pid1.setCellValue("产品ID1");
+ 		    	 rw_row.createCell(4).setCellValue(productIds1[0].toString());
+ 		    	 
+ 		    	Object[] productNames2= list.get(1).values().toArray();
+		    	 //产品ID
+		    	Object[] productIds2=list.get(1).keySet().toArray();
+// 		    		Cell rw_row_cn_pn2 = rw_row.createCell(3);
+// 					rw_row_cn_pn2.setCellValue("产品名称2");
+		    	
+		    	if(productNames2[0] !=null && !"".equals(productNames2[0])){
+		    		 rw_row.createCell(3).setCellValue(productNames2[0].toString());
+		    	}else{
+		    		 rw_row.createCell(3).setCellValue("");
+		    	}
+ 		    	
+// 		    	 Cell rw_row_cn_pid2 = rw_row.createCell(5);
+// 					rw_row_cn_pid2.setCellValue("产品ID2");
+ 		    	 rw_row.createCell(5).setCellValue(productIds2[0].toString());
+		     }
+			}
+			
+//			Cell rw_row_cn_pn1 = rw_row.createCell(2);
+//			rw_row_cn_pn1.setCellValue("产品名称1");
+//			rw_row_cn_pn1.setCellValue("产品名称1");
+//			
+//			Cell rw_row_cn_pn2 = rw_row.createCell(3);
+//			rw_row_cn_pn2.setCellValue("产品名称2");
+//			
+//			Cell rw_row_cn_pid1 = rw_row.createCell(4);
+//			rw_row_cn_pid1.setCellValue("产品ID1");
+//			
+//			Cell rw_row_cn_pid2 = rw_row.createCell(5);
+//			rw_row_cn_pid2.setCellValue("产品ID2");
+			
+			Cell rw_row_ph = rw_row.createCell(6);
+			rw_row_ph.setCellValue("手机号码");
+			rw_row_ph.setCellValue(uc.getuCUserID());
+			
+			Cell rw_row_cscq = rw_row.createCell(7);
+			rw_row_cscq.setCellValue("测试场景(用例名称)");
+			rw_row_cscq.setCellValue(uc.getuCName());
+			
+		//	 isPass（是否通过 17.待执行 18.是 19.否 21.执行未完成）
+			Cell rw_row_cszx= rw_row.createCell(8);
+			rw_row_cszx.setCellValue("测试执行结果(通过,不通,执行未完成)");
+				if(uc.getIsPass()==17){
+					rw_row_cszx.setCellValue("待执行");
+				}else if(uc.getIsPass()==18){
+					rw_row_cszx.setCellValue("通过");
+				}else if(uc.getIsPass()==19){
+					rw_row_cszx.setCellValue("未通过");
+				}else  if(uc.getIsPass()==21){
+					rw_row_cszx.setCellValue("执行未完成");
+				}
+				Cell rw_row_remark= rw_row.createCell(9);
+				rw_row_remark.setCellValue(uc.getuCRemark());
+			//没有免费资源时
+	if(uc.getHaveSource()==0){
+				rw_row.createCell(10).setCellValue("");
+				rw_row.createCell(11).setCellValue("");
+				rw_row.createCell(12).setCellValue("");
+				rw_row.createCell(13).setCellValue("");
+				rw_row.createCell(14).setCellValue("");
+				rw_row.createCell(15).setCellValue("");
+			}
+	
+			
+			//有免费资源时
+	if(uc.getHaveSource()==1){
+		//取免费资源初始值和预期值
+		JSONObject uCExpect_js=new  JSONObject();
+ String   uCExpect=new  String(uc.getuCExpect(),"GBK");
+ uCExpect_js=JSONObject.fromObject(uCExpect);
+	JSONArray  uCExpect_arr = (JSONArray) uCExpect_js.get("uCExpect");
+	JSONArray  uCExpect_arrt=new  JSONArray();
+	
+	//只有一种免费资源时
+	if(uCExpect_arr.size()==1){
+		for(int j=0;j<uCExpect_arr.size();j++){
+			JSONObject uCExpect_jb=(JSONObject) uCExpect_arr.get(j);
+			String  initVal=uCExpect_jb.get("initVal").toString();
+			String  val=uCExpect_jb.get("val").toString();
+			//rw_row_mf_csz1.setCellValue("免费资源1初始值");
+			rw_row.createCell(10+j).setCellValue(initVal);
+//			rw_row_mf_yqz1.setCellValue("免费资源1预期值");
+			rw_row.createCell(12+j).setCellValue(val);
+		}
+		rw_row.createCell(11).setCellValue("");
+//		rw_row_mf_yqz1.setCellValue("免费资源1预期值");
+		rw_row.createCell(13).setCellValue("");
+	}
+	
+	//只有两种免费资源时
+	if(uCExpect_arr.size()==2){
+		for(int j=0;j<uCExpect_arr.size();j++){
+			JSONObject uCExpect_jb=(JSONObject) uCExpect_arr.get(j);
+			String  initVal=uCExpect_jb.get("initVal").toString();
+			String  val=uCExpect_jb.get("val").toString();
+			//rw_row_mf_csz1.setCellValue("免费资源1初始值");
+			rw_row.createCell(10+j).setCellValue(initVal);
+//			rw_row_mf_yqz1.setCellValue("免费资源1预期值");
+			rw_row.createCell(12+j).setCellValue(val);
+		}
+	}
+	
+//	Cell rw_row_mf_csz1 = rw_row.createCell(9);
+//	rw_row_mf_csz1.setCellValue("免费资源1初始值");
+//	
+//	Cell rw_row_mf_yqz1 = rw_row.createCell(10);
+//	rw_row_mf_yqz1.setCellValue("免费资源1预期值");
+	
+	//取免费资源的执行结果实际值
+	if(!"".equals(resultRecord)&&resultRecord !=null){
+	
+		JSONObject resultResource_js=new  JSONObject();
+		 String   resultResource=new  String(resultRecord.getResultResource(),"GBK");
+		 resultResource_js=JSONObject.fromObject(resultResource);
+			JSONArray  resultResource_arr = (JSONArray) resultResource_js.get("uCExpect");
+			JSONArray  resultResource_arrt=new  JSONArray();
+			
+			//只有一种免费资源资源的时候
+			if(resultResource_arr.size()==1){
+				for(int j=0;j<resultResource_arr.size();j++){
+					JSONObject resultResource_jb=(JSONObject)resultResource_arr.get(j);
+					String  realityVal=resultResource_jb.get("realityVal").toString();
+					 rw_row.createCell(14+j).setCellValue(realityVal);
+				}
+				 rw_row.createCell(15).setCellValue("");
+			}
+			
+			//有两种免费资源时
+			if(resultResource_arr.size()==2){
+				for(int j=0;j<resultResource_arr.size();j++){
+					JSONObject resultResource_jb=(JSONObject)resultResource_arr.get(j);
+					String  realityVal=resultResource_jb.get("realityVal").toString();
+					//rw_row_mf_zxjg1.setCellValue("免费资源1执行结果值");
+					 rw_row.createCell(14+j).setCellValue(realityVal);
+				}
+			}
+	}else{
+		rw_row.createCell(14).setCellValue("");
+		rw_row.createCell(15).setCellValue("");
+	}
+			}
+	
+	
+	//取详单字段的预期值和执行结果值
+		
+		//1.取预期值
+		JSONObject uCExpDetail_js=new  JSONObject();
+		String  uCExpDetail=new String(uc.getuCExpDetail(),"GBK");
+		uCExpDetail_js=JSONObject.fromObject(uCExpDetail);
+			JSONArray  uCExpDetail_arr = (JSONArray) uCExpDetail_js.get("expDetailJson");
+			JSONArray  uCExpDetail_arrt=new  JSONArray();
+		   List list=new ArrayList();
+		   int count=0;    int  index=0;
+		    	for(int d=0;d<uCExpDetail_arr.size();d++){
+		    		JSONObject  uCExpDetail_jb=(JSONObject)uCExpDetail_arr.get(d);
+		    		//取fieldNames
+		    		String  fieldNames=uCExpDetail_jb.get("fieldNames").toString();
+		    		String[]  strr1=fieldNames.replaceAll("\\^",",").split(",");
+		    		count=strr1.length;    index=strr1.length;
+		    		for(int w=0;w<strr1.length;w++){
+		    			String[]  strr2=strr1[w].split("@");
+		    			rw_row.createCell(16+w).setCellValue(strr2[1]);
+		    		}
+		    	}
+		    
+		  //2.取执行结果值  	
+		    if(!"".equals(resultRecord)&&resultRecord !=null){ 
+		    	JSONObject resultDetail_js=new  JSONObject();
+				String  resultDetail=new String(resultRecord.getResultDetail(),"GBK");
+				resultDetail_js=JSONObject.fromObject(resultDetail);
+					JSONArray  resultDetail_arr = (JSONArray) resultDetail_js.get("expDetailJson");
+					JSONArray  resultDetail_arrt=new  JSONArray();
+					for(int g=0;g<resultDetail_arr.size();g++){
+						JSONObject  resultDetail_jb=(JSONObject)resultDetail_arr.get(g);
+						//取拼接的详单字段和值
+						String[]  strr1=resultDetail_jb.get("fieldNames").toString().replaceAll("\\^",",").split(",");
+						for(int s=0;s<strr1.length;s++){
+							String[]  sttr2=strr1[s].split("\\|");
+					rw_row.createCell(16+count+s).setCellValue(sttr2[1]);
+						}
+					}
+		    }else{
+		    	//没有执行用例时置零
+		    	for(int p=0;p<index;p++){
+		    		rw_row.createCell(16+count+p).setCellValue("");
+		    	}
+		    }	
+	
+	
+		
+//			Cell rw_row_mf_zxjg1 = rw_row.createCell(11);
+//			rw_row_mf_zxjg1.setCellValue("免费资源1执行结果值");
+//			
+			
+//			Cell rw_row_mf_csz2 = rw_row.createCell(12);
+//			rw_row_mf_csz2.setCellValue("免费资源2初始值");
+//			
+//			Cell rw_row_mf_yqz2  = rw_row.createCell(13);
+//			rw_row_mf_yqz2.setCellValue("免费资源2预期值");
+//			
+//			
+//			Cell rw_row_mf_zxjg2 = rw_row.createCell(12);
+//			rw_row_mf_zxjg2.setCellValue("免费资源2执行结果值");
+		
+	}
+	//5写成文件并返回文件地址
+	File file = new File(path);
+	if (!file.exists()) {
+		file.mkdirs();
+	}
+	String fileName = path+"用例执行统计-"+DateUtil.getSdfTimes()+".xls";
+	FileOutputStream fileOutputStream = new FileOutputStream(new File(fileName));
+	//写出文件
+	workbook.write(fileOutputStream);
+	//关闭流
+	fileOutputStream.close();
+	return fileName;
+}  
+       
+       
+}

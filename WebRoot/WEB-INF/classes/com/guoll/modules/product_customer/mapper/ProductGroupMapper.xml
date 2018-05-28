@@ -123,6 +123,13 @@
 		select * from  product_group where id=#{id,jdbcType=NUMERIC}
 	</select>
 	
+		<!-- 根据产品组ID查询产品组 ,校验平行越权-->
+		<select id="queryProductGroup" parameterMap="baseParameterMap" resultMap="baseResultMap">
+	select * from  product_group 
+	where id=#{id,jdbcType=NUMERIC}
+	and  postName=#{postName,jdbcType=VARCHAR}
+</select>
+
 	<!-- 根据省份查询产品组列表 -->
 	<select id="queryProductGroupListByProvince" parameterMap="baseParameterMap" resultMap="baseResultMap">
 		SELECT id,name,productsMark,provinceSpell,postName,groupProductJsonBytes,groupNoJsonBytes,phone_number_str

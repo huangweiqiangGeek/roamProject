@@ -1,0 +1,711 @@
+package com.guoll.modules.product_customer.controller;
+
+import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.ServletContext;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.google.gson.Gson;
+import com.guoll.modules.commConfig.bean.CommConfig;
+import com.guoll.modules.commConfig.service.CommConfigService;
+import com.guoll.modules.framework.annotation.RefreshCSRFToken;
+import com.guoll.modules.framework.annotation.VerifyCSRFToken;
+import com.guoll.modules.framework.base.BaseController;
+import com.guoll.modules.framework.util.SessionUtils;
+import com.guoll.modules.product_customer.bean.ProductBusinessType;
+import com.guoll.modules.product_customer.bean.ProductGroup;
+import com.guoll.modules.product_customer.bean.ProductGroupDetails;
+import com.guoll.modules.product_customer.service.ProductBusinessTypeService;
+import com.guoll.modules.product_customer.service.ProductGroupDetailsService;
+import com.guoll.modules.product_customer.service.ProductGroupService;
+import com.guoll.modules.sysmanage.bean.SysUser;
+import com.guoll.modules.useCase.bean.TaskProductGroup;
+import com.guoll.modules.useCase.service.TaskProductGroupService;
+
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
+import util.CommConfigUtils;
+import util.Convert;
+import util.ExecutorOfShell;
+import util.ExecutorOfShell2;
+import util.CommConfigUtils.CommConfigKeys;
+
+/**
+ * 
+ * @author htnm
+ *
+ */
+@Controller
+@RequestMapping("/productGroupController")
+public class ProductGroupController extends BaseController{
+	@Autowired(required = false)
+	private ProductGroupService productGroupService;
+	
+	
+	@Autowired(required=false)
+	TaskProductGroupService taskProductGroupService;
+	@Autowired(required=false)
+	ProductBusinessTypeService productBusinessTypeService;
+	@Autowired(required=false)
+	ProductGroupDetailsService productGroupDetailsService;
+	/**
+	 * 跳转到列表页面
+	 * @return
+	 */
+	@RequestMapping("/toProductGroupList")
+	public String toProductGroupList(HttpServletRequest request){
+		SysUser sysUser = getSessionUser(request);
+		request.setAttribute("provinceSpell", sysUser.getProvinceSpell());
+		return "productGroup/list";
+	}
+	
+	/**
+	 * 获取列表数据
+	 * @param request
+	 * @param productGroup
+	 * @return
+	 */
+	@RequestMapping("/queryProductGroupList")
+	@ResponseBody
+	public Map<String, Object> queryProductGroupList(HttpServletRequest request,ProductGroup productGroup){
+		Map<String, Object> pageData = new HashMap<String, Object>();
+		if (productGroup.getProvinceSpell() == null ) {
+			productGroup.setProvinceSpell(getSessionUser(request).getProvinceSpell());
+		}
+		List<ProductGroup> list = productGroupService.queryProductGroupListByModel(productGroup);
+		Integer count = productGroupService.getCountOfProductGroup(productGroup);
+		pageData.put("rows", list);
+		pageData.put("total", count);
+		return pageData;
+	}
+	
+	/**
+	 * 根据id删除
+	 */
+	@VerifyCSRFToken
+	@RequestMapping("/deleteProductGroupById")
+	@ResponseBody
+	public String deleteProductGroupById(HttpServletRequest request) {
+		try {
+		String id=request.getParameter("id");
+		productGroupService.delete(Integer.parseInt(id));
+		int flag=productGroupDetailsService.deleteProductGroupDetailsByGroupid(Integer.parseInt(id));
+		return "0";
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return "1";
+	}
+	
+	/**
+	 * 保存修改、新增
+	 * @return 
+	 */
+	@RequestMapping("save")
+	public String save(HttpServletRequest request, ProductGroup productGroup) {
+		try {
+			productGroupService.save(productGroup, getSessionUser(request));
+		} catch (Exception e) {
+			e.printStackTrace();
+			request.setAttribute("close", "false");
+		}
+		request.setAttribute("close", "close");
+		return "productGroup/edit";
+	}
+	
+	/**
+	 * 保存产品组参数   jiapeng
+	 */
+	@RequestMapping("/saveProductGroupInfo")
+	@ResponseBody
+	public String saveProductGroupInfo(HttpServletRequest request){
+		try {
+			
+		String productJson=request.getParameter("productJson").replace("“", "\"");
+		String groupProductJson=request.getParameter("groupProductJson").replace("“", "\"");
+		String groupNoJson=request.getParameter("groupNoJson").replace("“", "\"");
+		String business_type=request.getParameter("business_type");
+		String name=request.getParameter("name");
+		String productsMark=request.getParameter("productsMark");
+		String phoneNumberStr=request.getParameter("phoneNumberStr");
+		
+		 
+		
+		ProductGroup productGroup =new ProductGroup();
+		productGroup.setBusiness_type(business_type);
+		productGroup.setProductsMark(productsMark);
+		productGroup.setName(name);
+		productGroup.setPhone_number_str(phoneNumberStr);
+		productGroup.setGroupProductJsonBytes(groupProductJson.getBytes("utf-8"));
+		productGroup.setGroupNoJsonBytes(groupNoJson.getBytes("GBK"));
+		productGroupService.save(productGroup, getSessionUser(request));
+		
+		//解析子产品JSON
+		List<ProductGroupDetails> list=new ArrayList<ProductGroupDetails>();
+		JSONObject jsStr = JSONObject.fromObject(productJson);
+		   Iterator iterator = jsStr.keys();
+		   while(iterator.hasNext()){
+			   ProductGroupDetails pgd=new ProductGroupDetails();
+		          String  key = (String) iterator.next();
+		          String value = jsStr.getString(key);
+		          pgd.setGroup_id(productGroup.getId());
+		          pgd.setBusiness_type(key);
+		          pgd.setProducts_json(value.getBytes("utf-8"));
+		          pgd.setBusiness_type_name(getBusinessTypeName(key));
+		          list.add(pgd);
+		   }
+		  int flag= productGroupDetailsService.addProductGroupDetails(list);
+		   
+		  if(flag != -1){
+			  return "0";
+		  }
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return "1";
+	}
+	
+	public String getBusinessTypeName(String business_type){
+		try {
+		ProductBusinessType pbt=new ProductBusinessType();
+		pbt.setType_id(business_type);
+		pbt=productBusinessTypeService.queryProductBusinessByNameOrId(pbt);
+		String type_name=pbt.getType_name();
+		return type_name;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return "";
+	}
+	/**
+	 * 跳转到新增/修改
+	 */
+	@RequestMapping("toEdit")
+	public String toEdit(HttpServletRequest request,HttpServletResponse response){
+		response.setContentType("text/html;charset=utf-8");//设置响应的编码格式，不然会出现中文乱码现象
+		String group_id=request.getParameter("group_id");
+		if (group_id == null || "".equals(group_id)) {//新增
+			return "productGroup/edit";
+		}else {
+			ProductGroup productGroup=productGroupService.queryProductGroupByGroupID(Integer.parseInt(group_id));
+//			ProductGroupDetails pgd=new ProductGroupDetails();
+//			pgd.setGroup_id(Integer.parseInt(group_id));
+//			List<ProductGroupDetails> list=productGroupDetailsService.queryProductGroupDetails(pgd);
+//			List<Map<String,Object>> l=new ArrayList<Map<String,Object>>();
+//			for(ProductGroupDetails ls:list){
+//				Map<String,Object> map=new HashMap<String,Object>();
+//				map.put("group_id", ls.getGroup_id());
+//				map.put("business_type", ls.getBusiness_type());
+//				map.put("business_type_name", ls.getBusiness_type_name());
+//				String json=new String(ls.getProducts_json());
+//				map.put("products_json",json );
+//				l.add(map);
+//			}
+			request.setAttribute("productGroup", productGroup);
+//			if(list.size()>0){
+//			request.setAttribute("list", l);
+//			}
+			return "productGroup/edit";
+		}
+	}
+	/**
+	 * 先跳转到页面 productGroup/edit 再加载产品数据
+	 */
+	@VerifyCSRFToken
+	@RequestMapping("/initProductGroupInfo")
+	@ResponseBody
+	public List<Object> initProductGroupInfo(HttpServletRequest request){
+		 Map<String,Object> map=new HashMap<String,Object>();
+		 List<Object> GroupList=new ArrayList<Object>(2);
+		List<Map<String,Object>> l=new ArrayList<Map<String,Object>>();
+		 ProductGroup productGroup=new  ProductGroup();
+		 try {
+			String group_id=request.getParameter("group_id");
+			if(!"".equals(group_id)&& group_id !=null){
+				productGroup=productGroupService.queryProductGroupByGroupID(Integer.parseInt(group_id));
+
+				map.put("group_id", productGroup.getId());
+				map.put("name", productGroup.getName());
+				map.put("productsMark", productGroup.getProductsMark());
+				map.put("phone_number_str", productGroup.getPhone_number_str());
+				map.put("business_type",productGroup.getBusiness_type());
+				map.put("groupProductJson",new String(productGroup.getGroupProductJsonBytes(),"utf-8"));
+				map.put("groupNoJson", new String(productGroup.getGroupNoJsonBytes(),"GBK"));
+				
+				ProductGroupDetails pgd=new ProductGroupDetails();
+				pgd.setGroup_id(Integer.parseInt(group_id));
+				List<ProductGroupDetails> list=productGroupDetailsService.queryProductGroupDetails(pgd);
+			
+				for(ProductGroupDetails ls:list){
+					Map<String,Object> map2=new HashMap<String,Object>();
+					map2.put("group_id", ls.getGroup_id());
+					map2.put("business_type", ls.getBusiness_type());
+					map2.put("business_type_name", ls.getBusiness_type_name());
+					String json=new String(ls.getProducts_json(),"utf-8");
+					map2.put("products_json",json );
+					l.add(map2);
+				}
+			}
+			GroupList.add(map);
+			GroupList.add(l);
+		 } catch (Exception e) {
+				e.printStackTrace();
+				}
+		 return GroupList;
+	}
+	/**
+	 * 先跳转到页面 productGroup/edit 再加载子产品数据
+	 */
+//	@RequestMapping("/initSubproductGroupInfo")
+//	@ResponseBody
+//	public List<Map<String,Object>> initSubproductGroupInfo(HttpServletRequest request){
+//		try {
+//		String group_id=request.getParameter("group_id");
+//		ProductGroupDetails pgd=new ProductGroupDetails();
+//		pgd.setGroup_id(Integer.parseInt(group_id));
+//		List<ProductGroupDetails> list=productGroupDetailsService.queryProductGroupDetails(pgd);
+//		List<Map<String,Object>> l=new ArrayList<Map<String,Object>>();
+//		for(ProductGroupDetails ls:list){
+//			Map<String,Object> map=new HashMap<String,Object>();
+//			map.put("group_id", ls.getGroup_id());
+//			map.put("business_type", ls.getBusiness_type());
+//			map.put("business_type_name", ls.getBusiness_type_name());
+//			String json=new String(ls.getProducts_json(),"utf-8");
+//			map.put("products_json",json );
+//			l.add(map);
+//		}
+//		return l;
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//		}
+//		return null;
+//	}
+	/**
+	 * 新增任务下的产品组时展示产品组列表，不展示任务下已经有的产品组
+	 */
+	@RequestMapping("/queryProductGroupListToTask")
+	@ResponseBody
+	public List<ProductGroup> queryProductGroupListToTask(HttpServletRequest request){
+		try {
+			
+		
+		String task_id=request.getParameter("task_id");
+		//当前任务下的产品组列表
+		SysUser sysUser = (SysUser) SessionUtils.getAttr(request, SessionUtils.SESSION_USER);
+		String user_code=sysUser.getUser_code();
+		
+		TaskProductGroup tpg=new TaskProductGroup();
+		tpg.setProvinceSpell(user_code);
+		if(!"".equals(task_id)&&task_id!=null){
+			tpg.setTask_id(Integer.parseInt(task_id));
+		}
+		//任务下已经有的产品组
+		List<TaskProductGroup> list=taskProductGroupService.queryProductGroupListByTask(tpg);
+		
+		
+		ProductGroup productGroup=new ProductGroup();
+		productGroup.setProvinceSpell(user_code);
+		//全部产品组
+		List<ProductGroup> list2=productGroupService.queryProductGroupListByProvince(productGroup);
+		for(TaskProductGroup ls:list){
+			Integer group_id=ls.getGroup_id();
+			Iterator<ProductGroup> it = list2.iterator();
+			while(it.hasNext()){
+				ProductGroup x = it.next();
+			    if(group_id.equals(x.getId())){
+			        it.remove();
+			    }
+			}
+		}
+	return list2;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
+	/**
+	 * 初始化业务类型下拉选
+	 */
+	@RequestMapping("/queryProductBusinessTypeSelect")
+	@ResponseBody
+	public List<ProductBusinessType> queryProductBusinessTypeSelect(HttpServletRequest request){
+		return productBusinessTypeService.queryProductBusinessTypeSelect();
+	}
+	
+	/**
+	 * 新增业务类型
+	 */
+	@RequestMapping("/addProductBusinessType")
+	@ResponseBody
+	public String addProductBusinessType(HttpServletRequest request){
+		String type_id=request.getParameter("type_id");
+		String type_name=request.getParameter("type_name");
+		try {
+			
+		ProductBusinessType pbt=new ProductBusinessType(); 
+		pbt.setType_id(type_id);
+		
+		//先查询当前ID存不存在，如果存在新增失败
+		
+		ProductBusinessType pbt2=productBusinessTypeService.queryProductBusinessByNameOrId(pbt);
+		if(pbt2!=null){
+			return "2";
+		}else{
+			pbt.setType_name(type_name);
+			int flag=productBusinessTypeService.addProductBusinessType(pbt);
+			
+			if(flag==1){
+				return "0";
+			}
+			else{
+				return "1";
+			}
+		}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return "1";
+	}
+	
+	/**
+	 * 编辑查询产品组子产品信息   根据产品组ID
+	 */
+//	@RequestMapping("/showProductGroupByIdForEdit")
+//	@ResponseBody
+//	public List<ProductGroupDetails> showProductGroupByIdForEdit(HttpServletRequest request){
+//		try {
+//		String id=request.getParameter("group_id");
+//		ProductGroupDetails pgd=new ProductGroupDetails();
+//		pgd.setGroup_id(Integer.parseInt(id));
+//		
+//		List<ProductGroupDetails> list=productGroupDetailsService.queryProductGroupDetails(pgd);
+//		for(ProductGroupDetails ls:list){
+//			ls.setProducts_json_str(new String(ls.getProducts_json()));
+//		}
+//		return list;
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//		}
+//		return null;
+//	}
+		
+/**
+ * 编辑保存更新产品组信息	
+ */
+	@RequestMapping("/updateProductGroupById")
+	@ResponseBody
+	public String updateProductGroupById(HttpServletRequest request){
+		
+		try {
+			String productJson=request.getParameter("productJson").replace("“", "\'");
+			String groupProductJson=request.getParameter("groupProductJson").replace("“", "\'");
+			String groupNoJson=request.getParameter("groupNoJson").replace("“", "\'");
+			String business_type=request.getParameter("business_type");
+			String name=request.getParameter("name");
+			String productsMark=request.getParameter("productsMark");
+			String phoneNumberStr=request.getParameter("phoneNumberStr");
+			String id=request.getParameter("id");
+			 
+			
+			ProductGroup productGroup =new ProductGroup();
+			productGroup.setId(Integer.parseInt(id));
+			productGroup.setBusiness_type(business_type);
+			productGroup.setProductsMark(productsMark);
+			productGroup.setName(name);
+			productGroup.setPhone_number_str(phoneNumberStr);
+			productGroup.setGroupProductJsonBytes(groupProductJson.getBytes("utf-8"));
+			productGroup.setGroupNoJsonBytes(groupNoJson.getBytes("GBK"));
+			productGroupService.save(productGroup, getSessionUser(request));
+			
+			//删除子产品
+			productGroupDetailsService.deleteProductGroupDetailsByGroupid(Integer.parseInt(id));
+			//解析子产品JSON
+			List<ProductGroupDetails> list=new ArrayList<ProductGroupDetails>();
+			JSONObject jsStr = JSONObject.fromObject(productJson);
+			   Iterator iterator = jsStr.keys();
+			   while(iterator.hasNext()){
+				   ProductGroupDetails pgd=new ProductGroupDetails();
+			          String  key = (String) iterator.next();
+			          String value = jsStr.getString(key);
+			          pgd.setGroup_id(productGroup.getId());
+			          pgd.setBusiness_type(key);
+			          pgd.setProducts_json(value.getBytes("utf-8"));
+			          pgd.setBusiness_type_name(getBusinessTypeName(key));
+			          list.add(pgd);
+			   }
+			  int flag= productGroupDetailsService.addProductGroupDetails(list);
+			   
+			  if(flag != -1){
+				  return "0";
+			  }
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		return "1";
+	}
+	
+	/**
+	 * 初始化用例中的产品id下拉选
+	 */
+	@RequestMapping("/initProductsSelectByGroupid")
+	@ResponseBody
+	public List<Map<String,String>> initProductsSelectByGroupid(HttpServletRequest request){
+		List<Map<String,String>> groupList=new ArrayList<Map<String,String>>(10);
+		try {
+		String   group_id=request.getParameter("group_id");
+		String task_group_id=request.getParameter("task_group_id");
+		String billType=request.getParameter("billType");
+		ProductGroupDetails pgd=new ProductGroupDetails();
+		pgd.setBusiness_type(billType);
+		//当已经有选择产品群时
+		if(!"".equals(group_id)&&group_id !=null){
+			
+			pgd.setGroup_id(Integer.parseInt(group_id));
+			
+		}else{
+			//当是用例编辑时默认它有产品群此时group_id='',且
+			if(!"".equals(task_group_id)&&task_group_id !=null){
+				TaskProductGroup	tpg=new TaskProductGroup();
+				tpg=taskProductGroupService.queryProductGroupById(Integer.parseInt(task_group_id));
+				pgd.setGroup_id(tpg.getGroup_id());
+			}else{
+				//当新增用例时为空
+				pgd.setGroup_id(0);
+			} 
+		}
+		
+//		
+//		String billType=request.getParameter("billType");
+//		ProductGroupDetails pgd=new ProductGroupDetails();
+//		pgd.setGroup_id(Integer.parseInt(group_id));
+//		pgd.setBusiness_type(billType);
+		List<ProductGroupDetails> list=productGroupDetailsService.queryProductGroupDetails(pgd);
+		if(!"".equals(billType)&& billType !=null){
+			if(list.size()>0){
+				String productsJson=new String(list.get(0).getProducts_json(),"utf-8");
+				JSONObject json1=JSONObject.fromObject(productsJson);
+				JSONArray json=json1.getJSONArray("table"+billType);
+//		        Iterator iterator = json.keys();
+//		        while(iterator.hasNext()){
+				for(int i=0;i<json.size();i++){
+					Map<String,String> map=new HashMap<String,String>(1);
+					JSONObject json2=(JSONObject) json.get(i);
+		          String  key =json2.getString("productId");
+		          String  value =json2.getString("productName");
+		          map.put("id", value);
+		          map.put("name",key);
+		          groupList.add(map);
+				}
+//		        }
+		        return groupList;
+			}else{
+				return groupList;
+			}
+		}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return groupList;
+	}
+	
+	
+	/**
+	 * 获取自动新增产品组调用的脚本
+	 */
+	CommConfig shell_getAutoProductGroup;
+	/**
+	 * 获取自动新增产品组调用的脚本
+	 */
+	ExecutorOfShell executor_getResourceResult;
+	/**
+	 * 获取自动新增产品组调用的文件
+	 */
+	CommConfig txt_getAutoProductGroup;
+	/**
+	 * ftp配置
+	 */
+	CommConfig ftp_ftptype;
+	
+	@Autowired
+	CommConfigService commConfigService;
+	
+	
+	@RequestMapping("/autoProductGroupInfo")
+	@ResponseBody
+	public List<Object> autoProductGroupInfo(HttpServletRequest request ){
+		SysUser sysUser = getSessionUser(request);
+		ServletContext servletContext = request.getServletContext();
+		//初始化工具
+		
+		shell_getAutoProductGroup = CommConfigUtils.getCommConfigByProvinceWithEnumOfCommConfigKeys(servletContext,
+				CommConfigKeys.shell_getAutoProductGroup, commConfigService, sysUser);
+		txt_getAutoProductGroup = CommConfigUtils.getCommConfigByProvinceWithEnumOfCommConfigKeys(servletContext,
+				CommConfigKeys.txt_getAutoProductGroup, commConfigService, sysUser);
+		
+		//创建执行工具
+		ExecutorOfShell2 executorOfShell2 = new ExecutorOfShell2();
+		executor_getResourceResult = executorOfShell2.getExecutorOfShell(
+				shell_getAutoProductGroup.getIpAddress(), shell_getAutoProductGroup.getHostName(),
+				shell_getAutoProductGroup.getHostPassWord());
+		ftp_ftptype = CommConfigUtils.getCommConfigByProvinceWithEnumOfCommConfigKeys(servletContext,
+				CommConfigKeys.ftp_ftptype, commConfigService, sysUser);
+		
+		
+//		Map<String,Object> map=new HashMap<String,Object>();
+//		List<Object> GroupList=new ArrayList<Object>(2);
+		List<Object> list=new ArrayList<Object>(2);
+		try {
+			String phoneNumber=request.getParameter("phoneNumber");
+			String businessType=request.getParameter("business_type");
+//			phoneNumber="12345678901";
+//			business_type = "1,2";
+//			if(Convert.isEmpty(phoneNumber)||Convert.isEmpty(business_type)){
+//				return GroupList;
+//			}
+			list =executor_getResourceResult.getAutoProductGroup(phoneNumber, businessType,
+					shell_getAutoProductGroup.getField1(), shell_getAutoProductGroup.getField2(),sysUser, logUtils, request,
+					txt_getAutoProductGroup.getField1() + "/" + sysUser.getUser_code() + "_"+ txt_getAutoProductGroup.getField2(),
+					txt_getAutoProductGroup.getIpAddress(), Integer.parseInt(txt_getAutoProductGroup.getField2()),
+					txt_getAutoProductGroup.getHostName(), txt_getAutoProductGroup.getHostPassWord(),ftp_ftptype.getField1(),
+					productBusinessTypeService);
+			
+/*			
+			Gson gson = new Gson();
+			List<Map<String,String>> phoneMapList = new ArrayList<>();
+			Map<String,String> phoneMap = new HashMap<>();
+			phoneMap.put("phoneNumber", phoneNumber);
+			phoneMapList.add(phoneMap);
+			//获取文件地址
+			BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream("F:a.txt"),"GBK"));
+	        String lines = reader.readLine();
+	        
+	        //产品信息
+	        List<Map<String,String>> groupList = new ArrayList<>();
+	        List<ProductBusinessType> pBusinessType = productBusinessTypeService.queryProductBusinessTypeSelect();
+	        //业务类型关系
+	        Map<String,String> bType = new HashMap<>();
+	        for (ProductBusinessType productBusinessType : pBusinessType) {
+	        	bType.put(productBusinessType.getType_id(), productBusinessType.getType_name());
+			}
+	        //放置业务类型和对应的产品信息
+	        Map<String,List<Map<String,String>>> typeMap = new HashMap<>();
+	        while (lines != null) {
+//	            System.out.println(lines);
+	            String[] split = lines.split(":");
+	            // 分三种情况，
+	            // 第一种主产品，只显示在产品栏位
+	            // 第二种产品，显示在产品和业务类型栏位
+	            // 第三种子产品，只显示在业务类型栏位
+	            // 产品和子产品需要判断是属于哪个业务类型
+	            
+	            if (split[0].contains("Main")){//判断是否为主产品
+	            	Map<String,String> m = new HashMap<>();
+	                String[] groups = split[1].split(";");//主产品信息  48元4G飞享套餐，prodid.1008611
+	                String[] group = groups[0].split(",");//主产品详情 group[0]:48元4G飞享套餐 ;group[1]:prodid.1008611
+	                m.put("productName", group[0]);//设置主产品名称
+	                m.put("productId", group[1]);//设置主产品ID
+	                groupList.add(m);
+	            }else{ //否则为产品或子产品
+	            	//获取产品和业务类型
+	            	String[] typeId = split[0].split("_");//detials_1、product_1 ；
+            		//都要添加到业务类型中
+	            	String[] groups = split[1].split(";"); //产品或子产品信息 28元4G语音套餐，prodid.1008612；。。。
+	            	if(typeMap.containsKey(typeId[1])){//如果存在当前业务类型则需要添加信息
+	            		//获取原来的List继续添加数据
+	            		List<Map<String, String>> groupDetailsList = typeMap.get(typeId[1]);
+	            		for(String group:groups){	//group 28元4G语音套餐，prodid.1008612
+	            			String[] g = group.split(",");  //g[0]:28元4G语音套餐;g[1]prodid.1008612
+	            			Map<String,String> m = new HashMap<>();
+		            		m.put("productName", g[0]);//设置子产品名称
+			                m.put("productId", g[1]);//设置子产品ID
+			                groupDetailsList.add(m);	
+	            		}
+	            	}else{//如果不存在当前业务类型
+	            		//新增List
+	            		List<Map<String,String>> groupDetailsList = new ArrayList<>();
+	            		for(String group:groups){		//group 28元4G语音套餐，prodid.1008612
+	            			String[] g = group.split(",");  //g[0]:28元4G语音套餐;g[1]prodid.1008612
+	            			Map<String,String> m = new HashMap<>();
+	            			m.put("productName", g[0]);//设置子产品名称
+	            			m.put("productId", g[1]);//设置子产品ID
+	            			groupDetailsList.add(m);
+	            		}
+	            		//添加当前业务类型的数据
+	            		typeMap.put(typeId[1], groupDetailsList);
+	            	}
+            		
+	            	//如果不为子产品 则需要额外显示到产品信息中 
+	                if(split[0].contains("product")){
+	                	for(String group:groups){		//group 28元4G语音套餐，prodid.1008612
+		            		String[] g = group.split(",");  //g[0]:28元4G语音套餐;g[1]prodid.1008612
+		            		Map<String,String> m = new HashMap<>();
+		            		m.put("productName", g[0]);//设置产品名称
+			                m.put("productId", g[1]);//设置产品ID
+			                groupList.add(m);
+		            	}
+	                }
+	            }
+	            lines = reader.readLine();
+	        }
+	        reader.close();
+			
+			
+			//添加要返回的数据 groupProductJson、groupNoJson、business_type
+			//获取productJson数据
+			Map<String,List<Map<String,String>>> groupMap = new HashMap<>();
+			groupMap.put("groupProductJson", groupList);
+			Map<String,List<Map<String,String>>> noJsonMap = new HashMap<>();
+			noJsonMap.put("groupNoJson", phoneMapList);
+			//返回前端需要接收的数据
+			map.put("business_type",business_type);
+			map.put("groupProductJson",gson.toJson(groupMap));
+			map.put("groupNoJson", gson.toJson(noJsonMap));
+			
+			 
+			//业务类型数据
+			List<Map<String,Object>> l=new ArrayList<Map<String,Object>>();
+			for (String typeId : typeMap.keySet()) {
+				Map<String,Object> map2=new HashMap<String,Object>();
+				map2.put("business_type", typeId);
+				map2.put("business_type_name", bType.get(typeId));
+				Map<String, List<Map<String, String>>> m = new HashMap<>();
+				m.put("table"+typeId, typeMap.get(typeId));
+				map2.put("products_json",gson.toJson(m));
+				l.add(map2);
+			}
+//			
+			GroupList.add(map);
+			GroupList.add(l);*/
+		 } catch (Exception e) {
+				e.printStackTrace();
+		}
+		return list;
+	}
+	
+/*	@RequestMapping("/readTxtFile")
+	public String readTxtFile(HttpServletRequest request,HttpServletResponse response){
+		response.setContentType("text/html;charset=utf-8");//设置响应的编码格式，不然会出现中文乱码现象
+		String telephone = request.getParameter("telephone");
+		String business_type = request.getParameter("business_type");
+		request.setAttribute("telephone", telephone);
+		request.setAttribute("business_type", business_type);
+		
+		return "productGroup/edit";
+	}*/
+	
+ }

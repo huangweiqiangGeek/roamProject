@@ -1,0 +1,534 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.guoll.modules.useCase.mapper.UseCaseMapper">
+	<!-- Parameter Map -->
+	<parameterMap id="baseParameterMap" type="com.guoll.modules.useCase.bean.UseCase" />
+	<!-- Result Map -->
+	<resultMap id="baseResultMap" type="com.guoll.modules.useCase.bean.UseCase" />
+
+	<!--表名 -->
+	<sql id="tableName">
+		use_case
+	</sql>
+
+	<!--查询字段 -->
+	<sql id="Field">
+		id,proID,uCUserID,uCName,uCNumber,uCScene,uCTicket,uCAccumulate,uCResource,uCExpect,uCExpAmount,uCExpDetail,
+		isPass,executeNum,uCStauts,createTime,editTime,uCRemark,billName,resultName,billType,productId,exceptionMessageByte,
+		exceptionStep,exceptionCauseByte,exceptionTrace,resultType,billStartTime,haveSource,billId,task_group_id,copy_mark,productIdName
+	</sql>
+
+	<!-- 字段值 -->
+	<sql id="FieldValue">
+		#{proID},
+		#{uCUserID},
+		#{uCName},
+		#{uCNumber},
+		#{uCScene},
+		#{uCTicket,jdbcType=BLOB},
+		#{uCAccumulate,jdbcType=BLOB},
+		#{uCResource,jdbcType=BLOB},
+		#{uCExpect,jdbcType=BLOB},
+		#{uCExpAmount,jdbcType=BLOB},
+		#{uCExpDetail,jdbcType=BLOB},
+		#{isPass},
+		#{executeNum},
+		#{uCStauts},
+		now(),
+		#{uCRemark},
+		#{billName},
+		#{resultName},
+		#{billType},
+		#{productId},
+		#{exceptionMessageByte},
+		#{exceptionStep},
+		#{exceptionCauseByte},
+		#{exceptionTrace},
+		#{resultType},
+		#{billStartTime},
+		#{haveSource},
+		#{billId},
+		#{task_group_id},
+		#{copy_mark},
+		#{productIdName}
+	</sql>
+
+	<!-- 查询用例记录总数 -->
+	<select id="queryUseCaseSum" parameterMap="baseParameterMap"
+		resultType="Integer">
+		SELECT COUNT(ID) FROM
+		<include refid="tableName"></include>
+		WHERE 1=1
+		<if test="proID !=-1 and proID !=null">
+			AND proID=#{proID,jdbcType=INTEGER}
+		</if>
+		<if test="uCUserID !='' and uCUserID !=null">
+			AND uCUserID=#{uCUserID,jdbcType=INTEGER}
+		</if>
+		<if test="uCStauts !=-1 and uCStauts !=null">
+			AND uCStauts=#{uCStauts,jdbcType=INTEGER}
+		</if>
+		<if test="isPass !=-1 and isPass !=null">
+			AND isPass=#{isPass,jdbcType=INTEGER}
+		</if>
+		<if test=" uCName !='' and uCName !=null">
+			AND uCName LIKE CONCAT(CONCAT('%', #{uCName,jdbcType=VARCHAR}),'%')
+		</if>
+		<if test=" uCNumber !='' and uCNumber !=null">
+			AND uCNumber LIKE CONCAT(CONCAT('%', #{uCNumber,jdbcType=VARCHAR}),'%')
+		</if>
+		<if test=" productId !=null and productId !=''">
+			AND productId=#{productId}
+		</if>
+		<if test=" task_group_id !=null and task_group_id !=''">
+			AND task_group_id=#{task_group_id}
+		</if>
+		<if test="billType !=-1 and billType !=null">
+			AND billType=#{billType}
+		</if>
+	</select>
+
+	<!-- 查询用例列表 -->
+	<select id="queryUseCaseList" parameterMap="baseParameterMap"
+		resultMap="baseResultMap">
+		SELECT 
+		use_case.id as id,proID,uCUserID,uCName,uCNumber,uCScene,uCTicket,uCAccumulate,uCResource,uCExpect,uCExpAmount,uCExpDetail,
+		isPass,executeNum,uCStauts,use_case.createTime as createTime,use_case.editTime as editTime,uCRemark,billName,resultName,comm_type.commTypeName
+		as statusName,p.commTypeName as passName,c.proType ,billType ,productId ,exceptionMessageByte,
+		exceptionStep,exceptionCauseByte,exceptionTrace,resultType,billStartTime,haveSource,billId,productIdName
+		 FROM use_case
+		LEFT JOIN
+		comm_type
+		ON
+		use_case.uCStauts=comm_type.id
+		LEFT JOIN
+		comm_type as p
+		ON
+		use_case.isPass=p.id
+		LEFT JOIN project as c
+		on 
+		use_case.proID=c.id
+		where 1=1
+		<if test="proType !=-1 and proType !=null">
+			AND proType=#{proType,jdbcType=INTEGER}
+		</if>
+		<if test="proID !=-1 and proID !=null">
+			AND proID=#{proID,jdbcType=INTEGER}
+		</if>
+		<if test="uCUserID !='' and uCUserID !=null">
+			AND uCUserID=#{uCUserID,jdbcType=INTEGER}
+		</if>
+		<if test="uCStauts !=-1 and uCStauts !=null">
+			AND uCStauts=#{uCStauts,jdbcType=INTEGER}
+		</if>
+		<if test="isPass !=-1 and isPass !=null">
+			AND isPass=#{isPass,jdbcType=INTEGER}
+		</if>
+		<if test=" uCName !='' and uCName !=null">
+			AND uCName LIKE CONCAT(CONCAT('%', #{uCName,jdbcType=VARCHAR}),'%')
+		</if>
+		<if test=" uCNumber !='' and uCNumber !=null">
+			AND uCNumber LIKE CONCAT(CONCAT('%', #{uCNumber,jdbcType=VARCHAR}),'%')
+		</if>
+		<if test=" productId !=null and productId !=''">
+			AND productId=#{productId}
+		</if>
+		<if test=" task_group_id !=null and task_group_id !=''">
+			AND task_group_id=#{task_group_id}
+		</if>
+		<if test="billType !=-1 and billType !=null">
+			AND billType=#{billType}
+		</if>
+		ORDER BY createTime DESC
+		limit
+		#{start,jdbcType=NUMERIC},#{rows,jdbcType=NUMERIC}
+	</select>
+
+
+
+	<!-- 查询用例列表 -->
+	<select id="queryUseCaseList1" parameterMap="baseParameterMap"
+		resultMap="baseResultMap">
+		SELECT 
+		use_case.id as id,proID,uCUserID,uCName,uCNumber,uCScene,uCTicket,uCAccumulate,uCResource,uCExpect,uCExpAmount,uCExpDetail,
+		isPass,executeNum,uCStauts,use_case.createTime as createTime,use_case.editTime as editTime,uCRemark,billName,resultName,comm_type.commTypeName
+		as statusName,p.commTypeName as passName,c.proType ,billType ,productId ,exceptionMessageByte,
+		exceptionStep,exceptionCauseByte,exceptionTrace,resultType,billStartTime,haveSource,billId FROM use_case
+		LEFT JOIN
+		comm_type
+		ON
+		use_case.uCStauts=comm_type.id
+		LEFT JOIN
+		comm_type as p
+		ON
+		use_case.isPass=p.id
+		LEFT JOIN project as c
+		on 
+		use_case.proID=c.id
+		where 1=1
+		<if test="proType !=-1 and proType !=null">
+			AND proType=#{proType,jdbcType=INTEGER}
+		</if>
+		<if test="proID !=-1 and proID !=null">
+			AND proID=#{proID,jdbcType=INTEGER}
+		</if>
+		<if test="uCUserID !='' and uCUserID !=null">
+			AND uCUserID=#{uCUserID,jdbcType=INTEGER}
+		</if>
+		<if test="uCStauts !=-1 and uCStauts !=null">
+			AND uCStauts=#{uCStauts,jdbcType=INTEGER}
+		</if>
+		<if test="isPass !=-1 and isPass !=null">
+			AND isPass=#{isPass,jdbcType=INTEGER}
+		</if>
+		<if test=" uCName !='' and uCName !=null">
+			AND uCName LIKE CONCAT(CONCAT('%', #{uCName,jdbcType=VARCHAR}),'%')
+		</if>
+		<if test=" uCNumber !='' and uCNumber !=null">
+			AND uCNumber LIKE CONCAT(CONCAT('%', #{uCNumber,jdbcType=VARCHAR}),'%')
+		</if>
+		<if test=" productId !=null and productId !=''">
+			AND productId=#{productId}
+		</if>
+		<if test=" task_group_id !=null and task_group_id !=''">
+			AND task_group_id=#{task_group_id}
+		</if>
+		<if test="billType !=-1 and billType !=null">
+			AND billType=#{billType}
+		</if>
+		ORDER BY createTime DESC
+	
+	</select>
+	
+	<!-- 查询用例所有列表 -->
+	<select id="queryUseCaseListAll" parameterMap="baseParameterMap"
+		resultMap="baseResultMap">
+		SELECT 
+		use_case.id as id,proID,uCUserID,uCName,uCNumber,uCScene,uCTicket,uCAccumulate,uCResource,uCExpect,uCExpAmount,uCExpDetail,
+		isPass,executeNum,uCStauts,use_case.createTime as createTime,use_case.editTime as editTime,uCRemark,billName,resultName,comm_type.commTypeName
+		as statusName,p.commTypeName as passName,c.proType,billType,productId,exceptionMessageByte,exceptionStep,
+		exceptionCauseByte,exceptionTrace,resultType,billStartTime,haveSource,billId 
+		FROM use_case
+		LEFT JOIN
+		comm_type
+		ON
+		use_case.uCStauts=comm_type.id
+		LEFT JOIN
+		comm_type as p
+		ON
+		use_case.isPass=p.id
+		LEFT JOIN project as c
+		on 
+		use_case.proID=c.id
+		where 1=1
+		<if test="proType !=-1 and proType !=null">
+			AND proType=#{proType,jdbcType=INTEGER}
+		</if>
+		<if test="proID !=-1 and proID !=null">
+			AND proID=#{proID,jdbcType=INTEGER}
+		</if>
+		<if test="uCUserID !=-1 and uCUserID !=null">
+			AND uCUserID=#{uCUserID,jdbcType=INTEGER}
+		</if>
+		<if test="uCStauts !=-1 and uCStauts !=null">
+			AND uCStauts=#{uCStauts,jdbcType=INTEGER}
+		</if>
+		<if test="isPass !=-1 and isPass !=null">
+			AND isPass=#{isPass,jdbcType=INTEGER}
+		</if>
+		<if test=" uCName !='' and uCName !=null">
+			AND uCName LIKE CONCAT(CONCAT('%', #{uCName,jdbcType=VARCHAR}),'%')
+		</if>
+		<if test=" uCNumber !='' and uCNumber !=null">
+			AND uCNumber LIKE CONCAT(CONCAT('%', #{uCNumber,jdbcType=VARCHAR}),'%')
+		</if>
+		<if test=" billId !='' and billId !=null">
+			AND billId = #{billId}
+		</if>
+		ORDER BY createTime DESC
+	</select>
+	
+	<!-- 查询任务下产品组的任务用例-->
+	
+<select  id="projectOfUsecase"    parameterType="Integer"	 resultMap="baseResultMap">
+ SELECT
+	a.*,
+	c.NAME AS productName
+FROM
+	use_case a
+INNER JOIN task_product_group b ON a.task_group_id= b.ID
+INNER JOIN product_group c ON b.GROUP_ID = c.id
+WHERE
+	a.proID=#{projectId}
+  order  by   a.createTime  DESC  
+</select>
+	
+	<select id="queryUseCase" parameterMap="baseParameterMap"
+		resultMap="baseResultMap">
+		SELECT 
+		use_case.id as id
+		FROM use_case
+		LEFT JOIN
+		comm_type
+		ON
+		use_case.uCStauts=comm_type.id
+		LEFT JOIN
+		comm_type as p
+		ON
+		use_case.isPass=p.id
+		LEFT JOIN project as c
+		on 
+		use_case.proID=c.id
+		where 1=1
+		<if test="proType !=-1 and proType !=null">
+			AND proType=#{proType,jdbcType=INTEGER}
+		</if>
+		<if test="proID !=-1 and proID !=null">
+			AND proID=#{proID,jdbcType=INTEGER}
+		</if>
+		<if test="uCUserID !=-1 and uCUserID !=null">
+			AND uCUserID=#{uCUserID,jdbcType=INTEGER}
+		</if>
+		<if test="uCStauts !=-1 and uCStauts !=null">
+			AND uCStauts=#{uCStauts,jdbcType=INTEGER}
+		</if>
+		<if test="isPass !=-1 and isPass !=null">
+			AND isPass=#{isPass,jdbcType=INTEGER}
+		</if>
+		<if test=" uCName !='' and uCName !=null">
+			AND uCName LIKE CONCAT(CONCAT('%', #{uCName,jdbcType=VARCHAR}),'%')
+		</if>
+		<if test=" uCNumber !='' and uCNumber !=null">
+			AND uCNumber=#{uCNumber,jdbcType=VARCHAR}
+		</if>
+		<if test=" billId !='' and billId !=null">
+			AND billId = #{billId}
+		</if>
+		ORDER BY use_case.createTime DESC
+	</select>
+	
+	<!-- 查询是否有这个用例 -->
+	
+	<select id="queryUseCaseHave" parameterMap="baseParameterMap"
+		resultMap="baseResultMap">
+		SELECT 
+		use_case.id as id
+		FROM use_case
+		LEFT JOIN
+		comm_type
+		ON
+		use_case.uCStauts=comm_type.id
+		LEFT JOIN
+		comm_type as p
+		ON
+		use_case.isPass=p.id
+		LEFT JOIN project as c
+		on 
+		use_case.proID=c.id
+		where 1=1
+			AND uCNumber=#{uCNumber,jdbcType=INTEGER}
+			AND uCName =#{uCName,jdbcType=VARCHAR}
+		ORDER BY use_case.createTime DESC
+	</select>
+	
+	<!-- 查询用例所有列表 -->
+	<select id="queryUseCaseListByIds" parameterType="String"
+		resultMap="baseResultMap">
+		SELECT 
+		<include refid="Field"></include>
+		 FROM 
+		<include refid="tableName"></include>
+	    WHERE 
+	    ID IN
+	    <foreach item="item" index="index" collection="array" open="("
+			separator="," close=")">
+			#{item}
+		</foreach>
+		ORDER BY createTime DESC
+	</select>
+	
+	<!--查询所有标记任务下的用例列表  -->
+    	<select id="queryUseCaseListByProIDs" parameterType="String"
+		resultMap="baseResultMap">
+		SELECT 
+		<include refid="Field"></include>
+		 FROM 
+		<include refid="tableName"></include>
+	    WHERE 
+	    proID  IN
+	    <foreach item="item" index="index" collection="array" open="("
+			separator="," close=")">
+			#{item}
+		</foreach>
+		ORDER BY createTime DESC
+	</select>
+	
+	
+	<!-- 通过标识查询用例记录 -->
+	<select id="queryUseCaseById" parameterType="Integer" resultMap="baseResultMap">
+		SELECT
+		<include refid="Field"></include>
+		FROM
+		<include refid="tableName"></include>
+		WHERE
+		ID=#{id,jdbcType=INTEGER}
+	</select>
+
+	<!-- 新增用例 -->
+	<insert id="addUseCase" parameterMap="baseParameterMap" useGeneratedKeys="true" keyProperty="id">
+		INSERT INTO
+		<include refid="tableName"></include>
+		(
+		proID,uCUserID,uCName,uCNumber,uCScene,uCTicket,uCAccumulate,uCResource,uCExpect,
+		uCExpAmount,uCExpDetail,isPass,executeNum,uCStauts,createTime,uCRemark,billName,resultName,billType,
+		productId,exceptionMessageByte,exceptionStep,
+		exceptionCauseByte,exceptionTrace,resultType,billStartTime,haveSource,billId,task_group_id,copy_mark,productIdName
+		)
+		VALUES
+		(
+		<include refid="FieldValue"></include>
+		)
+	</insert>
+
+	<!-- 通过标识修改用例 -->
+	<update id="updateUseCase" parameterMap="baseParameterMap">
+		UPDATE
+		<include refid="tableName"></include>
+		SET
+		proID=#{proID},
+		uCUserID=#{uCUserID},
+		uCName=#{uCName},
+		uCNumber=#{uCNumber},
+		uCScene=#{uCScene},
+		uCTicket=#{uCTicket,jdbcType=BLOB},
+		uCAccumulate=#{uCAccumulate,jdbcType=BLOB},
+		uCResource=#{uCResource,jdbcType=BLOB},
+		uCExpect=#{uCExpect,jdbcType=BLOB},
+		uCExpAmount=#{uCExpAmount,jdbcType=BLOB},
+		uCExpDetail=#{uCExpDetail,jdbcType=BLOB},
+		isPass=#{isPass},
+		executeNum=#{executeNum},
+		uCStauts=#{uCStauts},
+		editTime=now(),
+		uCRemark=#{uCRemark},
+		billName=#{billName},
+		resultName=#{resultName},
+		billType=#{billType},
+		standardBill=#{standardBill},
+		productId=#{productId},
+		exceptionMessageByte=#{exceptionMessageByte},
+		exceptionStep=#{exceptionStep},
+		exceptionCauseByte=#{exceptionCauseByte},
+		exceptionTrace=#{exceptionTrace},
+		resultType=#{resultType},
+		billStartTime=#{billStartTime},
+		haveSource=#{haveSource},
+		billId=#{billId},
+		task_group_id=#{task_group_id},
+		copy_mark=#{copy_mark},
+		productIdName=#{productIdName}
+		WHERE
+		ID=#{id}
+	</update>
+
+  	<!-- 通过标识修改用例执行次数 -->
+	<update id="updateUseCaseByRemark"   parameterMap="baseParameterMap">
+		UPDATE
+		<include refid="tableName"></include>
+		SET
+		uCRemark=#{uCRemark}
+		WHERE
+		ID=#{id}
+	</update>
+
+	<!-- 通过标识修改用例状态 -->
+	<update id="updateUseCaseByStatus" parameterMap="baseParameterMap">
+		UPDATE
+		<include refid="tableName"></include>
+		SET
+		uCStauts=#{uCStauts}
+		WHERE
+		ID=#{id}
+	</update>
+
+	<!-- 通过标识修改用例执行次数 -->
+	<update id="updateUseCaseByCount" parameterMap="baseParameterMap">
+		UPDATE
+		<include refid="tableName"></include>
+		SET
+		executeNum=#{executeNum}
+		WHERE
+		ID=#{id}
+	</update>
+
+	<!-- 通过标识修改用例是否执行通过 -->
+	<update id="updateUseCaseByPass" parameterMap="baseParameterMap">
+		UPDATE
+		<include refid="tableName"></include>
+		SET
+		isPass=#{isPass},executeNum=#{executeNum}
+		WHERE
+		ID=#{id}
+	</update>
+	
+	<!-- 通过id给task_group_id 赋值 -->
+		<update id="updateUseCaseById" parameterMap="baseParameterMap">
+		UPDATE
+		<include refid="tableName"></include>
+		SET
+	   task_group_id=#{task_group_id,jdbcType=NUMERIC}
+		WHERE
+		ID=#{id}
+	</update>
+
+	<!-- 通过标识删除 -->
+	<delete id="deleteUseCase" parameterMap="baseParameterMap">
+		DELETE FROM
+		<include refid="tableName"></include>
+		WHERE 1=1
+		<if test="id !=null and id !=-1">
+			AND ID=#{id}
+		</if>
+		<if test="proID !=null and proID !=-1">
+			AND proID=#{proID}
+		</if>
+	</delete>
+
+	<!-- 批量删除 -->
+	<delete id="deleteUseCaseAll" parameterType="String">
+		DELETE FROM
+		<include refid="tableName"></include>
+		WHERE
+		ID IN
+		<foreach item="item" index="index" collection="array" open="("
+			separator="," close=")">
+			#{item}
+		</foreach>
+	</delete>
+	
+	<!-- 自动产生ID -->
+	<select id="getOverviewid" parameterType="Integer" resultType="java.lang.Integer">
+		SELECT f_auto_increment1(#{autokey}) FROM DUAL
+</select>
+
+<!-- 查询所有的导出用例模版-->
+<select id="queryUseCaseOfTemplates"   parameterType="String" resultMap="baseResultMap">
+SELECT
+	 b.proName AS proName,
+	d.`name` AS productName ,a.*
+FROM
+	use_case a
+INNER JOIN project b ON a.proID = b.id
+INNER JOIN task_product_group c ON a.task_group_id = c.ID
+INNER JOIN product_group d ON c.GROUP_ID = d.id
+WHERE
+	a.proID in
+	 <foreach item="item" index="index" collection="array" open="("
+			separator="," close=")">
+			#{item}
+	</foreach>
+ORDER BY  a.createTime DESC
+</select>
+</mapper>

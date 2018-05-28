@@ -1,0 +1,763 @@
+package com.guoll.modules.statistics.controller;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.OutputStream;
+import java.net.URLEncoder;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.guoll.modules.framework.base.BaseController;
+import com.guoll.modules.project.service.ProjectService;
+import com.guoll.modules.statistics.service.StatisticsService;
+import com.guoll.modules.sysmanage.bean.SysProvince;
+import com.guoll.modules.sysmanage.bean.SysUser;
+import com.guoll.modules.sysmanage.service.SysProvinceService;
+import com.guoll.modules.useCase.bean.UseCase;
+import com.guoll.modules.useCase.service.UseCaseService;
+
+import util.DateUtil;
+
+/**
+ * 统计控制层
+ * @author htnm
+ *
+ */
+@Controller
+@RequestMapping("/statisticsController")
+public class StatisticsController extends BaseController{
+	@Autowired(required=false)
+	StatisticsService statisticsService;
+	@Autowired(required=false)
+	SysProvinceService sysProvinceService;
+	@Autowired(required=false)
+	private  ProjectService  projectService;
+	@Autowired(required=false)
+	private  UseCaseService  useCaseService;
+	
+	/**
+	 * 跳转到用例执行统计页面
+	 * @return
+	 */
+	@RequestMapping("/getCountOfProvienceInit")
+	public String getCountOfProvienceInit(HttpServletRequest request){
+		request.setAttribute("provinceSpell", getSessionUser(request).getSysProvince().getProvinceSpell());
+		SysUser user = getSessionUser(request);
+		if (user.getOrg_id() == 4) {//超级管理员进入的统计页面
+			return "statistics/superStatistic";
+		}else if(user.getOrg_id() == 2){//省管理员进入的统计页面
+			return "statistics/provinceStatistic";
+		}else{
+			//getOrg_id==3 为普通管理员时
+			return "statistics/puTongStatistic";//普通操作员进入的统计界面
+		}
+	}
+	
+
+	
+	//超级管理员admin的统计分页
+	/*
+	 * 超级管理员admin的统计页面,以省为维度,精确到任务
+	 */
+	
+	@RequestMapping("/getAdminProvinceStatisticProject")
+	@ResponseBody
+	public Map<String, Object> getAdminProvinceStatisticProject(HttpServletRequest request,String provinceSpell,Integer page,Integer rows){
+		if (page == null) {
+			page = 1;
+		}
+		if (rows == null) {
+			rows = 10;
+		}
+		int start = (page - 1) * rows;
+		int end = start + rows;
+		Map<String, Object> map = new HashMap<>();
+		SysUser sessionUser = getSessionUser(request);
+		provinceSpell=sessionUser.getSysProvince().getProvinceSpell();
+		try {
+			ArrayList<String> arrayList = getProvinceSpellList(request, provinceSpell);
+			List<Map<String, Object>> countOfProvience = statisticsService.getProvinceStatistic2ProjectList(arrayList);
+			map.put("total", countOfProvience.size());
+			List<Object> row = new ArrayList<>();
+			for (int i = start; i < end ;i ++) {
+				try {
+					row.add(countOfProvience.get(i));
+				} catch (Exception e) {
+				}
+			}
+			map.put("rows", row);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return map;
+	}
+	
+	
+	//超级管理员admin的统计折线图
+	/*
+	 * 超级管理员admin的统计页面,以省为维度,精确到任务
+	 */
+	
+	@RequestMapping("/getAdminProvinceProjectEchart")
+	@ResponseBody
+	public Map<String, Object> getAdminProvinceProjectEchart(HttpServletRequest request,String provinceSpell){
+		Map<String, Object> map = new HashMap<>();
+		SysUser sessionUser = getSessionUser(request);
+		provinceSpell=sessionUser.getSysProvince().getProvinceSpell();
+		try {
+			ArrayList<String> arrayList = getProvinceSpellList(request, provinceSpell);
+			List<Map<String, Object>> countOfProvience = statisticsService.getProvinceStatistic2ProjectList(arrayList);
+		
+			map.put("data", countOfProvience);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return map;
+	}
+	
+	/*
+	 * 
+	 * 超级管理员的饼状图,以任务为单位
+	 */
+	
+	@RequestMapping("/getAdminProvinceProjectCircle")
+	@ResponseBody
+	public Map<String, Object> getAdminProvinceProjectCircle(HttpServletRequest request,String provinceSpell){
+		Map<String, Object> map = new HashMap<>();
+		SysUser sessionUser = getSessionUser(request);
+		provinceSpell=sessionUser.getSysProvince().getProvinceSpell();
+		try {
+			ArrayList<String> arrayList = getProvinceSpellList(request, provinceSpell);
+			Map<String, Object> countOfProvience = statisticsService.getAdminStatisticProjectCircle(arrayList);
+			map.put("data", countOfProvience);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return map;
+	}
+	
+	
+	/*
+	 * 
+	 * admin超级管理员查看全部图
+	 */
+	
+	@RequestMapping("/adminTaskList")
+	public String  adminTaskList(HttpServletRequest request){
+		request.setAttribute("provinceSpell", getSessionUser(request).getSysProvince().getProvinceSpell());
+		SysUser user = getSessionUser(request);
+			return "statistics/adminTaskList";
+	}
+	
+	
+	/*
+	 * 
+	 * admin超级管理员查看当前省份的任务用例图
+	 */
+	@RequestMapping("/adminOfProvinceStatistic")
+	public String adminOfProvinceStatistic(HttpServletRequest request,String provinceSpell){
+		request.setAttribute("provinceSpell",provinceSpell);
+			return "statistics/adminOfProvinceStatistic";
+	}
+	//admin看省的统计
+	
+	
+	//关于省管理员统计分页
+	// 1. 省统计 以任务维度
+	
+	/**
+	 * 查询(个)省统计数据，精确到任务(接口)
+	 * 
+	 * @param request
+	 * @return
+	 */
+	@RequestMapping("/getProvinceStatistic2Project")
+	@ResponseBody
+	public Map<String, Object> getProvinceStatistic2Project(HttpServletRequest request,String provinceSpell,Integer page,Integer rows){
+		if (page == null) {
+			page = 1;
+		}
+		if (rows == null) {
+			rows = 10;
+		}
+		int start = (page - 1) * rows;
+		int end = start + rows;
+		Map<String, Object> map = new HashMap<>();
+		//获取单签用户的省份
+		SysUser sessionUser = getSessionUser(request);
+		if(!"".equals(provinceSpell)&&provinceSpell!=null){
+			
+		}else{
+			provinceSpell=sessionUser.getSysProvince().getProvinceSpell();
+		}
+		
+		try {
+			ArrayList<String> arrayList = getProvinceSpellList(request, provinceSpell);
+			List<Map<String, String>> countOfProvience = statisticsService.getProvinceStatistic2Project(arrayList);
+			map.put("total", countOfProvience.size());
+			List<Object> row = new ArrayList<>();
+			for (int i = start; i < end ;i ++) {
+				try {
+					row.add(countOfProvience.get(i));
+				} catch (Exception e) {
+				}
+			}
+			map.put("rows", row);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return map;
+	}
+	
+	
+	/*
+	 * 省级统计折线图
+	 */
+	@RequestMapping("/getProvinceStatisticProjectEchart")
+	@ResponseBody
+	public Map<String, Object> getProvinceStatisticProjectEchart(HttpServletRequest request,String provinceSpell){
+	
+		Map<String, Object> map = new HashMap<>();
+		//获取单签用户的省份
+		SysUser sessionUser = getSessionUser(request);
+	if(!"".equals(provinceSpell)&&provinceSpell!=null){
+			
+		}else{
+			provinceSpell=sessionUser.getSysProvince().getProvinceSpell();
+		}
+		try {
+			ArrayList<String> arrayList = getProvinceSpellList(request, provinceSpell);
+			List<Map<String, String>> countOfProvience = statisticsService.getProvinceStatistic2Project(arrayList);
+			map.put("data", countOfProvience);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return map;
+	}
+	
+	
+	/*
+	 * 省级统计饼状图
+	 */
+	
+	@RequestMapping("/getProvinceStatisticProjectCircle")
+	@ResponseBody
+	public Map<String, Object> getProvinceStatisticProjectCircle(HttpServletRequest request,String provinceSpell){
+	
+		Map<String, Object> map = new HashMap<>();
+		//获取单签用户的省份
+		SysUser sessionUser = getSessionUser(request);
+	if(!"".equals(provinceSpell)&&provinceSpell!=null){
+			
+		}else{
+			provinceSpell=sessionUser.getSysProvince().getProvinceSpell();
+		}
+		try {
+			ArrayList<String> arrayList = getProvinceSpellList(request, provinceSpell);
+			List<Map<String, Object>> countOfProvience = statisticsService.getProvinceStatisticProjectCircle(arrayList);
+			//取出当前省的用例通过率
+			map.put("data", countOfProvience.get(0));
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return map;
+	}
+	
+	//省级统计查看任务页面
+	@RequestMapping("/LookList")
+	public String  ProviceOfstaticsLookList(HttpServletRequest request,String provinceSpell){
+		request.setAttribute("provinceSpell",provinceSpell);
+		SysUser user = getSessionUser(request);
+			return "statistics/provinceTaskList";
+		
+	}
+	
+	//省级统计任务展开的分页操作
+	@RequestMapping("/ProviceOfstaticQueryList")
+	@ResponseBody
+	public Map<String, Object> ProviceOfstaticQueryList(HttpServletRequest request,String provinceSpell,Integer page,Integer rows){
+		if (page == null) {
+			page = 1;
+		}
+		if (rows == null) {
+			rows = 50;
+		}
+		int start = (page - 1) * rows;
+		int end = start + rows;
+		Map<String,Object> map = new HashMap<>();
+		//获取单签用户的省份
+		SysUser sessionUser = getSessionUser(request);
+	if(!"".equals(provinceSpell)&&provinceSpell!=null){
+			
+		}else{
+			provinceSpell=sessionUser.getSysProvince().getProvinceSpell();
+		}
+//		Project  p=new Project();
+//		p.setProProvince(sessionUser.getPost_name());
+		try {
+			ArrayList<String> arrayList = getProvinceSpellList(request, provinceSpell);
+			List<Map<String,String>> countOfProvience = statisticsService.getProvinceStatistic2Project(arrayList);
+			map.put("total", countOfProvience.size());
+			List<Object> row = new ArrayList<>();
+			for (int i = start; i < end ;i ++) {
+				try {
+					row.add(countOfProvience.get(i));
+				} catch (Exception e) {
+				}
+			}
+			map.put("rows", row);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return map;
+	}
+	
+	//任务下用例详情
+	@RequestMapping("/projectOfUsecaseDetail")
+	public  String  projectOfUsecaseDetail(HttpServletRequest request,String projectId){
+		request.setAttribute("projectId",projectId);
+//		SysUser user = getSessionUser(request);
+			return "statistics/provinceUseCaseList";
+	}
+    
+	
+	
+	
+	//省级任务详情,下挂产品组名字,产品下挂用例
+	@RequestMapping("/projectOfGroupUseCaseList")
+	@ResponseBody
+	public   Map<String, Object>  ProviceOfUseCaseList(HttpServletRequest request ,Integer page,Integer rows,String  projectId ){
+		if (page == null) {
+			page = 1;
+		}
+		if (rows == null) {
+			rows = 10;
+		}
+		int start = (page - 1) * rows;
+		int end = start + rows;
+		Map<String, Object> map = new HashMap<>();
+		List<UseCase>  us=new  ArrayList<UseCase>();
+		try {
+			//校验projectId不为空
+		//	String  id=request.getParameter("projectId");
+			if(!"".equals(projectId)&&projectId !=null){
+				us=useCaseService.projectOfUsecase(Integer.parseInt(projectId));
+				map.put("total", us.size());
+				List<Object> row = new ArrayList<>();
+				for (int i = start; i < end ;i ++) {
+					if(i<us.size()){
+						row.add(us.get(i));
+					}
+				}
+				map.put("rows", row);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return map;
+	}
+	
+	
+	//普通操作人员分页
+	/*
+	 * 普通操作人员统计,精确到任务,
+	 */
+	
+	@RequestMapping("/getPuTongStatisticProject")
+	@ResponseBody
+	public Map<String, Object> getPuTongStatisticProject(HttpServletRequest request,String provinceSpell,Integer page,Integer rows){
+		if (page == null) {
+			page = 1;
+		}
+		if (rows == null) {
+			rows = 10;
+		}
+		int start = (page - 1) * rows;
+		int end = start + rows;
+		Map<String, Object> map = new HashMap<>();
+		SysUser sessionUser = getSessionUser(request);
+//		int id=sessionUser.getId();
+//		int org_id=sessionUser.getOrg_id();
+		try {
+			List<Map<String, String>> countOfProject = statisticsService.getPuTongStatisticProject(sessionUser);
+			map.put("total", countOfProject.size());
+			List<Object> row = new ArrayList<>();
+			for (int i = start; i < end ;i ++) {
+				try {
+					row.add(countOfProject.get(i));
+				} catch (Exception e) {
+				}
+			}
+			map.put("rows", row);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return map;
+	}
+	
+
+	
+	//普通操作人员折线图
+		/*
+		 * 普通操作人员统计折线图,精确到任务,
+		 */
+	@RequestMapping("/getPuTongProjectEchart")
+	@ResponseBody
+	public Map<String, Object> getPuTongProjectEchart(HttpServletRequest request,String provinceSpell){
+		
+		Map<String, Object> map = new HashMap<>();
+		SysUser sessionUser = getSessionUser(request);
+//		int id=sessionUser.getId();
+//		int org_id=sessionUser.getOrg_id();
+		try {
+			List<Map<String, String>> countOfProject = statisticsService.getPuTongStatisticProject(sessionUser);
+			map.put("data", countOfProject);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return map;
+	}
+	
+	
+	//普通操作人员饼状图
+	/*
+	 * 普通操作人员统计饼状图,精确到任务,
+	 */
+	
+	@RequestMapping("/getPuTongStatisticProjectCircle")
+	@ResponseBody
+	public Map<String, Object> getPuTongStatisticProjectCircle(HttpServletRequest request,String provinceSpell){
+	
+		Map<String, Object> map = new HashMap<>();
+		SysUser sessionUser = getSessionUser(request);
+//		int id=sessionUser.getId();
+//		int org_id=sessionUser.getOrg_id();
+		try {
+			Map<String, String> countOfProject = statisticsService.getPuTongStatisticProjectEchart(sessionUser);
+			map.put("data", countOfProject);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return map;
+	}
+	
+	
+	
+	/**
+	 * 查询省统计数据，精确到项目
+	 * 
+	 * @param request
+	 * @return
+	 */
+	@RequestMapping("/getProvinceStatistic2HomeProject")
+	@ResponseBody
+	public Map<String, Object> getProvinceStatistic2HomeProject(HttpServletRequest request,String provinceSpell,Integer page,Integer rows){
+		if (page == null) {
+			page = 1;
+		}
+		if (rows == null) {
+			rows = 10;
+		}
+		int start = (page - 1) * rows;
+		int end = start + rows;
+		Map<String, Object> map = new HashMap<>();
+		try {
+			ArrayList<String> arrayList = getProvinceSpellList(request, provinceSpell);
+			List<Map<String, Object>> countOfProvience = statisticsService.getProvinceStatistic2HomeProject(arrayList);
+			map.put("total", countOfProvience.size());
+			List<Object> row = new ArrayList<>();
+			for (int i = start; i < end ;i ++) {
+				try {
+					row.add(countOfProvience.get(i));
+				} catch (Exception e) {
+				}
+			}
+			map.put("rows", row);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return map;
+	}
+
+	
+	
+	
+	/**
+	 * 下载用例执行统计数据,精确到任务
+	 * 如果是系统管理员，下载所以省份的统计数据，否则只有本省
+	 * @param request
+	 * @return
+	 * @throws Exception 
+	 */
+	@RequestMapping("/downloadProvinceStatistic2Project")
+	@ResponseBody
+	public Map<String, Object> downloadProvinceStatistic2Project(HttpServletRequest request,HttpServletResponse response,String provinceSpell) throws Exception{
+		 Map<String, Object> pageData = new HashMap<>();
+		//下载相关代码：
+		try {
+			//后台业务层生成文件，返回文件的全路径文件名
+			ArrayList<String> arrayList = getProvinceSpellList(request, provinceSpell);
+			String fileName = statisticsService.getProvinceStatistic2Project(arrayList, getExelPath(request));
+			//得到要下载的文件
+			File localFile = new File(fileName);
+			//截取文件名
+			String realname = fileName.substring(fileName.lastIndexOf(File.separator)+1);
+			// 设置响应头，控制浏览器下载该文件  
+			response.setHeader("content-disposition", "attachment;filename=" + URLEncoder.encode(realname, "UTF-8"));  
+			// 读取要下载的文件，保存到文件输入流  
+			FileInputStream in = new FileInputStream(localFile);
+			// 创建输出流  
+			OutputStream out = response.getOutputStream(); 
+			// 创建缓冲区  
+			byte buffer[] = new byte[1024];
+			// 循环将输入流中的内容读取到缓冲区当中  
+			int len = 0; 
+			while ((len = in.read(buffer)) > 0) {  
+				// 输出缓冲区的内容到浏览器，实现文件下载  
+				out.write(buffer, 0, len);  
+			}  
+			// 关闭文件输入流  
+			in.close();  
+			// 关闭输出流  
+			out.close(); 
+			pageData.put("sucess", true);
+		} catch (Exception e) {
+			pageData.put("sucess", false);
+			e.printStackTrace();
+		}
+		return pageData;
+	}	
+	
+	
+	/**
+	 * 下载用例执行统计数据,精确到项目
+	 * 如果是系统管理员，下载所有省份的统计数据，否则只有本省
+	 * @param request
+	 * @return
+	 * @throws Exception 
+	 */
+	@RequestMapping("/downloadProvinceStatistic2HomeProject")
+	@ResponseBody
+	public  Map<String, Object>  downloadProvinceStatistic2HomeProject(HttpServletRequest request,HttpServletResponse response,String provinceSpell) throws Exception{
+		//下载相关代码：
+		 Map<String, Object> pageData = new HashMap<>();
+		try {
+			//后台业务层生成文件，返回文件的全路径文件名
+			ArrayList<String> arrayList = getProvinceSpellList(request, provinceSpell);
+			String fileName = statisticsService.getProvinceStatistic2HomeProject(arrayList, getExelPath(request));
+			//得到要下载的文件
+			File localFile = new File(fileName);
+			//截取文件名
+			String realname = fileName.substring(fileName.lastIndexOf(File.separator)+1);
+			// 设置响应头，控制浏览器下载该文件  
+			response.setHeader("content-disposition", "attachment;filename=" + URLEncoder.encode(realname, "UTF-8"));  
+			// 读取要下载的文件，保存到文件输入流  
+			FileInputStream in = new FileInputStream(localFile);
+			// 创建输出流  
+			OutputStream out = response.getOutputStream(); 
+			// 创建缓冲区  
+			byte buffer[] = new byte[1024];
+			// 循环将输入流中的内容读取到缓冲区当中  
+			int len = 0; 
+			while ((len = in.read(buffer)) > 0) {  
+				// 输出缓冲区的内容到浏览器，实现文件下载  
+				out.write(buffer, 0, len);  
+			}  
+			// 关闭文件输入流  
+			in.close();  
+			// 关闭输出流  
+			out.close(); 
+			pageData.put("success", true);
+		} catch (Exception e) {
+			pageData.put("success", false);
+			e.printStackTrace();
+		}
+		return pageData;
+	}	
+	
+	
+	/*
+	 * 获取省旗下的的产品任务导出接口
+	 */
+	
+	@RequestMapping("/downloadProvinceOfProject")
+	@ResponseBody
+	public  Map<String, Object>  downloadProvinceOfProject(HttpServletRequest request,HttpServletResponse response) throws Exception{
+		//下载相关代码：
+		 Map<String, Object> pageData = new HashMap<>();
+		 SysUser sessionUser = getSessionUser(request);
+		 String  proviceName=sessionUser.getPost_name();
+		 //当前用户所属身份的英文全拼
+		 String  provinceSpell=sessionUser.getProvinceSpell();
+		try {
+			//后台业务层生成文件，返回文件的全路径文件名
+			ArrayList<String> arrayList = getProvinceSpellList(request, provinceSpell);
+			String fileName = statisticsService.dowmLoadProvinceOfProject(arrayList, getExelPath(request),proviceName);
+			//得到要下载的文件
+			File localFile = new File(fileName);
+			//截取文件名
+			String realname = fileName.substring(fileName.lastIndexOf(File.separator)+1);
+			// 设置响应头，控制浏览器下载该文件  
+			response.setHeader("content-disposition", "attachment;filename=" + URLEncoder.encode(realname, "UTF-8"));  
+			// 读取要下载的文件，保存到文件输入流  
+			FileInputStream in = new FileInputStream(localFile);
+			// 创建输出流  
+			OutputStream out = response.getOutputStream(); 
+			// 创建缓冲区  
+			byte buffer[] = new byte[1024];
+			// 循环将输入流中的内容读取到缓冲区当中  
+			int len = 0; 
+			while ((len = in.read(buffer)) > 0) {  
+				// 输出缓冲区的内容到浏览器，实现文件下载  
+				out.write(buffer, 0, len);  
+			}  
+			// 关闭文件输入流  
+			in.close();  
+			// 关闭输出流  
+			out.close(); 
+			pageData.put("success", true);
+		} catch (Exception e) {
+			pageData.put("success", false);
+			e.printStackTrace();
+		}
+		return pageData;
+	}	
+	
+
+
+	/**
+	 *获取省份拼写列表
+	 *传入省份拼写和请求域
+	 *如果省份拼写不为空且不为超级管理员，创建列表添加返回
+	 *否则查询所有省份拼写，返回列表
+	 * @param request
+	 * @param provinceSpell
+	 * @return
+	 */
+	private ArrayList<String> getProvinceSpellList(HttpServletRequest request, String provinceSpell) {
+		ArrayList<String> arrayList = new ArrayList<>();
+		if (provinceSpell == null || provinceSpell.equals("admin")) {
+			SysUser sessionUser = getSessionUser(request);
+			if (sessionUser.getOrg_id() == 4) {// 超级管理员
+				List<SysProvince> allSysprovinceList = sysProvinceService.queryAllSysprovinceList();
+				for (SysProvince sysProvince : allSysprovinceList) {
+					provinceSpell = sysProvince.getProvinceSpell();
+					if (!provinceSpell.equals("admin")) {
+						arrayList.add(provinceSpell);
+					}
+				}
+			} else {// 非超级管理员
+				provinceSpell = sessionUser.getSysProvince().getProvinceSpell();
+				arrayList.add(provinceSpell);
+			}
+		} else {
+			arrayList.add(provinceSpell);
+		}
+		return arrayList;
+	}
+	
+	/**
+	 * 获取Excel文件存放目录
+	 * @param request
+	 * @return
+	 */
+	private String getExelPath(HttpServletRequest request) {
+		String realPath = request.getSession().getServletContext().getRealPath("/");// 返回的是:E:\tomcat7\webapps\roamProject\
+		String realPath2 = realPath.substring(0, realPath.indexOf("webapps") - 1);// 返回的是:E:\tomcat7
+		String path = realPath2 + File.separator + "Excels" + File.separator + DateUtil.getDay() + File.separator
+				+ getSessionUser(request).getUser_code() + File.separator; // 设定文件保存的目录
+		return path;
+	}
+	
+	
+	/**
+	 * 
+	 * 查询省计数据，由任务细化到产品
+	 * 
+	 * @param Integer projectId任务id
+	 * @return
+	 */
+	@ResponseBody
+	@RequestMapping("/getStatisticProject2Product")
+	public Map<String, Object> getStatisticProject2Product(Integer projectId,Integer page,Integer rows){
+		if (page == null) {
+			page = 1;
+		}
+		if (rows == null) {
+			rows = 10;
+		}
+		int start = (page - 1) * rows;
+		int end = start + rows;
+		Map<String, Object> map = new HashMap<>();
+		try {
+			List<Map<String, Object>> countOfProvience = statisticsService.getStatisticProject2Product(projectId);
+			map.put("total", countOfProvience.size());
+			List<Object> row = new ArrayList<>();
+			for (int i = start; i < end ;i ++) {
+				try {
+					row.add(countOfProvience.get(i));
+				} catch (Exception e) {
+				}
+			}
+			map.put("rows", row);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return map;
+	}
+	
+	/**
+	 * 下载统计数据，由任务细化到产品
+	 * 
+	 * @param Integer projectId任务id
+	 * @return
+	 */
+	@RequestMapping("/downloadStatisticProject2Product")
+	@ResponseBody
+	public Map<String, Object> downloadStatisticProject2Product(HttpServletRequest request,HttpServletResponse response,Integer projectId){
+
+		Map<String, Object> pageData = new HashMap<>();
+		//下载相关代码：
+		try {
+			//后台业务层生成文件，返回文件的全路径文件名
+			String fileName = statisticsService.getStatisticProject2Product(projectId, getExelPath(request));
+			//得到要下载的文件
+			File localFile = new File(fileName);
+			//截取文件名
+			String realname = fileName.substring(fileName.lastIndexOf(File.separator)+1);
+			// 设置响应头，控制浏览器下载该文件  
+			response.setHeader("content-disposition", "attachment;filename=" + URLEncoder.encode(realname, "UTF-8"));  
+			// 读取要下载的文件，保存到文件输入流  
+			FileInputStream in = new FileInputStream(localFile);
+			// 创建输出流  
+			OutputStream out = response.getOutputStream(); 
+			// 创建缓冲区  
+			byte buffer[] = new byte[1024];
+			// 循环将输入流中的内容读取到缓冲区当中  
+			int len = 0; 
+			while ((len = in.read(buffer)) > 0) {  
+				// 输出缓冲区的内容到浏览器，实现文件下载  
+				out.write(buffer, 0, len);  
+			}  
+			// 关闭文件输入流  
+			in.close();  
+			// 关闭输出流  
+			out.close(); 
+			pageData.put("sucess", true);
+		} catch (Exception e) {
+			pageData.put("sucess", false);
+			e.printStackTrace();
+		}
+		return pageData;
+	}
+}

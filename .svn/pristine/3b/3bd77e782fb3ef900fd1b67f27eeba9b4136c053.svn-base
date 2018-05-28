@@ -1,0 +1,56 @@
+
+function saveMethod(){
+	var proName =trans($('#proName').val());
+	if(isNull(proName)){
+		$.messager.alert('温馨提示','请输入任务名称','',function(){
+			$("#proName").focus();
+		});
+		return false;
+	}
+	var proExplain =trans($('#proExplain').val());
+	if(isNull(proExplain)){
+		$.messager.alert('温馨提示','请输入任务说明','',function(){
+			$("#proExplain").focus();
+		});
+		return false;
+	}
+	var proStatus =trans($('#proStatus').combobox('getValue'));
+	if(isNull(proStatus) || proStatus==-1){
+		$.messager.alert('温馨提示','请选择状态');
+		return false;
+	}
+	var proType = $("#proType").val();
+	var proRemark =trans($('#proRemark').val());//备注
+	var proProvince = $("#proProvince").val();//省
+	var proProvinceID = $("#proProvinceID").val();
+	var id = $("#id").val();
+	var homeProjectId = $("#homeProjectId").val();
+	$.ajax({
+		url: 'project/save',
+		data:{
+			proType: proType,
+			proProvinceID: proProvinceID,
+			proProvince: proProvince,
+			id: id,
+			homeProjectId: homeProjectId,
+			proName: proName,
+			proExplain: proExplain,
+			proStatus: proStatus,
+			proRemark: proRemark
+		},
+		dataType: 'json',  
+		async: true,
+		success: function (res) { 
+			window.parent.closeWin(true,"win_div_1");
+		}
+	})
+	//$("#addOrUpateForm").submit();
+}
+
+function cancelMethod(){
+	window.parent.closeWin(false,"winDiv_1");
+}
+
+
+
+

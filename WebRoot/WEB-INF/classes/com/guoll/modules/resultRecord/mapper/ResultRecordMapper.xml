@@ -124,12 +124,12 @@
 			AND result_record.isPass=#{isPass,jdbcType=INTEGER}
 		</if>
 		<if test=" uCName !='' and uCName !=null">
-		AND uCName LIKE  CONCAT(CONCAT('%', #{uCName,jdbcType=VARCHAR}),'%')
+		AND use_case.uCName LIKE  CONCAT(CONCAT('%', #{uCName,jdbcType=VARCHAR}),'%')
 		</if>
 		<if test=" uCNumber !='' and uCNumber !=null">
-		AND uCNumber LIKE  CONCAT(CONCAT('%', #{uCNumber,jdbcType=VARCHAR}),'%')
+		AND   use_case.uCNumber LIKE  CONCAT(CONCAT('%', #{uCNumber,jdbcType=VARCHAR}),'%')
 		</if>
-		ORDER BY executeTime DESC
+		ORDER BY   result_record.executeTime DESC
 		limit #{start,jdbcType=NUMERIC},#{rows,jdbcType=NUMERIC}
 	</select>
 

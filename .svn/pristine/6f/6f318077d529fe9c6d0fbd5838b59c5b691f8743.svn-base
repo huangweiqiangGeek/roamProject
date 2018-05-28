@@ -1,0 +1,314 @@
+
+$(document).ready(function(){
+	$('#win').window('close');  // close a window  
+	initBusinessTypeSelect();
+})
+//每行添加的各项操作
+function formatOperate(value,rowDatas,rowIndex){
+	var str='<a class="btn handleBtn" title="查看"  href="javascript:showMethod('+rowDatas.id+')">查看</a>&nbsp;&nbsp;';
+	str+='<a class="btn handleBtn" title="编辑"  href="javascript:editMethod('+rowDatas.id+')">编辑</a>&nbsp;&nbsp;';
+	str+='<a class="btn handleBtn" title="删除" href="javascript:removeMethod('+rowDatas.id+')">删除</a>&nbsp;&nbsp;';
+	return str;
+}
+function formatDt(value,rowDatas,rowIndex){
+	if(!isNull(value)){
+		return new Date(value).pattern("yyyy-MM-dd HH:mm:ss");
+	}
+	return "";
+}
+
+function addMethod(){
+	showWin("productGroupController/toEdit", "新增产品组信息 ", 800, 510);
+}
+
+function autoAddMethod(){
+	$('#win').window('open');  // open a window    
+
+}
+
+function autoGet(){
+	if($("#cpz_num").val()==''){
+		$.messager.alert('提示','手机号为空，请填写手机号！！！');
+		return;
+	}
+	if($("#business_type").val()==''){
+		$.messager.alert('提示','产品组信息为空，请填写产品组信息！！！');
+		return;
+	}
+	$.messager.confirm('确认对话框', '您确定自动获取产品组信息吗？', function(r){
+		if (r){
+			showWin("productGroupController/toEdit?telephone="+$("#cpz_num").val()+'&business_type='+$("#business_typeid").val(), "自动获取产品组信息", 800, 480);
+		}
+	});
+}
+
+function initBusinessTypeSelect(){
+	var headers={};  
+    headers['CSRFToken']=$("#csrftoken").val();
+	$.ajax({
+		url: "productGroupController/queryProductBusinessTypeSelect",
+		dataType: 'json',  
+		async: false,
+		mode: 'remote',
+		headers:headers,
+		success: function (jsonstr) { 
+			jsonstr.unshift({  
+				'type_id': 'all_type',  
+				'type_name': '全部',
+			});//向json数组开头添加自定义数据 
+			$('#business_type').combobox({  
+				data: jsonstr,  
+				valueField: 'type_id',  
+				textField: 'type_name',  
+				onLoadSuccess: function () { //加载完成后,设置选中第一项  
+					var val = $(this).combobox('getData');  
+				}
+			});  
+		} 
+	});
+}
+//获取全部接口编码
+function getBusinessType(){
+	var all_type=$('#business_type').combobox('options').data;
+	var type_id='';
+	for(var i=1; i<all_type.length ; i++){
+		if(i==1){
+			type_id+=all_type[i].id;
+		}else{
+			type_id+=','+all_type[i].id;
+		}
+	}
+	$("#business_typeid").val(type_id);
+}
+
+$(function(){
+	$("#business_type").combobox({ 
+		onSelect: function (record){
+			var selectCpb = $('#business_type').combobox('getValues');
+			var allCpb_length=$('#business_type').combobox('options').data.length-1;
+			if(selectCpb=="all_type"){
+				getBusinessType();
+				$('#business_type').combobox('hidePanel');
+			}else if(selectCpb.indexOf("all_type") > 0){		
+				$('#business_type').combobox("clear");
+				$('#business_type').combobox("setValue","all_type");
+				$('#business_type').combobox('hidePanel');
+				getBusinessType();
+			}else{
+				var cpb_code=$("#business_typeid").val()==''?[]:$("#business_typeid").val().split(",");
+				if(cpb_code.length==allCpb_length||cpb_code.length==0){
+					$("#business_typeid").val(record.id);
+				}else{
+					cpb_code.push(record.id);
+					$("#business_typeid").val(cpb_code);
+				}
+				$("#business_type").combobox('unselect', "all_type");
+			}
+		},
+		onUnselect: function (record) {
+			var cpb_code=$("#business_typeid").val().split(",");
+			for(var i = 0; i < cpb_code.length; i++){  
+		         if(cpb_code[i] == record.id){
+		        	 cpb_code.splice(i,1);  //splice方法会改变数组长度，当减掉一个元素后，后面的元素都会前移，因此需要相应减少i的值  
+		             i--;  
+		         }  
+		     }
+			$("#business_typeid").val(cpb_code);
+		}
+	});
+});
+
+
+function getSelections(){
+    var group_id = "";
+    var rows = $('#dg').datagrid('getSelections');
+    for(var i=0; i<rows.length; i++){
+        var row = rows[i];
+        group_id+=(row.id+"#");
+    }
+    return group_id;
+}
+function savePrdList(){
+	var task_id=$("#proID").val();
+	var useCase_id=$("#useCase_id").val();
+	var group_id=getSelections();
+	var params={task_id:task_id,useCase_id:useCase_id,group:group_id};
+	        $.messager.confirm('确认', '确定要提交所有的数据?', function(r){  
+	            if (r){  
+	            /*	alert("useCase_id :"+useCase_id);*/
+	                $.ajax({  
+	                    type: "post",  
+	                    data:params,
+	                    url: 'userCaseTreeController/addProductGroupToTask',  
+	                    dataType: 'json',  
+	                    success: function (data) {  
+	                        if(data == 0) {  
+	                            window.parent.closeWin();
+	                        	window.parent.onLoadSuccess();
+	                        } else {  
+	                        	 window.parent.closeWin();
+	                        	
+	                        }  
+	                    },  
+	                    error: function () {  
+	                        alert("保存失败！");  
+	                    }  
+	                });  
+	            }  
+	        });
+	      
+};
+
+function removeMethod(id){
+	
+	$.messager.confirm('确认对话框', '您确定删除此条产品组信息吗？', function(r){
+		if (r){
+			var headers={};  
+		    headers['CSRFToken']=$("#csrftoken").val();
+			$.ajax({
+				type:"get",
+				url:"productGroupController/deleteProductGroupById?id="+id,
+				headers:headers,
+				async:true,
+				error:function(){
+					$.messager.alert('溫馨提示','删除失败!');
+				},
+				success:function(data){
+					if(data =="0"){
+						$.messager.alert('溫馨提示','删除成功!');
+					}else{
+						$.messager.alert('溫馨提示','删除失败!');
+					}
+					$('#dg').datagrid('reload');
+				}
+			})
+		}
+	});
+	
+}
+
+function editMethod(id){
+	showWin("productGroupController/toEdit?group_id="+id, "编辑产品组信息", 800, 510);
+}
+
+function showMethod(id){
+	initProductGroupInfo(id);
+	//initSubproductGroupInfo(id);
+	$(".show_dailog").show();
+}
+
+function closeDailog(){
+	$(".show_dailog").hide();
+}
+
+
+//加载产品组信息
+function initProductGroupInfo(group_id){
+	$.ajax(
+			{	url:'productGroupController/initProductGroupInfo',
+				type: 'POST',
+				data:{group_id:group_id},
+				dataType: 'json',
+				timeout: 10000,
+				error: function(){
+					$.messager.alert('溫馨提示','加载产品组信息失败!');
+				},
+				success: function(data) {
+					var data1=data[0];
+					var data2=data[1];
+					var productJson , noJson ;
+					for(var key in data1){
+						productJson=data1.groupProductJson;
+						noJson=data1.groupNoJson;
+					}
+					$(".dailog_body").html('');
+					//获取产品json 拼接产品列表
+					var json1 = eval('(' + productJson + ')');
+					json1=json1.groupProductJson;
+					var p="<p class='cp_name'><span style='float:left;'><img style='width: 25px;float: left; margin: 0 5px;' src='images/ck1.png'/>产品组：</span><span style='color:red;'>"+data1.name+"</span></p>";
+					$(".dailog_body").append(p);
+					if(json1.length!=0){
+						var h="<div class='cp_content'><label><img style='width: 22px;margin: 0 5px;margin-top: 3px; float: left;' src='images/ck2.png'/>组合详情：</label><ol>";
+						for(var i=0;i<json1.length;i++){
+							var json=json1[i] , j=i+1;
+							h+="<li>"+j+"、"+json.productName+"</li>";
+						}
+						h+="</ol></div>";
+						$(".dailog_body").append(h);
+					}
+					
+					//获取电话号码json 拼接号码列表
+					var json2 = eval('(' + noJson + ')');
+					json2=json2.groupNoJson;
+					if(json2.length!=0){
+						var h = "<div class='cp_content'><label><img style='width: 22px;margin: 0 5px;margin-top: 3px; float: left;' src='images/ck2.png'/>号码详情：</label><ol class='num_ol'>";
+						for(var j=0;j<json2.length;j++){
+							var json=json2[j] , i = j+1 ;
+							h+="<li>"+i+"、"+json.phoneNumber+"</li>";
+						}
+						h+="</ol></div>";
+						$(".dailog_body").append(h);
+					}
+				//加载子产品信息	
+					var h="" ;
+					for(var i=0;i<data2.length;i++){
+						var pj=data2[i].products_json;
+						var json = eval('(' + pj + ')');
+						var keys="table"+data2[i].business_type;
+						json=json[keys];
+						
+						h+="<div class='cp_content'><label><img style='width: 22px;margin: 0 5px;margin-top: 3px; float: left;' src='images/ck2.png'/>"+data2[i].business_type_name+"：</label><ol>";
+						for(var j=0;j<json.length;j++){
+							var jj =j+1;
+							h+="<li>"+jj+"、"+json[j].productName+"</li>";
+						}
+						h+="</ol></div>";
+						
+					}
+					$(".dailog_body").append(h);
+				
+				}	
+			}
+		);
+}
+
+//加载子产品信息
+function initSubproductGroupInfo(group_id){
+	$.ajax(
+			{	url: 'productGroupController/initSubproductGroupInfo',
+				type: 'POST',
+				data:{group_id:group_id},
+				dataType: 'json',
+				timeout: 10000,
+				error: function(){
+					$.messager.alert('溫馨提示','加载产品组信息失败!');
+				},
+				success: function(data) {
+					var h="" ;
+					for(var i=0;i<data.length;i++){
+						var pj=data[i].products_json;
+						var json = eval('(' + pj + ')');
+						var keys="table"+data[i].business_type;
+						json=json[keys];
+						h+="<div class='cp_content'><label><img style='width: 22px;margin: 0 5px;margin-top: 3px; float: left;' src='images/ck2.png'/>"+data[i].business_type_name+"：</label><ol>";
+						for(var j=0;j<json.length;j++){
+							var jj =j+1;
+							h+="<li>"+jj+"、"+json[j].productName+"</li>";
+							console.log(json[j].productName);
+						}
+						h+="</ol></div>";
+					}
+					$(".dailog_body").append(h);
+				}	
+			}
+		);
+}
+
+function searchMethod(){
+	$('#dg').datagrid('load', {    
+		name: $("#proName").val(), 
+		productsMark:'',
+		phone_number_str: $("#proNumber").val()   
+	});
+}
+

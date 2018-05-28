@@ -103,13 +103,14 @@
 	</select>
 
 	<!-- 通过标识查询通用配置记录 -->
-	<select id="querySysConfigById" parameterType="Integer"
+	<select id="querySysConfigById" parameterMap="baseParameterMap"
 		resultMap="baseResultMap">
 		SELECT
 		<include refid="Field"></include>
 		FROM
 		<include refid="tableName"></include>
 		WHERE ID=#{id,jdbcType=NUMERIC}
+		and  provinceName=#{provinceName}
 	</select>
 	<!-- 通过省份查询通用配置记录 -->
 	<select id="querySysConfigByProvince" parameterType="String"

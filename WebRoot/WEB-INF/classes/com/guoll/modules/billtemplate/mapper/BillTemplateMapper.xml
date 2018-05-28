@@ -60,9 +60,9 @@
 	AND TEMPLATENAME LIKE  CONCAT(CONCAT('%', #{templateName,jdbcType=VARCHAR}),'%')
 	</if>
 	<if test=" templateType !='' and templateType !=null">
-	AND templateType LIKE  CONCAT(CONCAT('%', #{templateType,jdbcType=int}),'%')
+	AND templateType LIKE  CONCAT(CONCAT('%', #{templateType,jdbcType=INTEGER}),'%')
 	</if>
-	ORDER BY templateType  
+		ORDER BY  editTime  desc
 	limit #{start,jdbcType=NUMERIC},#{rows,jdbcType=NUMERIC}
 </select>
 

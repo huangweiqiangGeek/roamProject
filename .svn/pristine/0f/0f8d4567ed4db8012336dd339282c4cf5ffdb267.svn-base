@@ -1,0 +1,838 @@
+package com.guoll.modules.project.controller;
+
+import java.io.File;
+import java.io.UnsupportedEncodingException;
+import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import util.CommConfigUtils;
+import util.Convert;
+import util.DateUtil;
+import util.ExecutorOfShell;
+import util.ExecutorOfShell2;
+import util.FtpUtils;
+import util.PathUtil;
+import util.RoamProjectException;
+import util.TxtFileUtil;
+import util.fields.ResourceFiledForParseJson;
+
+import com.guoll.modules.commConfig.bean.CommConfig;
+import com.guoll.modules.commConfig.service.CommConfigService;
+import com.guoll.modules.commType.bean.CommType;
+import com.guoll.modules.commType.service.CommTypeService;
+import com.guoll.modules.framework.base.BaseController;
+import com.guoll.modules.framework.util.SessionUtils;
+import com.guoll.modules.product_customer.service.ProductGroupDetailsService;
+import com.guoll.modules.project.bean.Project;
+import com.guoll.modules.project.service.ProjectService;
+import com.guoll.modules.resultRecord.bean.ResultRecord;
+import com.guoll.modules.resultRecord.service.ResultRecordService;
+import com.guoll.modules.statistics.bean.ProjectExecuteTrace;
+import com.guoll.modules.statistics.service.ProjectExecuteTraceService;
+import com.guoll.modules.sysmanage.bean.SysUser;
+import com.guoll.modules.useCase.bean.UseCase;
+import com.guoll.modules.useCase.controller.SysUtils;
+import com.guoll.modules.useCase.controller.UseCaseExecutorController;
+import com.guoll.modules.useCase.controller.UseCaseExecutorController.Operations;
+import com.guoll.modules.useCase.service.TaskProductGroupService;
+import com.guoll.modules.useCase.service.UseCaseService;
+
+/**
+ * 项目管理管理
+ * @author lukas 414024003@qq.com
+ * @Date 2017年3月20日 15:50:29
+ * @version 1.0
+ */
+@Controller
+@RequestMapping("/project")
+public class ProjectController extends BaseController {
+
+	@Autowired(required = false)
+	ProjectService projectService;
+	@Autowired(required = false)
+	CommTypeService commTypeService;
+	@Autowired(required = false)
+	UseCaseService useCaseService;
+	@Autowired(required = false)
+	ResultRecordService resultRecordService;
+	@Autowired(required = false)
+	CommConfigService commConfigService;
+	@Autowired(required = false)
+	ProjectExecuteTraceService projectExecuteTraceService;
+	@Autowired(required = false)
+	private TaskProductGroupService taskProductGroupService;
+	@Autowired(required = false)
+	private ProductGroupDetailsService productGroupDetailsService;
+	/**
+	 * 一般项目管理入口
+	 * 
+	 * @return
+	 */
+	@RequestMapping("/listInit")
+	public String listInit(HttpServletRequest request,Project project) {
+		SysUser sysUser = (SysUser) SessionUtils.getAttr(request, SessionUtils.SESSION_USER);
+		List<CommType> commTypes = new ArrayList<CommType>();
+		CommType c = new CommType();
+		c.setAffiliationType(3);
+		commTypes = commTypeService.queryCommTypeListAll(c);
+		request.setAttribute("proType", 1);// 1.日常项目 2.回归项目
+		request.setAttribute("satusList", commTypes);
+		request.setAttribute("proProvince", sysUser.getPost_name());
+		request.setAttribute("homeProjectId", project.getHomeProjectId());
+		return "project/list";
+	}
+
+	/**
+	 * 一般项目管理入口 为主页面专备
+	 * 
+	 * @return
+	 */
+	@RequestMapping("/listInit2")
+	public String listInit2(HttpServletRequest request, Integer id) {
+        try {
+        	SysUser sysUser = (SysUser) SessionUtils.getAttr(request, SessionUtils.SESSION_USER);
+    		List<CommType> commTypes = new ArrayList<CommType>();
+    		CommType c = new CommType();
+    		c.setAffiliationType(3);
+    		commTypes = commTypeService.queryCommTypeListAll(c);
+    		request.setAttribute("proType", 1);// 1.日常项目 2.回归项目
+    		request.setAttribute("satusList", commTypes);
+    		request.setAttribute("proID", id);
+    		request.setAttribute("id", id);
+    		request.setAttribute("proProvince", sysUser.getPost_name());
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return "project/projectAll";
+	}
+
+	/**
+	 * 一般项目管理入口
+	 * 
+	 * @return
+	 */
+	@RequestMapping("/projectListInit")
+	public String projectListInit(HttpServletRequest request) {
+		SysUser sysUser = (SysUser) SessionUtils.getAttr(request, SessionUtils.SESSION_USER);
+		request.setAttribute("proProvince", sysUser.getPost_name());
+		return "project/project_list";
+	}
+
+	/**
+	 * 查询项目管理列表
+	 * 
+	 * @return
+	 */
+	@RequestMapping("/listPage")
+	@ResponseBody
+	public Map<String, Object> listPage(Project c, Integer proID, HttpServletRequest request) {
+		c.setProProvince(getProvinceName(request));
+		try {
+			c.setProType(1);
+			if (proID != null && proID != -1) {
+				c.setId(proID);
+			}
+			Map<String, Object> pageData = new HashMap<String, Object>();
+			c.setPages();// 设置分页信息
+			List<Project>  List= projectService.queryProjectList1(c);
+			for(Project  project : List){
+				project.setpId(project.getId());
+			}
+			pageData.put("total", projectService.queryProjectSum(c));
+			pageData.put("rows", List);
+			pageData.put("homeProjectId", c.getHomeProjectId());
+			request.setAttribute("homeProjectId", c.getHomeProjectId());
+			return pageData;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	/**
+	 * 查询项目管理列表
+	 * 
+	 * @return
+	 */
+	@RequestMapping("/projectListPage")
+	@ResponseBody
+	public Map<String, Object> projectListPage(Project c, HttpServletRequest request) {
+		c.setProProvince(getProvinceName(request));
+		Map<String, Object> pageData = new HashMap<String, Object>();
+		c.setProType(1);
+		c.setPages();// 设置分页信息
+		c.setStart(0);
+		c.setEnd(5);
+		pageData.put("total", projectService.queryProjectSum(c));
+		pageData.put("rows", projectService.queryProjectList1(c));
+		return pageData;
+	}
+
+	/**
+	 * 修改项目管理初始化
+	 * 
+	 * @return
+	 */
+	@RequestMapping("/updateInit")
+	public String updateInit(Integer id, HttpServletRequest request) {
+		CommType c = new CommType();
+		c.setAffiliationType(3);
+		List<CommType> satusList = new ArrayList<CommType>();
+		satusList = commTypeService.queryCommTypeListAll(c);
+		request.setAttribute("satusList", satusList);
+		if (id != null) {
+			Project project = projectService.queryProjectById(id);
+			request.setAttribute("project", project);
+			return "project/edit";
+		}
+		return "project/list";
+	}
+
+	/**
+	 * 新增项目管理初始化
+	 * 
+	 * @return
+	 */
+	@RequestMapping("/addInit")
+	public String addInit(Integer org_id,Project project,HttpServletRequest request) {
+		SysUser sysUser = (SysUser) SessionUtils.getAttr(request, SessionUtils.SESSION_USER);
+		project.setProProvince(sysUser.getPost_name());
+		//project.setHomeProjectId(project.getHomeProjectId());
+		request.setAttribute("project", project);
+		CommType c = new CommType();
+		c.setAffiliationType(3);
+		List<CommType> satusList = new ArrayList<CommType>();
+		satusList = commTypeService.queryCommTypeListAll(c);
+		request.setAttribute("satusList", satusList);
+		return "project/edit";
+	}
+
+	/**
+	 * 删除项目管理
+	 * 
+	 * @return
+	 */
+	@RequestMapping("/delete")
+	@ResponseBody
+	public void delete(Project project, HttpServletRequest request) {
+		UseCase useCase = new UseCase();
+		useCase.setProID(project.getId());
+		useCaseService.deleteUseCase(useCase);
+		projectService.deleteProject(project);
+		
+	}
+	
+	/**
+	 * 保存新增/修改项目管理
+	 */
+	@RequestMapping("/save")
+	public String save(Project project, HttpServletRequest request) {
+		SysUser sysUser = (SysUser) SessionUtils.getAttr(request, SessionUtils.SESSION_USER);
+		String user_code=sysUser.getUser_code();
+		String province=sysUser.getPost_name();
+		project.setProProvince(province);
+		project.setProProvinceID(user_code);
+		if (project.getId() == null) {
+			project.setProType(1);
+			project.setHadExe("否");
+			project.setSuccessRate("0%");
+			project.setUseCaseCount(0);
+			//主动生成proNumber
+			int  proNumber= useCaseService.getOverviewid(12);
+			project.setProNumber(Integer.toString(proNumber));
+		}else {
+			Project project2 = projectService.queryProjectById(project.getId());
+			project2.setProName(project.getProName());
+			project2.setProExplain(project.getProExplain());
+			project2.setProStatus(project.getProStatus());
+			project2.setProRemark(project.getProRemark());
+			project = project2;
+		}
+		projectService.saveProject(project);
+		request.setAttribute("close", "close");
+		return "project/edit";
+	}
+
+	/**
+	 * 项目下的所有用例，全部增加到回归项目中
+	 * 
+	 * @param proID
+	 * @param request
+	 * @return
+	 * @throws Exception 
+	 */
+	@RequestMapping("/projecRegression")
+	@ResponseBody
+	public Object projecRegression(Integer pID, HttpServletRequest request) throws Exception {
+		Map<String, Object> pageData = new HashMap<String, Object>();
+		if (pID == null || pID <= -1) {
+			pageData.put("type", -1);
+			pageData.put("msg", "请选择需要进行回归的项目！");
+			return pageData;
+		}
+		List<UseCase> list = null;
+		UseCase c = new UseCase();
+		c.setProID(pID);
+		list = useCaseService.queryUseCaseListAll(c);
+		if (list == null || list.size() <= 0) {
+			pageData.put("type", -1);
+			pageData.put("msg", "选择的项目下没有任何用例记录！");
+			return pageData;
+		}
+		// 2.获取当前角色的回归项目标识
+		Project project = new Project();
+		Map<String, Object> m = new HashMap<String, Object>();
+		m.put("proType", 2);
+		m.put("proProvince", getProvinceName(request));
+		project = projectService.queryProjectByLastId(m);
+		if (project == null) {
+			pageData.put("type", "-1");
+			pageData.put("msg", "当前省份还没有回归项目，请联系管理员添加！");
+			return pageData;
+		}
+		Integer proID = -1;
+		if (project.getId() == null || project.getId() <= 0) {
+			pageData.put("type", "-1");
+			pageData.put("msg", "当前省份还没有回归项目，请联系管理员添加！");
+			return pageData;
+		}
+		proID = project.getId();
+		for (UseCase useCase : list) {
+			if (useCase == null) {
+				continue;
+			}
+			useCase.setId(null);
+			useCase.setProID(proID);
+			useCase.setIsPass(17);
+			useCase.setExecuteNum(0);
+			useCase.setuCStauts(15);
+			useCaseService.saveUseCase(useCase);
+		}
+
+		pageData.put("type", "1");
+		pageData.put("msg", "回归成功");
+		return pageData;
+	}
+
+	/**
+	 * 获取指定项目的执行状态
+	 */
+	@RequestMapping("/projectExecuteCaseStatus")
+	@ResponseBody
+	public Object projectExecuteCaseStatus(Integer proID, HttpServletRequest request) {
+		Object attribute = request.getServletContext().getAttribute("projectExecuteCaseStatus" + proID);// 获取当前执行状态集合
+		if (attribute == null) {// 获取不到数据，说明应用域还没有当前项目的执行数据，查询返回
+			HashMap<String, Object> map2 = new HashMap<String, Object>();
+			UseCase c = new UseCase();
+			c.setProID(proID);// 设定查询用例查询条件为项目标识
+			List<UseCase> listOfUseCase = useCaseService.queryUseCaseListAll(c);// 通过项目标识查询下属所有用例
+			map2.put("now", 0);
+			map2.put("sum", listOfUseCase.size());
+			map2.put("stop", false);
+			return map2;
+		} else {
+			@SuppressWarnings("unchecked")
+			Map<String, Object> projectExecuteCaseStatus = (Map<String, Object>) attribute;
+			if (Boolean.parseBoolean(projectExecuteCaseStatus.get("stop").toString())) {
+				request.getServletContext().removeAttribute("projectExecuteCaseStatus" + proID);
+			}
+			return projectExecuteCaseStatus;
+		}
+	}
+
+	
+	/**
+	 * 按项目执行用例 （注意：按项目执行的用例永远都只能有一条，即使多次按项目执行尽是覆盖上次的执行记录结果）
+	 * 
+	 * @param proID
+	 * @param request
+	 * @return
+	 */
+	@SuppressWarnings({ "unchecked" })
+	@RequestMapping("/projectExecuteCase")
+	@ResponseBody
+	public Object projectExecuteCase(Integer proID, HttpServletRequest request) {
+		Map<String, Object> pageData = new HashMap<String, Object>();
+		Operations operation = Operations.projectExecute;
+		SysUser sysUser = getSessionUser(request);
+		String fileName = DateUtil.getSdfTimes3();
+		String realPath = request.getServletContext().getRealPath("/");
+		try {
+			long start = System.currentTimeMillis();
+			// 准备执行工具
+			UseCaseExecutorController useCaseExecutor = new UseCaseExecutorController(sysUser, operation, logUtils, fileName, proID);
+
+			// 准备执行
+			logUtils.writeLog(realPath, sysUser, "项目执行,请求执行开始,检测请求信息", operation.name(), fileName);
+			if (proID == null || proID <= 0) {
+				pageData.put("type", -1);
+				pageData.put("msg", "请选择需要执行的项目！");
+				logUtils.writeLog(realPath, sysUser, "项目执行,请求执行开始,检测请求信息,项目执行,请求检测,请求中没有指定项目id,执行停止", operation.name(),
+						fileName);
+				return pageData;
+			}
+			// 0验证当前项目是否在执行
+			Object executingProject = request.getServletContext().getAttribute("executingProject");
+			List<Integer> proIds = null;
+			if (executingProject == null) {
+				proIds = new ArrayList<Integer>();
+			} else {
+				proIds = (List<Integer>) executingProject;
+			}
+			if (proIds.contains(proID)) {
+				pageData.put("type", -1);
+				pageData.put("msg", "本项目有使用者正在执行,请稍侯！");
+				return pageData;
+			} else {
+				proIds.add(proID);
+				request.setAttribute("executingProject", proID);
+			}
+
+			Project project = projectService.queryProjectById(proID);
+
+			System.gc();
+			// 2获取项目下的用例集合
+			List<UseCase> listOfUseCase = new ArrayList<UseCase>();
+			UseCase c = new UseCase();
+			c.setProID(proID);// 设定查询用例查询条件为项目标识
+			listOfUseCase = useCaseService.queryUseCaseListAll(c);// 通过项目标识查询下属所有用例
+			// 3遍历用例集合，获取每一个用例，进行执行
+			// 先定义通过率统计变量
+			logUtils.writeLog(realPath, sysUser, "项目执行,开始执行项目" + project + ";当前项目共有" + listOfUseCase.size() + "个用例",
+					operation.name(), fileName);
+
+			//创建项目执行记录并初始化数据
+			ProjectExecuteTrace  projectExecuteTrace = new ProjectExecuteTrace();
+			projectExecuteTrace.setProID(project.getId());
+			projectExecuteTrace.setProName(project.getProName());
+			projectExecuteTrace.setProExecuteBatch(projectExecuteTraceService.queryLastExecuteBatch(proID) + 1);
+			projectExecuteTrace.setAllCaseList(new ArrayList<Integer>());
+			projectExecuteTrace.setDisableCaseList(new ArrayList<Integer>());
+			projectExecuteTrace.setFailedCaseList(new ArrayList<Integer>());
+			projectExecuteTrace.setPassCaseList(new ArrayList<Integer>());
+			int allCaseCount = 0; //统计总用例数
+			int disableCaseCount = 0; //统计未完成数
+			int failedCaseCount = 0; //统计失败数
+			int passCaseCount = 0; //统计通过数
+			Integer projectExecuteTraceBatch = projectExecuteTraceService.queryLastExecuteBatch(proID);
+			for (UseCase useCase : listOfUseCase) {
+				try {
+					int ispass = useCase.getIsPass();//接收执行结果的数据
+					try {
+						ispass = useCaseExecutor.execute(useCase,projectExecuteTraceBatch == null || projectExecuteTraceBatch <= 0 ? 1 : projectExecuteTraceBatch + 1,taskProductGroupService,productGroupDetailsService);
+					} catch (Exception e) {
+					}finally{
+						//处理执行结果，用于保存项目执行轨迹
+						allCaseCount++;
+						projectExecuteTrace.getAllCaseList().add(useCase.getId());
+						if (ispass == 18) {
+							passCaseCount ++;
+							projectExecuteTrace.getPassCaseList().add(useCase.getId());
+						} else if (ispass == 19) {
+							failedCaseCount ++;
+							projectExecuteTrace.getFailedCaseList().add(useCase.getId());
+						} else {
+							disableCaseCount ++;
+							projectExecuteTrace.getDisableCaseList().add(useCase.getId());
+						}
+					}
+					
+					//处理用于实时显示于页面的项目执行状态
+					Object attribute = request.getServletContext().getAttribute("projectExecuteCaseStatus" + proID);// 获取当前执行状态集合
+					if (attribute == null) {
+						HashMap<String, Object> map2 = new HashMap<String, Object>();
+						map2.put("now", 1);
+						map2.put("sum", listOfUseCase.size());
+						map2.put("stop", false);
+						request.getServletContext().setAttribute("projectExecuteCaseStatus" + proID, map2);
+					} else {
+						Map<String, Object> projectExecuteCaseStatus = (Map<String, Object>) attribute;
+						projectExecuteCaseStatus.put("now",
+								Integer.parseInt(projectExecuteCaseStatus.get("now").toString()) + 1);
+						if (Integer.parseInt(projectExecuteCaseStatus.get("now").toString()) == Integer
+								.parseInt(projectExecuteCaseStatus.get("sum").toString())) {
+							projectExecuteCaseStatus.put("stop", true);
+							request.getServletContext().setAttribute("projectExecuteCaseStatus" + proID,
+									projectExecuteCaseStatus);
+						}
+					}
+				} catch (Exception e) {
+					e.printStackTrace();
+					
+					//处理用于实时显示于页面的项目执行状态
+					Object attribute = request.getServletContext().getAttribute("projectExecuteCaseStatus" + proID);// 获取当前执行状态集合
+					if (attribute == null) {
+						HashMap<String, Object> map2 = new HashMap<String, Object>();
+						map2.put("now", 1);
+						map2.put("sum", listOfUseCase.size());
+						map2.put("stop", false);
+						request.getServletContext().setAttribute("projectExecuteCaseStatus" + proID, map2);
+					} else {
+						Map<String, Object> projectExecuteCaseStatus = (Map<String, Object>) attribute;
+						projectExecuteCaseStatus.put("now",
+								Integer.parseInt(projectExecuteCaseStatus.get("now").toString()) + 1);
+						if (Integer.parseInt(projectExecuteCaseStatus.get("now").toString()) == Integer
+								.parseInt(projectExecuteCaseStatus.get("sum").toString())) {
+							projectExecuteCaseStatus.put("stop", true);
+							request.getServletContext().setAttribute("projectExecuteCaseStatus" + proID,
+									projectExecuteCaseStatus);
+						}
+					}
+				}
+			}
+			//保存项目执行记录
+			projectExecuteTrace.setAllCaseCount(allCaseCount);
+			projectExecuteTrace.setPassCaseCount(passCaseCount);
+			projectExecuteTrace.setDisableCaseCount(disableCaseCount);
+			projectExecuteTrace.setFailedCaseCount(failedCaseCount);
+			projectExecuteTraceService.addProjectExecuteTrace(projectExecuteTrace);
+			
+			
+			//统计页面需要的通过率数据
+			UseCase useCase = new UseCase();
+			useCase.setProID(proID);
+			List<UseCase> listAll = useCaseService.queryUseCaseListAll(useCase);
+			Integer successRate = 0;
+			Integer failureRate = 0;
+			Integer cannot = 0;
+			for (UseCase useCase2 : listAll) {
+				if (useCase2.getIsPass() != null & useCase2.getIsPass() == 18) {
+					successRate++;
+				} else if (useCase2.getIsPass() != null & useCase2.getIsPass() == 19) {
+					failureRate++;
+				} else if (useCase2.getIsPass() != null & useCase2.getIsPass() == 21) {
+					cannot++;
+				}
+			}
+			
+			//计算通过率统计各种用例数量以返回给页面
+			float rate = ((float) successRate )/ ((float) (successRate + failureRate+cannot)) * 100;
+			String result = ""+rate;
+			try {
+				result = result.substring(0, result.indexOf(".")+3);
+			} catch (Exception e) {
+			}
+			project.setSuccessRate(result + "%");
+			System.out.println(project.getSuccessRate());
+			project.setHadExe("是");
+			projectService.saveProject(project);
+			pageData.put("type", "1");
+			pageData.put("msg", "执行结束，执行通过" + successRate + "个，执行不通过" + failureRate + "个，未完成执行" + cannot
+					+ "个，对于未完成执行的用例，请查看用例数据设置是否正确");
+			pageData.put("successRate", successRate);// 执行通过的个数
+			pageData.put("failureRate", failureRate);// 执行不通过的个数
+			pageData.put("cannotRate", cannot);// 执行不通过的个数
+			pageData.put("successUrl", "resultRecord/listInit?proID=" + proID + "&resultType=1&isPass=0");// 通过率查看地址
+			pageData.put("failureUrl", "resultRecord/listInit?proID=" + proID + "&resultType=1&isPass=1");// 失败率查看地址
+			pageData.put("resultUrl", "resultRecord/listInit3?proID=" + proID + "&resultType=1");// 查看地址
+			pageData.put("resultUrl", "resultRecord/listInit3?proID=" + proID + "&resultType=1");// 查看地址
+			pageData.put("cannotUrl", "useCase/listPage?proID=" + proID + "&isPass=21");// 未完成用例查看地址
+			
+			long end = System.currentTimeMillis();
+			System.out.println("执行结束，执行通过" + successRate + "个，执行不通过" + failureRate + "个，未完成执行" + cannot
+					+ "个，对于未完成执行的用例，请查看用例数据设置是否正确");
+			logUtils.writeLog(realPath, sysUser, "执行结束，执行通过" + successRate + "个，执行不通过" + failureRate + "个，未完成执行"
+					+ cannot + "个，对于未完成执行的用例，请查看用例数据设置是否正确", operation.name(), fileName);
+			return pageData;
+		} catch (Exception e) {
+			try {
+				//处理用于实时显示于页面的项目执行状态
+				Object executingProject = request.getServletContext().getAttribute("executingProject");
+				List<Integer> proIds = null;
+				proIds = (List<Integer>) executingProject;
+				if (proIds != null) {
+					proIds.remove(proID);
+				}
+				request.setAttribute("executingProject", proID);
+
+				logUtils.writeLog(realPath, sysUser, "项目执行,执行失败,捕获异常,异常信息:" + e.getMessage(), operation.name(),
+						fileName);
+				logUtils.writeLog(realPath, sysUser, "项目执行,执行失败,捕获异常,异常栈:" + e.getStackTrace(), operation.name(),
+						fileName);
+			} catch (Exception e1) {
+				e1.printStackTrace();
+			}
+			e.printStackTrace();
+			pageData.put("type", "1");
+			pageData.put("msg", "系统繁忙,请联系管理员");
+		}
+		return pageData;
+	}
+
+	/**
+	 * 合并免费资源数据，把备份到字符串集合的免费资源数据设置到免费资源对象中，以备使用
+	 * 
+	 * @param list
+	 *            根据免费资源json解析的的免费资源集合
+	 * @param resourceTemp
+	 *            获取的免费资源的原有值
+	 * @return
+	 */
+	public List<ResourceFiledForParseJson> margeResource(List<ResourceFiledForParseJson> list,
+			Map<String, Map<String, String>> resourceTemp) {
+		for (ResourceFiledForParseJson resourceFiledForParseJson : list) {
+			Map<String, String> map = resourceTemp.get(resourceFiledForParseJson.getProName());
+			if (map == null) {
+				continue;
+			}
+			if (resourceFiledForParseJson.getType().equals("2")) {
+				String amt = map.get("amt");
+				if (amt != null && !amt.trim().equals("") && amt.contains("_")) {
+					String[] split = amt.split("_");
+					resourceFiledForParseJson.setVal(split[0]);
+					resourceFiledForParseJson.setTxtProCarrVal(split[1]);
+				}
+			} else {
+				resourceFiledForParseJson.setVal(map.get("amt"));
+			}
+		}
+		return list;
+	}
+
+	/**
+	 * 获取项目执行,执行用例记录的详单结果 此方法复制自用例Controller，此后更新同步与用例Controller
+	 * 
+	 * @param useCase
+	 * @param Map<String,
+	 *            Map<String, String>> map 解析自结果文件的结果集合
+	 * @param boolean[]
+	 *            resultFlg 统计结果的工具
+	 * @return
+	 * @throws UnsupportedEncodingException
+	 */
+	public String resultDetail(UseCase useCase, Map<String, Map<String, String>> map, boolean[] resultFlg)
+			throws UnsupportedEncodingException {
+		String resultDetail = new String(useCase.getuCExpDetail(), "GBK");// 获取用的免费资源预期
+		JSONObject expDetailJson = JSONObject.fromObject(resultDetail);
+		JSONArray expDetailJsonArray = expDetailJson.getJSONArray("expDetailJson");
+		JSONArray arrayExpDetailJson = new JSONArray();
+		for (int i = 0; i < expDetailJsonArray.size(); i++) {
+			JSONObject j = expDetailJsonArray.getJSONObject(i);
+			String fieldNames = j.getString("fieldNames");// 需要查询的字段，以及字段的预设结果值("fieldNames":"Mob_fee@570^Toll_fee@0^dis_id@0^duration@1")
+			Map<String, String> map2 = map.get(fieldNames);// 获取对应字段的结果值集合
+			String[] arrayFied = fieldNames.split("\\^");// proId@1^proName@2
+			String newArrayFied = "";
+			for (int o = 0; o < arrayFied.length; o++) {
+				String fielsValue = arrayFied[o];
+				String[] f = fielsValue.split("@");// proId@1
+				String k = f[0].toString();// 查询的字段
+				String v = f[1].toString();// 查询的字段预期的设定的结果值
+				/*
+				 * String resultV = ""; if (k.contains(",")) { String[] split =
+				 * k.split(","); for (int i2 = 0; i2 < split.length; i++) { if
+				 * (i2 != 0) { resultV += ","; } resultV += map2.get(split[i]);
+				 * if (!(v.trim()).equals(map2.get(split[i]).trim())) {
+				 * resultFlg[0] = false; } } } else { resultV = map2.get(k);//
+				 * 字段计算结果 if (!(v.trim()).equals(resultV == null ? null :
+				 * resultV.trim())) {// 对比 resultFlg[0] = false; } }
+				 */
+				String resultV = map2.get(k);// 执行后的实际值
+				if (!compare(v, resultV)) {
+					resultFlg[0] = false;
+				}
+
+				newArrayFied += k + "@" + v + "|" + resultV + "^";// proId@1|1^
+			}
+			newArrayFied = Convert.withCha(newArrayFied, "^");
+			j.put("fieldNames", newArrayFied);
+			arrayExpDetailJson.add(j);
+		}
+		expDetailJson.put("expDetailJson", arrayExpDetailJson);
+
+		return expDetailJson.toString();
+	}
+
+	/**
+	 * 获取当前项目执行,执行用例记录的免费资源结果 此方法复制自用例Controller，此后更新同步与用例Controller
+	 * 
+	 * @param useCase
+	 * @param Map<String,
+	 *            Map<String, String>> resourceResultToMap 解析自结果文件的集合
+	 * @param boolean[]
+	 *            resultFlg 统计结果的工具
+	 * @return
+	 * @throws UnsupportedEncodingException
+	 */
+	public String resultResource(UseCase useCase, Map<String, Map<String, String>> resourceResultToMap,
+			boolean[] resultFlg) throws UnsupportedEncodingException {
+		String resultResource = new String(useCase.getuCExpect(), "GBK");// 免费资源结果预期json字符串
+		JSONObject jsonObject = JSONObject.fromObject(resultResource);// 免费资源预期结果json对象
+		JSONArray jsonArray = jsonObject.getJSONArray("uCExpect");// 免费资源预期结果中的详细集合
+		JSONArray array = new JSONArray();
+		for (int i = 0; i < jsonArray.size(); i++) {// 遍历免费资源预期的每一个产品
+			JSONObject proOfExp = jsonArray.getJSONObject(i);// 获取免费资源预期的每一个产品
+			String type = (String) proOfExp.get("type");// 获取预期结果的产品类型：0 本月套餐
+														// 1上月结转 2 本月和上月结转都有
+			String proId = (String) proOfExp.get("name");// 获取预期产品的产品id
+			Map<String, String> proOfResult = resourceResultToMap.get(proId);// 获取结果集中的相应产品id的产品
+			if (proOfResult == null) {// 结果中没有该产品
+				throw new RoamProjectException(useCase.toString2() + ",预期免费资源有产品:" + proId + ",而结果中没有该产品");
+			} else {
+				String amt = proOfResult.get("amt");// 获取产品执行结果的值，可能是本月_上月，本月，上月
+				amt = amt.trim();
+				if (type.equals("0")) {// 本月套餐
+					String val = (String) proOfExp.get("val");// 获取预期值
+					if (val == null) {
+						if (amt != null) {
+							resultFlg[0] = false;
+						}
+					} else if (val.trim().equals("")) {
+						if (amt.trim().equals("")) {
+							resultFlg[0] = false;
+						}
+					} else {
+						if (!compare(val, amt)) {
+							resultFlg[0] = false;
+						}
+					}
+					proOfExp.put("realityVal", amt);
+				} else if (type.equals("1")) {// 上月结转
+					String val = (String) proOfExp.get("val");// 获取预期值
+					if (val == null) {
+						if (amt != null) {
+							resultFlg[0] = false;
+						}
+					} else if (val.trim().equals("")) {
+						if (amt.trim().equals("")) {
+							resultFlg[0] = false;
+						}
+					} else {
+						if (!compare(val, amt)) {
+							resultFlg[0] = false;
+						}
+					}
+					proOfExp.put("realityVal", amt);
+				} else if (type.equals("2")) {// 本月套餐和上月结转都有
+					if (!amt.contains("_")) {
+						throw new RoamProjectException(
+								useCase.toString2() + ",预期免费资源有产品:" + proId + ",该产品预期既有本月产品值,又有上月结转值,而结果中仅有一个值,无法进行比较");
+					} else {
+						String[] split = amt.split("_");
+						String val = (String) proOfExp.get("val");// 获取本月预期值
+						if (val == null) {
+							if (split[0] != null) {
+								resultFlg[0] = false;
+							}
+						} else if (val.trim().equals("")) {
+							if (split[0].trim().equals("")) {
+								resultFlg[0] = false;
+							}
+						} else {
+							if (!compare(val, split[0])) {
+								resultFlg[0] = false;
+							}
+						}
+						proOfExp.put("realityVal", split[1]);
+						String carryVal = proOfExp.getString("carryVal");// 获取结转预期值
+						if (carryVal == null) {
+							if (split[1] != null) {
+								resultFlg[0] = false;
+							}
+						} else if (carryVal.trim().equals("")) {
+							if (split[1].trim().equals("")) {
+								resultFlg[0] = false;
+							}
+						} else {
+							if (!compare(carryVal, split[1])) {
+								resultFlg[0] = false;
+							}
+						}
+						proOfExp.put("realityTextProCarrVal", split[1]);
+					}
+				}
+				array.add(proOfExp);
+			}
+		}
+		jsonObject.put("uCExpect", array);
+		return jsonObject.toString();
+	}
+
+	/**
+	 * 获取当前项目执行,执行用例记录的累积量结果 此方法复制自用例Controller，此后更新同步与用例Controller
+	 * 
+	 * @param useCase
+	 * @return
+	 * @throws UnsupportedEncodingException
+	 */
+	public String resultTotal(UseCase useCase) throws UnsupportedEncodingException {
+		if (useCase.getuCExpAmount() == null || useCase.getuCExpAmount().length <= 0) {
+			return "";
+		}
+		String resultTotal = new String(useCase.getuCExpAmount(), "GBK");// 免费资源结果
+		if (Convert.isEmpty(resultTotal)) {
+			return "";
+		}
+		JSONObject jsonObject = JSONObject.fromObject(resultTotal);
+		JSONArray jsonArray = jsonObject.getJSONArray("uCExpAmount");
+		JSONArray array = new JSONArray();
+		for (int i = 0; i < jsonArray.size(); i++) {
+			JSONObject json_to_string = jsonArray.getJSONObject(i);
+			json_to_string.put("realityVal", 1);
+			array.add(json_to_string);
+		}
+		jsonObject.put("uCExpAmount", array);
+		return jsonObject.toString();
+	}
+
+	private boolean compare(String s1, String s2) {
+		if ((s1 == null && s2 != null) || (s2 == null && s1 != null)) {
+			return false;
+		}
+		s1 = s1.trim();
+		s2 = s2.trim();
+		try {
+			if (Integer.parseInt(s1) == Integer.parseInt(s2)) {
+				return true;
+			} else {
+				return false;
+			}
+		} catch (Exception e) {
+			try {
+				if (Double.parseDouble(s1) == Double.parseDouble(s2)) {
+					return true;
+				} else {
+					return false;
+				}
+			} catch (Exception e2) {
+				try {
+					if (s1.equals(s2)) {
+						return true;
+					} else {
+						return false;
+					}
+				} catch (Exception e3) {
+					return false;
+				}
+			}
+		}
+	}
+	
+	/**
+	 * 初始化任务下拉选
+	 */
+	@RequestMapping("/queryTaskNameListByProvince")
+	@ResponseBody
+	public List<Project> queryTaskNameListByProvince(HttpServletRequest request){
+		SysUser sysUser = (SysUser) SessionUtils.getAttr(request, SessionUtils.SESSION_USER);
+		String proProvinceName=sysUser.getPost_name();
+		
+		Project pj=new Project();
+		pj.setProProvince(proProvinceName);
+		
+		List<Project> list=projectService.queryTaskNameListByProvince(pj);
+		
+		return list;
+	}
+}

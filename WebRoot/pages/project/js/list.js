@@ -11,9 +11,11 @@ function addMethod(){
 	showWin("project/addInit","新增任务",800,450);
 }
 function removeMethod(user_id){
+	var headers={};  
+    headers['CSRFToken']=$("#csrftoken").val();
 	$.messager.confirm('谨慎操作提示', '确认删除任务?', function(r){
 		if (r){
-			ajaxRequest("project/delete", {id:user_id});
+			ajaxRequest("project/delete", {id:user_id},headers);
 		}
 	});
 }
@@ -181,12 +183,7 @@ function exportAll(){
 			form.submit();
 			console.log(params);
 			$.post(urlStr1,function(data){
-				//console.log(data)
-				//if(data.success=="true"){
-					$.messager.confirm('下载提示', '文件下载成功！', function(){});
-				/*}else{
-					$.messager.confirm('下载提示', '文件下载失败！', function(){})
-				}*/
+				$.messager.confirm('导出提示', '文件导出成功！', function(){});
 			})
 /*			$.ajax({
 				type:"POST",
