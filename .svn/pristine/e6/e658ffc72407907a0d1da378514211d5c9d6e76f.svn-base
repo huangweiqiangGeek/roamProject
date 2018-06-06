@@ -18,12 +18,12 @@ function formatDt(value,rowDatas,rowIndex){
 }
 //省级任务统计
 $(function(){
+	$('#dg').datagrid({
+		fit:false
+    });
 	drawStatistics1();
 	drawStatistics2();
-	var AA= "<div id='example'><p class='solgan'>我喜欢国庆节小长假</p></div>"
 	//detail();
-	'<input type="text"  id="chargingPho" value="'+defaults+'" placeholder="'+defaults+'"choiceAway="'+choiceAway+'" range="'+range+'" scriptUrl="'+scripturl+
-	 '" name="fieldName" class="easyui-validatebox validatebox-text" style="width: 150px" maxlength="100">'
 });
 function detail(){
 	$.ajax({

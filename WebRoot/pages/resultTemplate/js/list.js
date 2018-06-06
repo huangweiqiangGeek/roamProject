@@ -1,4 +1,3 @@
-
 function searchMethod(){
 	var templateName = $('#templateName').val();
 	var provinceName =$('#provinceName').val();

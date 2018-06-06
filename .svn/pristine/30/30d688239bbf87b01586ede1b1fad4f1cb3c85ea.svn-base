@@ -224,7 +224,6 @@ function dispatchAll(){
 				type:"POST",
 				url:"useCase/dispatchAll?id="+params,
 				success:function(data){
-					console.log("调度任务",data);
 					$('#dg').datagrid('clearSelections'); 
 					if(data.type==-1){
 						$.messager.alert('温馨提示',data.msg,'',function(){
@@ -399,7 +398,6 @@ function fileChange(target,id) {
         }
     } 
 }
-//导入
 function filedsend(){
 	if(isnext==false){
 		$.messager.confirm('谨慎操作提示', '附件不存在，请重新选择！');
